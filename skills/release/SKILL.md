@@ -13,29 +13,37 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
-**Pick the release title** (see themes below), then close the changelog's in-progress section with it. The heading carries version, date and title:
+**Settle the version number first — the stub's is provisional.** The in-progress stub was opened right after the last release, when the only guess available was "next patch". What it actually becomes depends on what landed in it, per semver:
 
 ```markdown
-**2.2.0** (12 May 2026) — *"Hail Eris"* edition:
+**2.2.1** (in progress):        ← stub, opened after 2.2.0 shipped
 ```
 
-...replacing the stub heading it grew under:
+becomes `2.2.1` if only fixes landed, `2.3.0` if features did, or `3.0.0` on a breaking change. Renumber the heading to match reality; don't inherit the guess.
+
+**Then close the section with version, date and — for a feature release — a title:**
 
 ```markdown
-**2.2.1** (in progress):
+**2.3.0** (12 May 2026) — *"Hail Eris"* edition:
 ```
 
-The same title goes on the GitHub release, prefixed with the project name — `mcpyrate 4.2.0 — "X marks the spot"`.
+The same title goes on the GitHub release, prefixed with the project name: `unpythonic 2.3.0 — "Hail Eris"`.
+
+**Patch and hotfix releases go out untitled.** Titles are for minor and major releases. A patch keeps the plain form in both places:
+
+```markdown
+**4.1.1** (8 May 2026) - hotfix:
+```
+
+...released on GitHub as simply `Version 4.1.1`.
 
 ### Release title themes
 
-Each project draws its release titles from its own well:
+A titled release draws its name from the project's own well:
 
 - **mcpyrate** — ships and pirates
 - **unpythonic** — meta-commentary, discordian
 - **pyan3** — cartography
-
-Hotfix and patch releases have gone out untitled (`**4.1.1** (8 May 2026) - hotfix:`, released as plain "Version 4.1.1"), so a title doesn't appear to be mandatory for those — but the pattern is observed, not stated policy. Ask if unsure.
 
 ## Post-release
 
