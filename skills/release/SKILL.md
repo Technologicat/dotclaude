@@ -27,7 +27,7 @@ becomes `2.2.1` if only fixes landed, `2.3.0` if features did, or `3.0.0` on a b
 **2.3.0** (12 May 2026) — *"Hail Eris"* edition:
 ```
 
-The same title goes on the GitHub release, prefixed with the project name: `unpythonic 2.3.0 — "Hail Eris"`.
+The same title goes on the GitHub release — in whatever shape that project uses; see "Heading formats vary by project" below.
 
 **Patch and hotfix releases go out untitled.** Titles are for minor and major releases. A patch keeps the plain form in both places:
 
@@ -44,6 +44,22 @@ A titled release draws its name from the project's own well:
 - **mcpyrate** — ships and pirates
 - **unpythonic** — meta-commentary, discordian
 - **pyan3** — cartography
+- **chandra** — its decipherment/astronomy palette: *reading what's present but unseen*. (Hence `Earthshine` — Earth's reflected light revealing the moon's dark limb. The palette is described in chandra's own `CLAUDE.md` under "Voice and naming", and covers component names too: `rosetta`, `concordance`, `palimpsest`.)
+- **raven** — none. It's an evolving research prototype; releases are plain (`Raven 0.2.7`).
+
+### Heading formats vary by project — copy the last release
+
+Like the tag format, the changelog heading and the GitHub release title differ across
+projects. Don't apply another project's shape from memory; open the repo's `CHANGELOG.md`
+and its previous GitHub release, and match what's there. Two live examples:
+
+```markdown
+**2.2.0** (12 May 2026) — *"Hail Eris"* edition:     unpythonic, mcpyrate
+## 0.2.0 — 2026-06-16                                chandra (ISO date, ## heading)
+```
+
+and on GitHub, `mcpyrate 4.2.0 — "X marks the spot"` (project name prefixed) versus
+chandra's `0.2.0 — Earthshine` (not prefixed).
 
 ## Post-release
 
