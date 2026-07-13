@@ -199,6 +199,9 @@ Edit `~/.config/reshade/Shaders/CRT_Lottes.fx` with these changes:
 #define CRT_LOTTES_DOWNSCALE 0   // was 1
 #endif
 
+// Around line 26: no barrel distortion
+#define CRT_LOTTES_WARP 0        // was 1
+
 // Around line 70: gentler scanline darkening
 > = 0.85;   // fThin: was 0.7
 
@@ -208,6 +211,8 @@ Edit `~/.config/reshade/Shaders/CRT_Lottes.fx` with these changes:
 // Around line 86: subtler shadow mask
 > = 0.7;    // fMask: was 0.5
 ```
+
+Five edits, and that's the complete set — every other `CRT_LOTTES_*` macro and uniform is at its upstream default (`TONE`, `CONTRAST`, `SATURATION` on; `MASK` = `GRILLE_LITE`; `2TAP`, `CUSTOM_RESOLUTION` off; `SMOOTH_DOWNSCALE` on). The shader records its own originals in trailing comments, so `grep '// ' CRT_Lottes.fx` re-derives this list from the live file if it ever drifts again.
 
 `fDownscale` stays at 2.0 (default). Even with `CRT_LOTTES_DOWNSCALE = 0`,
 this still controls scanline pitch — at 1080p output you get 540-line
@@ -219,8 +224,13 @@ panel switched between 1080p and 4K input, scanlines are half as thick at
 4K. For matched physical scanline thickness across resolutions, scale
 `fDownscale` proportionally: `2.0` at 1080p input, `4.0` at 4K input.
 
-Leave `f2Warp` (barrel distortion) at default for now. To disable curvature
-entirely, set the `CRT_LOTTES_WARP` macro to 0 at the top of the file.
+**Curvature is off.** `CRT_LOTTES_WARP` is set to 0, which compiles the barrel
+distortion out entirely; the `f2Warp` uniform is then inert and its value
+doesn't matter. Warp is the one CRT artifact that a flat panel can only
+simulate, not restore — scanlines and shadow mask reconstruct something the
+sprite art was authored against, whereas curvature just bends a flat image and
+costs edge legibility. To get it back, set the macro to 1 and tune `f2Warp`
+from there.
 
 ## vkBasalt config
 
