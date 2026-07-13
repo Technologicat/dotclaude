@@ -111,10 +111,21 @@ pipx install mcpyrate --python python3.12 --suffix 3.12
 pipx install mcpyrate --python python3.13 --suffix 3.13
 pipx install mcpyrate --python python3.14 --suffix 3.14
 
+# ...and a bare `macropython` pointing at a current one, so tooling and docs can
+# rely on the unsuffixed name existing. Cleaning __pycache__ (macropython -C) is
+# version-agnostic, which is the common use for the bare name.
+ln -s ~/.local/bin/macropython3.14 ~/.local/bin/macropython
+
 # Editor tools fallback venv (for projects without their own venv)
 python3.14 -m venv ~/.local/venvs/editor-tools
 ~/.local/venvs/editor-tools/bin/python -m pip install flake8 autopep8 importmagic epc
 ```
+
+**When to use the suffixed name instead.** The bare symlink is a convenience for
+version-agnostic work — cleaning `__pycache__`, mostly. To *run* macro-enabled code
+outside a project venv, the interpreter version matters, so name it explicitly
+(`macropython3.12 script.py`). Inside a project venv that has `mcpyrate`, the venv's
+own `macropython` shadows the symlink anyway and is the right one by construction.
 
 ### IPython config for mcpyrate
 
