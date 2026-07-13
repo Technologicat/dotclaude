@@ -324,7 +324,7 @@ Timeshift is a GUI app, but **it has a full CLI** — you never need a working d
 
 Getting to a shell, in order of preference:
 
-1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F3 gets you a TTY login. This works far more often than the black screen suggests.
+1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F1 gets you a TTY login on Mint — and it's the one to reach for first, since it also shows what the dying session was complaining about. This works far more often than the black screen suggests. (Some distros park the graphical session on F1 or F2; if F1 lands you back on the dead screen, walk up through F2–F6.)
 2. **GRUB recovery mode.** If even that fails: hold Shift (or Esc) during boot → *Advanced options* → the `(recovery mode)` entry → *root shell*. The root filesystem is mounted read-only there, so remount it first:
 
    ```bash
@@ -345,11 +345,25 @@ Restoring `/` from the running system is supported and expected — Timeshift st
 
 ## Hardware
 
-- Check NVIDIA drivers: `nvidia-smi`
-- Check CUDA version: `nvidia-smi` (top right)
+- Check the driver, and the CUDA version it supports (top right): `nvidia-smi`
 - List GPUs: `nvidia-smi -L`
-- Torch device ordering: eGPU is `cuda:0`, internal dGPU is `cuda:1`. Without eGPU, internal is `cuda:0`.
-- Note: GPU model alone may be ambiguous (e.g. both internal and eGPU could be 4090s with different VRAM). Use `nvidia-smi -L` to distinguish.
+
+### The two GPU numberings disagree
+
+On a multi-GPU box, `nvidia-smi` and CUDA index the same cards differently, and nothing reconciles them:
+
+- **`nvidia-smi` enumerates in PCI bus order.** On a laptop + eGPU, that puts the internal dGPU first.
+- **CUDA — and therefore torch — defaults to `CUDA_DEVICE_ORDER=FASTEST_FIRST`**, which puts the beefiest card first. `CUDA_VISIBLE_DEVICES` is interpreted in *this* ordering, not `nvidia-smi`'s.
+
+So on a machine whose eGPU is the faster card, `nvidia-smi` calls the internal dGPU GPU 0 while torch calls it `cuda:1` — exactly inverted. Note that this is a *consequence*, not a rule: the eGPU sorts first because it's faster, not because it's external. A weaker eGPU would sort last, and any doc that memorized "eGPU is `cuda:0`" would then be quietly wrong.
+
+Practical upshots:
+
+- Identify GPUs by **name or UUID**, never by assuming the two tools agree on an index. `nvidia-smi -L` prints both. Model name alone can be ambiguous — two cards of the same model with different VRAM are indistinguishable by name.
+- To pin work to a specific card, `scripts/run-on-internal-gpu.sh` in this repo is the worked example; its header comment explains why it *counts* GPUs with `nvidia-smi` but never *indexes* them with it.
+- Setting `CUDA_DEVICE_ORDER=PCI_BUS_ID` makes the two agree, at the cost of reordering devices for every CUDA process in that shell.
+
+Per-machine GPU inventory, device ordering as actually observed, and benchmark numbers live in `HARDWARE-NOTES.md` (machine-local, not in this repo).
 
 ## Gaming
 
