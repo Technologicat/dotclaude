@@ -72,7 +72,7 @@ Detailed recipe in `VKBASALT-SETUP.md`: build steps, dependency cascade (`spirv-
 
 ## Per-game launch options
 
-- **Arcana Heart 3:** `ENABLE_VKBASALT=1 DXVK_FRAME_RATE=60 %command%` — fighter timing tied to frames; uncapped 144 FPS subtly breaks move windows. Stock Proton 10.0-4 works (no longer needs GE-7-50 once the i386 NVIDIA libs are in place). Also enables vkBasalt to get the CRT filter (see above).
+- **Arcana Heart 3:** `ENABLE_VKBASALT=1 DXVK_FRAME_RATE=60 %command%` — the game's timing is tied to frames and it expects 60 FPS, so uncapped on a 144 Hz panel it runs at 144/60 = 2.4× speed. Not a subtle drift in the move windows; the whole game is fast. The frame cap is what makes it playable at all. Stock Proton 10.0-4 works (no longer needs GE-7-50 once the i386 NVIDIA libs are in place). `ENABLE_VKBASALT=1` is what switches on the CRT filter (see above).
 
 ## Display GPU topology
 
