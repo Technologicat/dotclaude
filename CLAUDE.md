@@ -228,8 +228,10 @@ If it's somehow missing, the global pipx installs are version-suffixed — `ls ~
 - **Multiple Pythons are available system-wide**, from the deadsnakes PPA (see `NEW-MACHINE-SETUP.md`). *Which* versions exist differs per machine, so don't assume — check:
 
   ```bash
-  ls /usr/bin/python3.1*
+  ls /usr/bin/python*.*[0-9]
   ```
+
+  (The glob is deliberately loose: it matches any `pythonMAJOR.MINOR` — surviving 3.20 and, in the fullness of time, a 4.x — while excluding `-config` and the bare `python` / `python3` aliases.)
 
 - **Shared venvs**: `~/.local/venvs/` (e.g. `editor-tools`). Per-project venvs can be created as needed.
 
