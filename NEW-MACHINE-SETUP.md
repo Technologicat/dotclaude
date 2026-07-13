@@ -316,7 +316,13 @@ vulkaninfo --summary | grep -E 'deviceName'      # NVIDIA on its line, not just 
 
 The Vulkan ICD manifest at `/usr/share/vulkan/icd.d/nvidia_icd.json` uses a bare soname (`libGLX_nvidia.so.0`), not an absolute path — so a single manifest covers both arches as long as the i386 library is on disk. No separate `nvidia_icd.i686.json` is needed; absence of one is not the diagnostic.
 
-Take a Timeshift snapshot before any driver-stack swap. NVIDIA's userspace + kernel module + DKMS state can end up in inconsistent states even when apt is happy, and a black-screen X server is much faster to recover from a snapshot than to debug in place.
+Take a Timeshift snapshot before any driver-stack swap — a manual one, not just whatever the schedule last produced:
+
+```bash
+sudo timeshift --create --comments 'before nvidia-driver-XXX'
+```
+
+NVIDIA's userspace + kernel module + DKMS state can end up inconsistent even when apt reports success, and a black-screen X server is much faster to roll back than to debug in place.
 
 ### Restoring a snapshot when X won't start
 
@@ -324,7 +330,7 @@ Timeshift is a GUI app, but **it has a full CLI** — you never need a working d
 
 Getting to a shell, in order of preference:
 
-1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F1 gets you a TTY login on Mint — and it's the one to reach for first, since it also shows what the dying session was complaining about. This works far more often than the black screen suggests. (Some distros park the graphical session on F1 or F2; if F1 lands you back on the dead screen, walk up through F2–F6.)
+1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F1 gets you a TTY login. Mint keeps the graphical session on tty7 in the traditional way, so F1–F6 are all plain text consoles and F1 is the natural first stop — it also shows what the dying session was complaining about on its way out. This works far more often than a black screen suggests. (Distros that run the display manager on tty1 — modern Ubuntu, for one — need F2 or higher instead.)
 2. **GRUB recovery mode.** If even that fails: hold Shift (or Esc) during boot → *Advanced options* → the `(recovery mode)` entry → *root shell*. The root filesystem is mounted read-only there, so remount it first:
 
    ```bash
