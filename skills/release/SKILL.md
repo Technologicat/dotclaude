@@ -9,11 +9,19 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 **Publishing is CI-driven.** GitHub Actions publishes to PyPI on tag push, via trusted publishing (OIDC — no API tokens). There is no manual `twine upload` step. Tag, push, create the GitHub release.
 
-**Pre-release checklist:** check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
+## Pre-release
 
-**Post-release:** bump the version to `X.Y.Z-dev` in source, add a changelog stub with "(in progress)" and "*No user-visible changes yet.*", commit and push. Doing this immediately means the next bugfix has somewhere to write its entry.
+Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
-**Release title themes**, by project:
+Make sure the in-progress changelog section is complete, and retitle it from "(in progress)" to the version being released.
+
+## Post-release
+
+Bump the version to `X.Y.Z-dev` in source, and add the next changelog stub — "(in progress)", with "*No user-visible changes yet.*" under it. Commit and push.
+
+Do this immediately after tagging, rather than at the start of the next release: it means the next bugfix already has somewhere to write its changelog entry, which is what keeps entries getting written while the context is fresh instead of reconstructed from `git log` months later.
+
+## Release title themes
 
 - **mcpyrate** — ships and pirates
 - **unpythonic** — meta-commentary, discordian
@@ -21,7 +29,4 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 ## Changelogs
 
-Entry wording, scope, and the "is this even user-visible?" test are in the `changelog` skill. The release-time touchpoints are:
-
-- Before tagging: make sure the in-progress section is complete and retitled from "(in progress)" to the version being released.
-- After tagging: add the next "(in progress)" stub, per the post-release step above, so the next bugfix has somewhere to write its entry.
+Entry wording, scope, and the "is this even user-visible?" test are in the `changelog` skill. The release-time touchpoints are the two above: retitle the in-progress section before tagging, open a fresh stub after.
