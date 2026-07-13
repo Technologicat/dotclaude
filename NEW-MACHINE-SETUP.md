@@ -286,9 +286,17 @@ Use the **graphics-drivers PPA**, on every machine:
 ```bash
 sudo add-apt-repository ppa:graphics-drivers/ppa
 sudo apt update
-sudo apt install nvidia-driver-XXX  # XXX = current version per repo README
+
+# What's actually on offer, newest last:
+apt-cache search '^nvidia-driver-[0-9]+$' | sort -V
+
+sudo apt install nvidia-driver-XXX   # XXX = a version from that list
 sudo reboot
 ```
+
+**Read the descriptions, don't just take the highest number.** The list interleaves two kinds of package: plain `NVIDIA driver metapackage` (desktop — what you want) and `NVIDIA Server Driver metapackage` (datacenter branch). They're numbered in one sequence, so the newest number is not reliably the newest *desktop* driver. Pick the highest-numbered plain desktop metapackage unless you have a specific reason not to.
+
+The PPA's own page lists what it currently ships and which Ubuntu releases each supports: <https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa>
 
 Reboot is needed so the kernel module matches userspace.
 
