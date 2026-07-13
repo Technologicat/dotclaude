@@ -185,7 +185,7 @@ GPU models, torch device ordering, and benchmarks: see `~/.claude/HARDWARE-NOTES
 
 ## GitHub
 
-When commenting on issues or PRs via `gh`, append an attribution footer: `*— Claude (Opus 4.6)*` (update model name/version as appropriate). This distinguishes AI-drafted comments from manually written ones.
+When commenting on issues or PRs via `gh`, append an attribution footer naming the model that actually wrote the comment — currently `*— Claude (Opus 4.8)*`. This distinguishes AI-drafted comments from manually written ones. Use your own version, not the one in this line: it's an example, and it will lag.
 
 **"I" vs. "we" is a semantic choice, decided per occurrence by who the actual actor is.** In outputs from the human-AI team (PR/issue comments, commit messages, project docs — whether newly written or edited), the projects are maintained as a human-AI team, so the voice for things attributable to *the team* is "we" ("we'd like to merge this", "we maintain pyan3"). But use "I" for what *you* (the agent) personally did — "I verified this locally against the branch", "I ran the suite" — because that attribution is literally true and the distinction carries information. Mixing "we" and "I" within one comment is correct when the team decides but the agent acted. The point is to choose each pronoun by its referent — don't reach for one pronoun as a blanket default, and (when editing existing text) don't sweep-replace one into the other.
 
