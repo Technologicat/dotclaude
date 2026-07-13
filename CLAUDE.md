@@ -225,7 +225,12 @@ If it's somehow missing, the global pipx installs are version-suffixed — `ls ~
 
 ## Python environments
 
-- **Deadsnakes Pythons**: `python3.13`, `python3.14` available system-wide.
+- **Multiple Pythons are available system-wide**, from the deadsnakes PPA (see `NEW-MACHINE-SETUP.md`). *Which* versions exist differs per machine, so don't assume — check:
+
+  ```bash
+  ls /usr/bin/python3.1*
+  ```
+
 - **Shared venvs**: `~/.local/venvs/` (e.g. `editor-tools`). Per-project venvs can be created as needed.
 
 # Local additions
