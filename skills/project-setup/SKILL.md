@@ -419,14 +419,18 @@ syntax that would cause parse errors on older Pythons (e.g. a
 to `exclude` in `[tool.ruff]` *and* to the `exclude` line in any flake8
 config. Both linters parse all files in their scope by default.
 
-**Deferred: ruff formatting checks.** The current ruleset does not catch
-continuation-indent issues like `E128` (continuation line under-indented
-for visual indent). flake8 used to check these as part of linting, but
-ruff splits them into its separate formatter (`ruff format`), which we
-don't currently invoke — and we don't want ruff's formatter to rewrite
-code automatically, because it would break the house style. A future
-pass should re-enable E128 and similar continuation-indent rules without
-enabling the rewriter. Deferred.
+**Known gap: continuation-indent formatting is not checked, so broken formatting
+reaches the default branch.** Ruff does not catch `E128` (continuation line
+under-indented for visual indent) or its siblings — and *cannot*: as of 0.15.6 it
+implements `E101` and `E111`–`E117` (the latter preview-gated) and the entire `E12x`
+continuation-line family is absent. Ruff never ported those rules, treating them as
+the formatter's job. `ruff format` would catch them but is Black-shaped and would
+rewrite the fleet against the house style, which we don't want.
+
+The fix is a second, check-only linter: `pycodestyle --select E12` as a blocking CI
+step (a checker, not a fixer — it cannot rewrite), with `autopep8 --select E12
+--in-place` as the local remedy. Tracked in `TODO_DEFERRED.md` in the `~/.claude`
+repo, which records the verification. Not yet rolled out.
 
 ### Cython-lint config
 
