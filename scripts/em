@@ -2,6 +2,17 @@
 # Open file(s) in Emacs. Without arguments, starts Emacs.
 # With --require-server (-r), fail if no server is running (for scripts/automation).
 #
+# Why this exists: Emacs ships the *mechanism* — server mode, and emacsclient to
+# talk to it — but punts on the UX around it. Bare emacsclient doesn't decide
+# whether a frame needs creating, doesn't start a daemon if none is running unless
+# told to, and won't raise the window it just opened your file in. So the file
+# lands in an Emacs you can't see, which is the same as not opening it. This
+# wrapper makes the three decisions:
+#
+#   - no frame open  -> create one (-c), starting a daemon if needed (-a '')
+#   - frame open     -> reuse it
+#   - either way     -> raise the window (wmctrl), so the file is actually in front of you
+#
 # Deploy by symlinking onto PATH, so this stays the single copy:
 #
 #     ln -s ~/.claude/scripts/em ~/.local/bin/em
