@@ -21,7 +21,7 @@ Sibling skill: `project-setup` covers the build system and linter config.
 - For pre-release Python versions (e.g. 3.15): `allow-prereleases: true`
 - **Install pytest as a raw pip step alongside the other build/test deps** (see "Test dependencies in CI" below). Don't use `[project.optional-dependencies].test` — pytest is dev tooling, not a published library feature.
 - Install ruff and cython-lint separately in the lint job — they're CI tools, not project test deps. (They also live in `[dependency-groups].dev` so local dev has them.)
-- **Cython extensions on Windows:** add `ilammy/msvc-dev-cmd@v1` before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
+- **Cython extensions on Windows:** add an `ilammy/msvc-dev-cmd` step (SHA-pinned, like every action) before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
 
 ### Lint configuration — see the `project-setup` skill
 
@@ -62,7 +62,7 @@ due to a known false positive on relative cimports. See the
 
 - **Trigger:** push to master only (not PRs)
 - **Single Python version** (e.g. 3.12) — no matrix needed
-- Uses `codecov/codecov-action@v6` (as of Apr 2026)
+- Uses `codecov/codecov-action`, SHA-pinned like every action
 - Upload step:
   ```yaml
   - name: Upload coverage reports to Codecov
@@ -432,5 +432,5 @@ When setting up CI for a project, check:
 
 - **Build system**: in CI, always install test deps (`pytest`, etc.) as a separate raw-pip step and the project itself with plain `pip install -e .` (or `pip install --no-build-isolation -e .` for meson-python projects). Don't use `[test]` extras — see "Test dependencies in CI" above.
 - **Test runner**: Some projects use pytest, some have a custom runner (`runtests.py`). Adjust CI steps accordingly.
-- **Action versions**: Prefer `actions/checkout@v6`, `actions/setup-python@v6`, `codecov/codecov-action@v6`, `actions/upload-artifact@v7`, `actions/download-artifact@v8` (as of Apr 2026). Bump older versions if present.
+- **Action versions**: the usual set is `actions/checkout`, `actions/setup-python`, `codecov/codecov-action`, `actions/upload-artifact`, `actions/download-artifact`. Don't copy version numbers out of this file — they go stale. Resolve the current release of each and pin its SHA (see "Pin GitHub Actions to commit SHAs" for the `gh api` one-liners); Dependabot maintains the pins from there.
 - **pytest-cov conflict**: Check if `pytest.ini` / `pyproject.toml` has pytest-cov in addopts (see the gotcha under "Coverage generation").
