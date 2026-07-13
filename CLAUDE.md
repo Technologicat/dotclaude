@@ -56,7 +56,7 @@ During a task, if you discover unrelated bugs, improvements, or issues, do not a
 
 **Exception: bugs surfaced by the tests you're writing.** When extending test coverage uncovers a latent bug in the code under test, the fix is part of the current task — fix it inline, not in a deferred item. Adding the test *is* the act of exercising a previously-untested branch, so this is the first-and-best moment to correct it. Only defer if the fix needs a major rewrite or crosses into unrelated subsystems.
 
-When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `release` skill; each project's `CLAUDE.md` may add conventions on top.
+When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `changelog` skill; each project's `CLAUDE.md` may add conventions on top.
 
 ### File format
 
