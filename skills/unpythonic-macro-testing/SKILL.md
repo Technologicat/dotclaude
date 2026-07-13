@@ -63,7 +63,13 @@ Two things this buys you for free:
 - `test_raises[cls, expr]` — passes if `expr` raises exactly `cls`.
 - `test_signals[cls, expr]` — the conditions-and-restarts analogue of `test_raises`.
 - `warn[msg]` — advisory; does not count toward Pass/Fail/Error and does not fail the testset. Use for version gates and optional-dependency skips.
-- `returns_normally(expr)` — a plain function, for "this just shouldn't blow up".
+- `returns_normally(expr)` — for "this just shouldn't blow up". It's a *predicate*, not an assertion, so it goes **inside** a `test[]`:
+
+  ```python
+  test[returns_normally(dothing())]
+  ```
+
+  It passes if `expr` runs to completion without raising or signaling. Being a plain function rather than a macro, it composes into a larger assertion where that's useful — but on its own, outside a `test[]`, it asserts nothing.
 
 ## Pass / Fail / Error — the distinction is load-bearing
 
