@@ -357,6 +357,8 @@ sudo reboot
 
 Restoring `/` from the running system is supported and expected — Timeshift stages the rollback and completes it on the reboot.
 
+**A rollback does not touch your data.** Timeshift snapshots *system* files only — it's the equivalent of a Windows system restore point, not a backup. Rolling back to a snapshot from a week ago does not cost you a week of work; what it costs is any OS package updates that landed since. (User data is a separate concern, handled here by Back in Time.) So there is no reason to hesitate over restoring an older snapshot than you'd like — hesitating is how people end up debugging a broken driver stack at 1 a.m. instead.
+
 ## Hardware
 
 - Check the driver, and the CUDA version it supports (top right): `nvidia-smi`

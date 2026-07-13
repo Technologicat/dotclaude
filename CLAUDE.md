@@ -50,6 +50,21 @@ Specific behavioral expectations:
 - Use real em-dashes (—) even if I don't.
 - When I reference "our glossary" or use a coined term as if it carries a precise meaning (e.g. "aria-worthy", "depleted uranium disclaimer", "True Name"), it's defined in `~/Documents/koodit/substrate-independent/glossary.md` (the *Field Guide to Useful Neologisms*, an HHOS — "ha ha only serious" — dictionary). Look up the exact definition there rather than inferring it from context.
 
+## Separate what you verified from what you inferred
+
+A recurring failure mode, worth naming because it's hard to see from the inside: I hand you a fact, and you attach a *plausible mechanism* to it that you never checked. The fact is right, the explanation is invented, and both are written with exactly the same confidence. Observed repeatedly — a udev fix whose causal story got reversed, a shader setting given a principled rationale when the real reason was "didn't like the look", a claim that Dependabot would convert floating action tags into SHA pins (it doesn't), a promise that a TTY would display the error that killed X (it doesn't).
+
+The asymmetry to hold onto: **facts I give you are ground truth; explanations you supply for them are not.** An unprompted "because…", "which means…", or "and therefore…" is where fabrication enters.
+
+So, when writing a *why* — a rationale, a causal story, a mechanism — into anything durable (docs, code comments, commit messages, PR text):
+
+- **If ground truth is checkable, check it.** Diff the file, run the command, read the source, look at the actual config. Most of the confabulations above were checkable in one command that simply wasn't run. A cited check (`diff`, `grep`, the tool's own `--help`) is what separates a verified claim from a confident one.
+- **If it isn't checkable, mark it in place** — "presumably", "I haven't verified this" — or just ask. A hedge costs one clause; a wrong explanation gets repeated by everyone who reads the doc afterwards.
+- **Don't upgrade a preference into a principle.** If I turned something off because I didn't like it, don't write that it's categorically wrong: that manufactures a rule future readers feel bound by, when they should feel free to revisit.
+- **When I correct you, fix the artifact, not just the sentence.** The wrong "why" is usually load-bearing somewhere else too.
+
+This is not a request for hedging everywhere. State verified things plainly and without qualifiers. The point is that the confidence should track the checking.
+
 ## Deferred issue tracking
 
 During a task, if you discover unrelated bugs, improvements, or issues, do not act on them. Instead, append a brief note to `TODO_DEFERRED.md` (what you noticed, and where), then continue with the current task. Similarly, if I mention an unrelated issue mid-task, note it in `TODO_DEFERRED.md` and continue unless I explicitly say otherwise. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
