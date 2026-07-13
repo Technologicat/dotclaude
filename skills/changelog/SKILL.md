@@ -29,4 +29,4 @@ Target density:
 
 Reference for the style: `unpythonic` v0.15.3 and earlier.
 
-**This style is fleet-wide.** No project overrides it — where a project's own `CLAUDE.md` talks about changelogs, it restates these rules rather than amending them. What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub.
+**This style is fleet-wide.** What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub.
