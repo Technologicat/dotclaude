@@ -29,4 +29,22 @@ Target density:
 
 Reference for the style: `unpythonic` v0.15.3 and earlier.
 
+## Nest subordinate detail; don't flatten it
+
+When an entry has detail that *belongs to it* — a caveat, a consequence worth knowing, an error taxonomy — put it in nested bullets under the entry rather than cramming it into the lead sentence or splitting it into a sibling entry. The lead bullet says what changed from the user's point of view; the children carry what a user of *that* change then needs to know.
+
+```markdown
+- `unpythonic.dialects.befunge`: a Befunge-93 interpreter wrapped as a whole-module
+  source dialect. [...]
+  - Demonstrates the `mcpyrate` `Dialect.transform_source` hook for a different shape
+    of source language than `bf` [...]
+  - Three error categories: `SyntaxError` for source-level malformation, `IndexError`
+    for runtime out-of-grid `g`/`p`, and `UnknownOpcodeError` [...]
+  - The module docstring above the dialect-import is the recommended way to comment a
+    Befunge file (`#` is a real Befunge command, so comments inside the body aren't
+    supported).
+```
+
+Flattening these into siblings would imply they're independent changes; folding them into the parent sentence would bury them. The nesting *is* the information — see the "flat is better than nested, except when nesting carries meaning" rule in `CLAUDE.md`, which applies to prose as much as to code.
+
 **This style is fleet-wide.** What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub.
