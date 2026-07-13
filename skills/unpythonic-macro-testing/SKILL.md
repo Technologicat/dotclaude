@@ -109,6 +109,6 @@ There are a handful of others in the same family (wrapping an entire `==`, redun
 
 `the[]` is not supported inside `test_raises`, `test_signals`, `fail`, `error`, or `warn`.
 
-Naming: in test code, avoid `the`-prefixed variable names — `the[theconstant]` isn't English. Use `constant_node` instead.
+Naming: in test code, avoid variable names that start with "the" — the article collides with the macro at the use site. `test[the[theresult] == 42]` isn't English. Call it `result`.
 
 When grepping for it, anchor the search: `\bthe\[`.
