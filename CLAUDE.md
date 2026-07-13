@@ -143,8 +143,8 @@ Active projects (✓ = has a CLAUDE.md config):
 
 **Applications:**
 - **raven** ✓ — constellation of local-first NLP/scientific apps (DPG): `~/Documents/koodit/raven`
-- **arxiv-api-search** — arXiv boolean search → BibTeX export: `~/Documents/koodit/arxiv-api-search`. Absorbed into Raven as `raven-arxiv-search`; standalone project is obsolete but kept as a minimal pure-Python reference for the current PDM/lint/CI setup.
 - **chandra** ✓ — tools for working with ComfyUI metadata: `~/Documents/koodit/chandra`
+- **arxiv-api-search** — *obsolete*, listed last for that reason. arXiv boolean search → BibTeX export: `~/Documents/koodit/arxiv-api-search`. Absorbed into Raven as `raven-arxiv-search`; kept only as a minimal pure-Python reference for the current PDM/lint/CI setup.
 
 **Documentation (not code):**
 - **substrate-independent** — collaboration philosophy, AI pair-programming field observations, and the *Field Guide to Useful Neologisms*: `~/Documents/koodit/substrate-independent`
