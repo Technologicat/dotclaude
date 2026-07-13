@@ -316,7 +316,32 @@ vulkaninfo --summary | grep -E 'deviceName'      # NVIDIA on its line, not just 
 
 The Vulkan ICD manifest at `/usr/share/vulkan/icd.d/nvidia_icd.json` uses a bare soname (`libGLX_nvidia.so.0`), not an absolute path — so a single manifest covers both arches as long as the i386 library is on disk. No separate `nvidia_icd.i686.json` is needed; absence of one is not the diagnostic.
 
-Take a Timeshift snapshot before any driver-stack swap. NVIDIA's userspace + kernel module + DKMS state can end up in inconsistent states even when apt is happy, and a black-screen X server is much faster to recover from a snapshot than from a TTY.
+Take a Timeshift snapshot before any driver-stack swap. NVIDIA's userspace + kernel module + DKMS state can end up in inconsistent states even when apt is happy, and a black-screen X server is much faster to recover from a snapshot than to debug in place.
+
+### Restoring a snapshot when X won't start
+
+Timeshift is a GUI app, but **it has a full CLI** — you never need a working desktop to roll back. That's the whole reason the snapshot is worth taking before touching the driver stack.
+
+Getting to a shell, in order of preference:
+
+1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F3 gets you a TTY login. This works far more often than the black screen suggests.
+2. **GRUB recovery mode.** If even that fails: hold Shift (or Esc) during boot → *Advanced options* → the `(recovery mode)` entry → *root shell*. The root filesystem is mounted read-only there, so remount it first:
+
+   ```bash
+   mount -o remount,rw /
+   ```
+
+Then, from either shell:
+
+```bash
+sudo timeshift --list                                  # snapshot names, newest last
+sudo timeshift --restore --snapshot '2026-07-13_09-00-01'
+sudo reboot
+```
+
+`--restore` prompts for confirmation and for the target device; add `--scripted` to skip the prompts if you're confident. If the snapshots live on a device Timeshift isn't currently configured for, point it there with `--snapshot-device /dev/sdXN`.
+
+Restoring `/` from the running system is supported and expected — Timeshift stages the rollback and completes it on the reboot.
 
 ## Hardware
 
