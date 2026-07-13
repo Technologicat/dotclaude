@@ -1,5 +1,52 @@
 # Deferred TODOs
 
+## Design a study: does CLAUDE.md rule count degrade rule-following?
+
+`CLAUDE.md` currently holds ~66 top-level bullets and 9 sub-rules; discounting the
+project list (reference data, not rules) that is roughly **56 behavioural rules**, and
+that undercounts — several sections state rules in prose rather than bullets. Folklore
+in the wild (a blog post neither of us can now cite, hence worth exactly what that is)
+puts the point where frontier models start silently dropping rules at around 50. We
+are in that zone, on a hunch, with no measurements.
+
+**Two hypotheses that predict different fixes, and which we have been conflating:**
+
+- **Dilution** — too many independently-firing rules; attention doesn't stretch. Fix:
+  cut or demote rules.
+- **Shape** — individual rules are phrased so as to defeat themselves, or to require
+  judgment they don't supply. Fix: rewrite the rule; cutting good rules would be
+  actively harmful.
+
+Today produced one data point *against* naive dilution: the deadpan rule is prominent,
+not buried, and was violated repeatedly — and its cause turned out to be self-defeating
+phrasing (naming the register puts the word in the model's mouth). Wrong fix under the
+dilution hypothesis, right fix under the shape hypothesis.
+
+**What to measure** (instrument: `cc-log-extract` over `~/.claude/projects/*/*.jsonl`,
+which stamps every turn with the model that produced it):
+
+- **Dead rules** — which rules have never been applicable in any session? Pure cost;
+  prune candidates.
+- **Resident-but-violated** — which rules were broken while sitting in context? Shape
+  problems, not dilution. Deadpan is the known case; find the others.
+- **Fixed-only-when-reminded** — rules followed only after the user restates them
+  mid-session. *This* is the dilution signal, and the one that would justify cutting.
+- **Rate, not count**, and split by model era (4.6 / 4.7 / 4.8), since the logs span the
+  upgrades.
+
+**Fold in the other open question** (same instrument, same logs): does the rate of
+*confabulated rationale* — unprompted "because…" / "therefore…" that was never checked —
+differ across model versions, or did it only become visible because the work shifted to
+rationale-dense documentation? Classify claims as verified-in-session vs asserted, and
+compare rates rather than counts, since the docs-heavy period inflates the denominator.
+
+Both questions want a separate session with a clear head; the value is in the *design*,
+not in a quick grep. Confounds to control: task type shifted over the period, rules were
+added at different times (a rule added in July can't be violated in April), and position
+in the file may matter independently of count.
+
+Discovered during the `~/.claude` cloudification (2026-07-13).
+
 ## CI does not catch continuation-indent formatting (we ship broken formatting)
 
 **Priority: sooner rather than later.** Formatting-broken commits are reaching the
