@@ -1,0 +1,4 @@
+# Normalize line endings on checkin; check out with LF everywhere.
+# Shell scripts in particular break under CRLF, and this repo is cloned onto
+# Linux boxes only today — but the fleet's cross-platform habit is cheap here.
+* text=auto eol=lf

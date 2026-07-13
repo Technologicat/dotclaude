@@ -1,0 +1,31 @@
+# Whitelist .gitignore.
+#
+# Claude Code continuously writes runtime state into this directory, so the
+# default is to ignore everything at the root and opt in explicitly. A new
+# state dir appearing in `git status --ignored` after a CC update is the safety
+# net working, not a problem: tracking it requires a deliberate decision.
+
+# Ignore everything at the top level by default...
+/*
+
+# ...except these tracked items:
+!.gitignore
+!.gitattributes
+!README.md
+!CLAUDE.md
+!CLAUDE_webchat.md
+!NEW-MACHINE-SETUP.md
+!VKBASALT-SETUP.md
+!settings.json
+!statusline.sh
+!commands
+!scripts
+!skills
+!briefs
+
+# Defense-in-depth: never track these even if the pattern logic above ever slips.
+.credentials.json
+history.jsonl
+SECRET-SAUCE.md
+HARDWARE-NOTES.md
+CLAUDE_webchat.expanded.md
