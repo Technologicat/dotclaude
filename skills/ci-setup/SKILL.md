@@ -66,7 +66,7 @@ due to a known false positive on relative cimports. See the
 - Upload step:
   ```yaml
   - name: Upload coverage reports to Codecov
-    uses: codecov/codecov-action@v6
+    uses: codecov/codecov-action@<sha>   # v6.x — resolve the SHA, see "Pin GitHub Actions to commit SHAs"
     with:
       token: ${{ secrets.CODECOV_TOKEN }}
   ```
@@ -186,6 +186,7 @@ GitHub provides two Dependabot features:
   ```
 - This keeps Action versions (checkout, setup-python, codecov) up to date automatically
 - Dependabot understands SHA-pinned actions (see "Pin GitHub Actions to commit SHAs"): it bumps the pinned SHA **and** the trailing `# vX.Y.Z` comment together, so pinning does not freeze the actions — updates still arrive as reviewable PRs
+- **Dependabot maintains pins; it does not create them.** Given a floating `uses: foo/bar@v6` it will keep the tag floating and only bump the major when one lands. It will never convert it into a SHA pin for you. So an unpinned workflow does not "get fixed on the next Dependabot run" — it stays unpinned indefinitely. Pinning is a one-time manual act per `uses:` line; Dependabot only takes over afterwards
 
 ### Pin GitHub Actions to commit SHAs (supply-chain hardening)
 
@@ -245,7 +246,7 @@ jobs:
     permissions:
       id-token: write        # OIDC for trusted publishing; nothing else
     steps:
-      - uses: pypa/gh-action-pypi-publish@<sha>  # v1.x
+      - uses: pypa/gh-action-pypi-publish@<sha>       # v1.x
 ```
 
 So the top-level `contents: read` covers test/build/sdist/coverage, and the publish job narrows itself to exactly `id-token: write`. A job that comments on PRs or pushes would add `pull-requests: write` / `contents: write` *at the job level only*. Fleet-wide as of 2026-06-12.
@@ -254,7 +255,7 @@ So the top-level `contents: read` covers test/build/sdist/coverage, and the publ
 
 Publishes sdist + wheels to PyPI automatically when a version tag is pushed. Uses OpenID Connect — no API tokens needed.
 
-> The `uses:` lines in the examples below (and under "Windows CI for Cython extensions") are shown with floating tags for readability. In a real workflow, **SHA-pin them** per "Pin GitHub Actions to commit SHAs" — resolve each tag to its commit SHA and add the `# vX.Y.Z` comment.
+> Every `uses:` in the examples is written as `@<sha>` with the intended version in a trailing comment. That is deliberate: **it will not run until you resolve the SHA**, which is the failure mode you want. A floating `@v6` copied out of a doc runs fine and stays unpinned forever — Dependabot maintains pins that already exist, it does *not* convert a floating tag into one. Resolve each with the recipe under "Pin GitHub Actions to commit SHAs".
 
 **CI workflow addition** (add to the test/build workflow):
 
@@ -281,12 +282,12 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@<sha>        # v4.x
         with:
           path: dist/
           merge-multiple: true
 
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@<sha>      # v1.x (branch ref upstream — pin it)
         with:
           packages-dir: dist/
 ```
@@ -297,13 +298,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@<sha>                 # v6.x
+      - uses: actions/setup-python@<sha>             # v6.x
         with:
           python-version: "3.14"
       - run: pip install build
       - run: python -m build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@<sha>          # v7.x
         with:
           name: dist
           path: dist/
@@ -342,7 +343,7 @@ fails; no hint about *which* DLL is missing.
 so that meson finds `cl.exe` first:
 
 ```yaml
-- uses: ilammy/msvc-dev-cmd@v1
+- uses: ilammy/msvc-dev-cmd@<sha>   # v1.x
   if: runner.os == 'Windows'
 ```
 
