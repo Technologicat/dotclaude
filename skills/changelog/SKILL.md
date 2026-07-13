@@ -29,6 +29,4 @@ Target density:
 
 Reference for the style: `unpythonic` v0.15.3 and earlier.
 
-Each project's own `CLAUDE.md` may add house conventions on top of this; follow those where they differ.
-
-The post-release changelog stub ("(in progress)", "*No user-visible changes yet.*") and the rest of the release mechanics are in the `release` skill.
+**This style is fleet-wide.** No project overrides it — where a project's own `CLAUDE.md` talks about changelogs, it restates these rules rather than amending them. What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub.
