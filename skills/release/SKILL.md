@@ -24,4 +24,4 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 Entry wording, scope, and the "is this even user-visible?" test are in the `changelog` skill. The release-time touchpoints are:
 
 - Before tagging: make sure the in-progress section is complete and retitled from "(in progress)" to the version being released.
-- After tagging: add the next "(in progress)" stub (see "Post-release" above), so the next bugfix has somewhere to write its entry.
+- After tagging: add the next "(in progress)" stub, per the post-release step above, so the next bugfix has somewhere to write its entry.
