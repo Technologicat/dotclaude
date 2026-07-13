@@ -12,6 +12,7 @@
 !.gitignore
 !.gitattributes
 !README.md
+!TODO_DEFERRED.md
 !CLAUDE.md
 !CLAUDE_webchat.md
 !NEW-MACHINE-SETUP.md
