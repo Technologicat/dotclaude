@@ -1,6 +1,6 @@
 ---
 name: unpythonic-macro-testing
-description: Reference for writing tests for macro-enabled Python code using `unpythonic.test.fixtures` — the test framework unpythonic provides (name kept for backward compat despite being a slight understatement). Covers the `session` / `testset` / `runtests()` structure, the `test[]`, `test_raises[]`, `test_signals[]`, `warn[]` and `the[]` macros, the load-bearing Pass/Fail/Error distinction, and why test code under a macro expander needs different fixtures than ordinary pytest code. Use when writing or debugging tests for code that uses mcpyrate macros or unpythonic macros, when reading a Fail/Error report from this framework, or when scaffolding a test module for a macro-using project.
+description: Reference for writing tests for macro-enabled Python code using the test framework unpythonic provides — `unpythonic.test.fixtures` (the assertion macros) and `unpythonic.test.runner` (reusable test discovery and running, for any project, not just unpythonic). Covers the `session` / `testset` / `runtests()` structure, a downstream project's `runtests.py` via `discover_testmodules` / `run`, version-suffix gating of test modules, the `test[]`, `test_raises[]`, `test_signals[]`, `warn[]` and `the[]` macros, the load-bearing Pass/Fail/Error distinction, and why test code under a macro expander needs different fixtures than ordinary pytest code. Use when writing or debugging tests for code that uses mcpyrate macros or unpythonic macros, when setting up a test runner for a macro-using project, when reading a Fail/Error report from this framework, or when scaffolding a test module.
 ---
 
 # Testing macro-enabled Python with `unpythonic.test.fixtures`
@@ -28,9 +28,34 @@ if __name__ == '__main__':  # pragma: no cover
         runtests()
 ```
 
-Every test module exports `runtests()`; a project-level `runtests.py` discovers and runs them. Tests are grouped into `testset()` context managers, which nest.
+Every test module exports `runtests()`. Tests are grouped into `testset()` context managers, which nest.
 
-The runner does **not** need the `macropython` wrapper — it activates macros via `import mcpyrate.activate`.
+## The runner is reusable too — don't hand-roll discovery
+
+`unpythonic.test.runner` is part of the public API, alongside the fixtures. It provides `discover_testmodules(path, prefix="test_", suffix=".py")` and `run(testsets)`, so a downstream project's top-level `runtests.py` is a handful of lines:
+
+```python
+import os
+from unpythonic.test.runner import discover_testmodules, run
+
+import mcpyrate.activate  # noqa: F401
+
+def main():
+    testsets = [("regular code", discover_testmodules(os.path.join("mypackage", "tests"))),
+                ("macros", discover_testmodules(os.path.join("mypackage", "syntax", "tests")))]
+    return run(testsets)
+
+if __name__ == '__main__':
+    if not main():
+        raise SystemExit(1)
+```
+
+Each entry in `testsets` is a `(label, modules)` pair, so the top-level report is grouped by whatever division makes sense for the project.
+
+Two things this buys you for free:
+
+- **Version-suffix gating.** A module named `test_foo_3_11.py` is automatically skipped, with a warning rather than a failure, on Pythons older than 3.11. Use the suffix instead of writing version guards by hand.
+- **No `macropython` wrapper needed.** The top-level script is ordinary Python; `import mcpyrate.activate` switches macro expansion on for everything it subsequently imports. Run it with plain `python3 runtests.py`.
 
 ## The assertion macros
 
