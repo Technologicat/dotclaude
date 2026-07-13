@@ -477,8 +477,14 @@ Fleet status: unpythonic and mcpyrate carry a `flake8rc`; raven had one from its
 initial commit but dropped it when ruff was adopted (`89c76af`), so it currently
 has none — a minor inconsistency, re-add if fleet uniformity is wanted.
 
-**Canonical body of `~/.config/flake8`** (recover this verbatim if setting
-up a new machine or if the file is lost):
+**Reference excerpt — not the source of truth.** The live config is
+`~/.spacemacs.d/flake8` (public repo, cloned by `NEW-MACHINE-SETUP.md`, symlinked to
+`~/.config/flake8`); recover it from there, not from here. This copy is reproduced so
+the *ignore list is legible at the point of use* — which rules the house style
+deliberately permits is a thing you need in front of you when reasoning about lint
+config, and it's what makes it obvious that e.g. `E126`/`E127` must stay unselected
+by any new formatting gate. Being a copy, it can drift: if it disagrees with
+`~/.spacemacs.d/flake8`, the repo wins, and this block is what needs updating.
 
     [flake8]
     # ignore silly style items
