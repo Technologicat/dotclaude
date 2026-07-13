@@ -213,7 +213,14 @@ When stale bytecode interferes with an import (typical symptom: circular-import 
 macropython -C path/to/dir     # or . at the repo root
 ```
 
-`macropython` (from `mcpyrate`, available in any project venv that has it installed — widespread across the fleet) targets `__pycache__` directories by name and refuses to touch anything else.
+`macropython` comes from `mcpyrate`. **Two ways it may be on PATH, and the bare name is not guaranteed:**
+
+- Inside a project venv that has `mcpyrate` (widespread across the fleet, and the venv is pre-activated), bare `macropython` works — this is the common case.
+- The global pipx installs are **version-suffixed** (`macropython3.12`, `macropython3.14`, …), one per Python version, so bare `macropython` may not exist outside a venv.
+
+If `macropython` isn't found, don't conclude it isn't installed — check for a suffixed one (`ls ~/.local/bin/macropython*`). It only cleans `__pycache__` directories, matched by name, so the Python version behind it doesn't matter for this job; use whichever is there.
+
+It targets `__pycache__` directories by name and refuses to touch anything else.
 
 **Do not** use `find -name __pycache__ -exec rm -rf {} +` for this — `rm -rf` is destructive, and a typo in the find expression can nuke the wrong tree. `macropython -C` is the safe routine-maintenance form.
 
