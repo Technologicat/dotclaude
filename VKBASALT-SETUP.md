@@ -178,6 +178,8 @@ cp -r vkBasalt-working-reshade-shaders/allshaders/reshade-shaders-working/Shader
 cp -r vkBasalt-working-reshade-shaders/allshaders/reshade-shaders-working/Textures ~/.config/reshade/
 ```
 
+**Keep the clone.** It's not just a staging area for the copy — it's the only pristine copy of the shaders on the machine, and the tuning section below diffs against it to recover the local delta. Deleting it after copying loses that baseline.
+
 The relevant CRT shaders are now at `~/.config/reshade/Shaders/`:
 - `CRT.fx` — cgwg/Themaister/DOLLS classic, simpler parameter set.
 - `CRT_Lottes.fx` — luluco250's port of Timothy Lottes' shader. **This is
@@ -235,11 +237,14 @@ panel switched between 1080p and 4K input, scanlines are half as thick at
 
 **Curvature is off.** `CRT_LOTTES_WARP` is set to 0, which compiles the barrel
 distortion out entirely; the `f2Warp` uniform is then inert and its value
-doesn't matter. Warp is the one CRT artifact that a flat panel can only
-simulate, not restore — scanlines and shadow mask reconstruct something the
-sprite art was authored against, whereas curvature just bends a flat image and
-costs edge legibility. To get it back, set the macro to 1 and tune `f2Warp`
-from there.
+doesn't matter.
+
+This is an aesthetic call, not a technical one — tried both ways, and curvature
+just didn't fit the look being aimed for on AH3. It could plausibly be made to
+work with the right `f2Warp` values; the game simply didn't need it. So if a
+future title *does* want curvature, there's nothing to undo here beyond setting
+the macro back to 1 and tuning from there. The scanline and shadow-mask settings
+are the ones doing the actual work.
 
 ## vkBasalt config
 
