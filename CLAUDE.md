@@ -56,7 +56,7 @@ During a task, if you discover unrelated bugs, improvements, or issues, do not a
 
 **Exception: bugs surfaced by the tests you're writing.** When extending test coverage uncovers a latent bug in the code under test, the fix is part of the current task — fix it inline, not in a deferred item. Adding the test *is* the act of exercising a previously-untested branch, so this is the first-and-best moment to correct it. Only defer if the fix needs a major rewrite or crosses into unrelated subsystems.
 
-When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Follow the project's changelog style (see each project's `CLAUDE.md` for conventions). Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh.
+When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `release` skill; each project's `CLAUDE.md` may add conventions on top.
 
 ### File format
 
@@ -135,15 +135,7 @@ Active projects (✓ = has a CLAUDE.md config):
 - **Venv is pre-activated.** I activate the project venv before starting CC. Don't prepend `source .venv/bin/activate &&` to commands. If unsure, verify once with `which python` — it should point into `.venv/`.
 - Always use `python -m pip` instead of bare `pip` — ensures the correct venv's pip is used.
 - **Dev deps go in `pyproject.toml`, installed via the project's package manager — not raw `pip install`.** For any project with a `pyproject.toml`, missing dev tools (coverage, profilers, linters, etc.) should be added to the appropriate dev/test group in `pyproject.toml` and installed via the project's manager (`pdm add -dG <group> <pkg>` for PDM projects). Don't `python -m pip install <pkg>` ad hoc — that leaves the local env inconsistent with what `pdm install` would produce on a fresh clone or in CI. If a tool is missing, it's a *config* problem, not a *one-off install* problem. Smell test: if my next command is `pip install`, stop and check whether the dep should be declared instead.
-- **Git tag format varies by project** — some use `vX.Y.Z` (e.g. pylu), others use bare `X.Y.Z` (e.g. mcpyrate). Always check existing tags (`git tag --list`) before creating a new one.
-- **PyPI publishing is CI-driven** — GitHub Actions publishes to PyPI on tag push. No manual `twine upload` needed. Just tag, push, and create the GH release.
-- Pre-release checklist: check `pyproject.toml` for local file path dependencies (`file:///...`) — PyPI rejects these in sdists. Switch to versioned PyPI dependencies before building.
-- Post-release pattern: bump version to `X.Y.Z-dev` in source, add changelog stub with "(in progress)" and "*No user-visible changes yet.*", commit and push.
-- Release title themes: **mcpyrate** — ships/pirates, **unpythonic** — meta-commentary/discordian, **pyan3** — cartography.
-- **Changelogs are for users.** Describe what changed from the user's perspective — which tool, what it does differently now. Don't mention internal details (refactors, function renames, test additions) in the main sections. An "Internal" subsection per version is fine for these.
-- **Changelogs cover only changes since the last tagged release.** Bugs introduced and fixed within an unreleased development window never reached a user, so they don't belong in the changelog — they're invisible to the audience the changelog is written for. Mention them in the commit message and PR description (where the archaeology lives) instead. Rule of thumb when adding a Fixed entry: was the broken behavior present in the most recent tagged release? If no, drop the entry; the fix is internal cleanup.
-- **Compact entries.** Changelog lines are not commit messages. Aim for one sentence, two at most: what changed, on what platform, and — for latent bugs — the trigger condition. Save the back-story, diagnostic trail, and "why it was tricky" for the commit message body. Reference for the style: `unpythonic` v0.15.3 and earlier. Compactness is about removing back-story, not about removing information — if cutting a word would hide *what triggers the bug* or *who is affected*, the word stays. Inline example of the target density:
-  > `unpythonic.misc.timer` / `unpythonic.timeutil.ETAEstimator`: switched from `time.monotonic()` to `time.perf_counter()`. Latent Windows-only bug: `monotonic` is backed by a ~16 ms tick counter on Windows, so microsecond-scale `with timer() as t: ...` blocks recorded `t.dt = 0.0` and downstream divisions raised `ZeroDivisionError`. POSIX unaffected.
+- **Cutting a release:** use the `release` skill (tag format per project, CI-driven PyPI publishing, pre/post-release checklists, release title themes). For the wording of changelog entries, the `changelog` skill (user-facing only, only changes since the last tagged release, compact).
 - License DRY: the project-level `LICENSE.md` (or `LICENSE`) is the single source of truth. Don't repeat the license in individual module docstrings unless a module has a *different* license from the project default.
 
 # Hardware
@@ -181,6 +173,8 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `callgraph` — static call graphs and module-level dependency graphs with pyan3.
 - `ci-setup` — GitHub Actions, coverage/Codecov, cibuildwheel, supply-chain hardening, PyPI trusted publishing.
 - `project-setup` — pyproject/PDM flow, meson-python, lockfile policy, canonical lint config.
+- `release` — tagging, publishing, pre/post-release checklists, title themes.
+- `changelog` — house style for `CHANGELOG.md` entries.
 - `cc-log-extract` — distilling Claude Code session logs into readable Markdown.
 - `unpythonic-macro-testing` — testing macro-enabled Python with `unpythonic.test.fixtures`.
 

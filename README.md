@@ -43,8 +43,9 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 |------|------------|
 | [`CLAUDE.md`](CLAUDE.md) | Global instructions Claude Code loads every session — who I am, house style, conventions. |
 | [`CLAUDE_webchat.md`](CLAUDE_webchat.md) | Backup of the claude.ai userPreferences blob. Its git history *is* the evolution of that wording. |
-| [`NEW-MACHINE-SETUP.md`](NEW-MACHINE-SETUP.md) | Sysadmin checklist for bringing up a new Linux dev box. |
-| [`VKBASALT-SETUP.md`](VKBASALT-SETUP.md) | CRT-shader post-processing for games. Rides along with the above; wholly unrelated to Claude Code. |
+| [`NEW-MACHINE-SETUP.md`](NEW-MACHINE-SETUP.md) | Sysadmin checklist for bringing up a new Linux dev box. Baseline only — nothing machine-specific. |
+| [`GAMING-SETUP.md`](GAMING-SETUP.md) | Steam/Proton, the Input Remapper udev fix, CRT post-processing. Opt-in: not part of baseline setup. |
+| [`VKBASALT-SETUP.md`](VKBASALT-SETUP.md) | The vkBasalt build recipe that `GAMING-SETUP.md` leans on. Nontrivial to re-derive; archived deliberately. |
 | [`settings.json`](settings.json) | Claude Code settings: permission allowlist, statusline, effort level. |
 | [`statusline.sh`](statusline.sh) | Custom status line — venv, host, cwd, model, effort, context usage. |
 | [`skills/`](skills/) | On-demand reference material (see below). |
@@ -58,6 +59,8 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 
 - [`ci-setup`](skills/ci-setup/SKILL.md) — GitHub Actions, coverage and Codecov, cibuildwheel, PyPI trusted publishing, and supply-chain hardening (pinning actions to commit SHAs, least-privilege `GITHUB_TOKEN`).
 - [`project-setup`](skills/project-setup/SKILL.md) — `pyproject.toml` and the PDM flow, Cython/meson-python builds, lockfile policy, the canonical lint config.
+- [`release`](skills/release/SKILL.md) — tagging, CI-driven PyPI publishing, pre/post-release checklists, per-project release title themes.
+- [`changelog`](skills/changelog/SKILL.md) — house style for changelog entries. Separate from `release` because entries get written when the bug is fixed, not when the release is cut.
 - [`callgraph`](skills/callgraph/SKILL.md) — static call graphs and module dependency graphs via [pyan3](https://github.com/Technologicat/pyan).
 - [`cc-log-extract`](skills/cc-log-extract/SKILL.md) — distilling Claude Code session logs into readable Markdown.
 - [`unpythonic-macro-testing`](skills/unpythonic-macro-testing/SKILL.md) — testing macro-enabled Python with [unpythonic](https://github.com/Technologicat/unpythonic)'s test framework.

@@ -281,9 +281,7 @@ pdm install -G cuda
 
 ## NVIDIA driver
 
-The default path for an AI workstation is the CUDA repo (`gpu22.04.1` packages and similar) — works for compute, but **omits `libnvidia-gl-XXX:i386`**. Other NVIDIA libs (compute, decode, encode, fbc1) get both arches; GL is the orphan. Invisible until 32-bit code touches the GPU, at which point Vulkan falls back to llvmpipe (software) and OpenGL apps black-screen. Steam, Proton, and pre-2020-ish Linux/Wine games are all affected.
-
-If the machine also games (or might in the future), use the graphics-drivers PPA instead:
+Use the **graphics-drivers PPA**, on every machine:
 
 ```bash
 sudo add-apt-repository ppa:graphics-drivers/ppa
@@ -292,7 +290,13 @@ sudo apt install nvidia-driver-XXX  # XXX = current version per repo README
 sudo reboot
 ```
 
-The PPA ships `libnvidia-gl-XXX` for both `amd64` and `i386`. CUDA toolkit/userspace stays compatible — NVIDIA's user-mode driver is forward-compatible, anything built against an older CUDA runtime runs fine against a newer driver. Reboot is needed so the kernel module matches userspace.
+Reboot is needed so the kernel module matches userspace.
+
+**Not the CUDA repo.** The obvious path for an AI workstation is the CUDA repo (`gpu22.04.1` packages and similar). It works for compute, but **omits `libnvidia-gl-XXX:i386`** — every other NVIDIA lib (compute, decode, encode, fbc1) ships both arches; GL is the orphan. Nothing complains at install time. The breakage surfaces only when 32-bit code touches the GPU, at which point Vulkan silently falls back to llvmpipe (software rendering) and OpenGL apps black-screen.
+
+The PPA has no compensating downside: it ships `libnvidia-gl-XXX` for both `amd64` and `i386`, and the CUDA toolkit stays compatible either way — NVIDIA's user-mode driver is forward-compatible, so anything built against an older CUDA runtime runs fine against a newer driver. So there's nothing to trade off and no decision to make: take the PPA and keep the i386 libs, whether or not this machine will ever run 32-bit GL code.
+
+(The consumers of those i386 libs are Steam, Proton, and pre-2020-ish Linux/Wine games — see `GAMING-SETUP.md`. But the point of installing from the PPA unconditionally is precisely that you don't have to predict that in advance.)
 
 Verify:
 
@@ -314,37 +318,8 @@ Take a Timeshift snapshot before any driver-stack swap. NVIDIA's userspace + ker
 - Torch device ordering: eGPU is `cuda:0`, internal dGPU is `cuda:1`. Without eGPU, internal is `cuda:0`.
 - Note: GPU model alone may be ambiguous (e.g. both internal and eGPU could be 4090s with different VRAM). Use `nvidia-smi -L` to distinguish.
 
-## Gaming (Steam, Proton) — maia only
+## Gaming
 
-### Input Remapper phantom gamepad
+Not part of baseline setup. If this machine games, see `GAMING-SETUP.md` (Steam/Proton, the Input Remapper phantom-gamepad udev rule, vkBasalt CRT post-processing, per-game launch options) and `VKBASALT-SETUP.md` for the vkBasalt build recipe. Apply only when separately requested.
 
-Input Remapper (used here for Wacom tablet keys) creates a virtual gamepad device unconditionally, regardless of whether any mapping uses it. Steam sees this as an extra Xbox controller and gets confused — needs per-boot reselection of the real controller. Hide the virtual gamepad from Steam (and any other SDL2-based app) via udev:
-
-```bash
-sudo tee /etc/udev/rules.d/99-hide-input-remapper-from-steam.rules <<'EOF'
-SUBSYSTEM=="input", ATTRS{name}=="input-remapper gamepad", ENV{ID_INPUT_JOYSTICK}="0", ENV{ID_INPUT}="0"
-EOF
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-Note `ATTRS{name}` (plural) — walks up the device tree, required for evdev devices since the name lives on the parent input device, not the event node. The device still exists for things that open it by path; only joystick auto-detection is suppressed. Verify with `udevadm info -q property /dev/input/jsN | grep ID_INPUT`.
-
-### vkBasalt (CRT post-processing)
-
-Vulkan post-processing layer for applying ReShade FX shaders to games at runtime. Used here for CRT-style filters (scanlines, shadow mask, mild barrel warp) on 2D fighters and shoot-em-ups whose sprite art was authored against CRT presentation assumptions — the filter doesn't add a layer so much as restore the half of the visual contract that flat HD panels strip away.
-
-Build from source. Ubuntu repos ship only the amd64 build of `vkbasalt`, but 32-bit Windows games (e.g. AH3's `AALib.exe`) launch a 32-bit Vulkan loader inside Proton and require an i386 build of the layer; the Vulkan loader requires bitness match between application and layer. Both archs built from one source tree, packaged separately via `checkinstall`, installed in parallel. Single Vulkan manifest at `/usr/share/vulkan/implicit_layer.d/vkBasalt.json` serves both archs — `library_path` is the bare soname `libvkbasalt.so`, which the loader resolves per-arch via ld.so.
-
-Detailed recipe in `VKBASALT-SETUP.md` (sibling file): build steps, dependency cascade (`spirv-headers`, `glslang-dev`, `libvulkan-dev`+`:i386`), the `-m32`-flags 32-bit build (vkBasalt doesn't ship a meson cross-file), checkinstall workflow with the expected manifest-conflict workaround, shader install from `gripped/vkBasalt-working-reshade-shaders`, and the tuned `CRT_Lottes.fx` parameters for HD content (skip the resolution-simulation pass; tune scanline darkness, blur, and mask intensity for readable small text).
-
-### Per-game launch options
-
-- **Arcana Heart 3:** `ENABLE_VKBASALT=1 DXVK_FRAME_RATE=60 %command%` — fighter timing tied to frames; uncapped 144 FPS subtly breaks move windows. Stock Proton 10.0-4 works (no longer needs GE-7-50 once the i386 NVIDIA libs are in place). Also enables vkBasalt to get the CRT filter (see above).
-
-### Hardware (maia)
-
-- 3070 Ti = display GPU
-- 4090 = eGPU, compute-only (no display attached, not a Vulkan presentation target)
-- iGPU disabled in BIOS
-
+The one thing baseline setup must get right for gaming's sake is the NVIDIA driver source — see above; the graphics-drivers PPA is the unconditional choice.
