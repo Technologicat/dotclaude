@@ -93,7 +93,15 @@ test[the[a] < the[b] < the[c]]     # chained comparison: wrap every term you'd w
 
 Any explicit `the[]` anywhere in the expression **disables** auto-capture.
 
-Decide by asking *"what value on failure would I actually want to see?"* — not *"is `the[]` redundant?"*. The leaf is enough when it's self-explanatory (`timer.dt == 0.0`); wrap the container when the leaf is lossy (`test[the[reply]["status"] == "ok"]` shows you the whole dict, including the `"reason"` field, instead of just `"failed"`).
+Decide by asking *"what value on failure would I actually want to see?"* — not *"is `the[]` redundant?"*.
+
+The leaf is enough when it's self-explanatory: `test[timer.dt == 0.0]` reports `timer.dt`, and that's the whole story. Wrap the *container* when the leaf is lossy — when knowing the value that failed doesn't tell you why:
+
+```python
+test[the[response]["status"] == "ok"]
+```
+
+Auto-capture would have reported `response["status"]`, i.e. `"failed"` — true, and useless. Capturing `response` shows the whole dict, so whatever other keys the failure came with are in front of you.
 
 The common anti-pattern is wrapping the whole assertion — `test[the["X" in out]]` captures the *boolean result*, which tells you nothing. Write `test["X" in the[out]]` instead. The upstream reference lists the full set; pattern-match your draft against it before committing.
 
