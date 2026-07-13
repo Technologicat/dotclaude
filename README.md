@@ -21,6 +21,8 @@ Two files are deliberately absent, gitignored, and hand-carried between machines
 - **`SECRET-SAUCE.md`** — a private `CLAUDE.md` fragment. `CLAUDE.md` ends with the line `@./SECRET-SAUCE.md`, which Claude Code resolves as an import at load time. When the file is absent — as on a fresh clone — nothing is imported and Claude Code does not complain.
 - **`HARDWARE-NOTES.md`** — GPU models, torch device ordering, benchmark numbers. Per-machine, and nobody else's business.
 
+Machine hostnames are treated the same way: tracked files refer to a machine by its role ("the work + hobby machine"), never by name.
+
 claude.ai has no import mechanism — its preferences field is one plain text blob — so `CLAUDE_webchat.md` carries the same `@./SECRET-SAUCE.md` placeholder and `scripts/build-webchat.py` expands it into a paste-ready blob.
 
 ## Deploying on a new machine

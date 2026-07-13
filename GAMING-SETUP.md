@@ -2,7 +2,7 @@
 
 **Opt-in.** This is not part of baseline machine setup. Apply it only on a machine that games, and only when separately requested — nothing here should be blanket-applied to a new box.
 
-Currently applies to `maia` (work + hobby machine). A work-only machine wants none of this.
+Applies to the work + hobby machine. A work-only machine wants none of this.
 
 Prerequisite from baseline setup: the NVIDIA driver must come from the graphics-drivers PPA, so that `libnvidia-gl-XXX:i386` is present. See "NVIDIA driver" in `NEW-MACHINE-SETUP.md`. Without the i386 GL libs, 32-bit games fall back to software rendering (Vulkan → llvmpipe) or black-screen outright, and everything below is moot.
 

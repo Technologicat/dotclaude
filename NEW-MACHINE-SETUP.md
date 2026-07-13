@@ -1,6 +1,6 @@
 # New Machine Setup Notes
 
-Based on setting up `electra` (2026-03-25). Assumes Ubuntu/Debian-based Linux.
+Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based Linux.
 
 ## System packages
 
@@ -170,7 +170,7 @@ This is sourced by interactive shells only — so **GUI apps launched outside an
 
 ### LM Studio MCP servers
 
-`mcp.json` lives at `~/.lmstudio/mcp.json` (LM Studio follows Cursor's notation: a top-level `mcpServers` object). LM Studio spawns one process per server; for npx-based local servers, npx must be on the *spawned* process's PATH — which, per the nvm gotcha above, it isn't when LM Studio is launched from the desktop. The login-shell wrapper (`bash -lc`) re-sources the profile so npx resolves, and survives Node upgrades (no hardcoded version directory). Confirmed working on `maia`:
+`mcp.json` lives at `~/.lmstudio/mcp.json` (LM Studio follows Cursor's notation: a top-level `mcpServers` object). LM Studio spawns one process per server; for npx-based local servers, npx must be on the *spawned* process's PATH — which, per the nvm gotcha above, it isn't when LM Studio is launched from the desktop. The login-shell wrapper (`bash -lc`) re-sources the profile so npx resolves, and survives Node upgrades (no hardcoded version directory). Confirmed working:
 
 ```json
 {
