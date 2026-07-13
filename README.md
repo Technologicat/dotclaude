@@ -8,7 +8,9 @@ Two audiences are served by the same files: a future me setting up a new machine
 
 Claude Code reads `CLAUDE.md` as context in every session, so the contents of this directory are not documentation *about* a tool — they are instructions *to* an agent that will act on them. That makes the repo simultaneously machine-readable config and human-readable documentation, and the same file has to work as both.
 
-That dual role drives most of the design decisions here. `CLAUDE.md` stays lean because everything resident in it competes for attention on long sessions; reference material that's only needed sometimes lives in `skills/`, where it loads on demand when the task matches. The split is an attention budget, not a filing convention.
+That dual role drives most of the design decisions here. Everything resident in `CLAUDE.md` competes for attention on every turn of every session, so the test for keeping something there is not "is it useful?" but "is it useful *often enough to be worth reading every time*?" Material that fails that test — how to set up CI, how to cut a release, how to write a changelog entry — moves into `skills/`, which load on demand when the task matches.
+
+`CLAUDE.md` is nonetheless not small, and the honest reason is that a fair amount genuinely does earn its place every turn: house style, collaboration preferences, and a handful of rules whose whole job is to fire when you *weren't* thinking about them. A security rule that only loads once you've already gone looking for it has failed. So the split is an attention budget rather than a filing convention, and some things are worth their line in it.
 
 ## Why it's public
 
