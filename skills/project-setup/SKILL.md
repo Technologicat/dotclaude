@@ -427,10 +427,13 @@ continuation-line family is absent. Ruff never ported those rules, treating them
 the formatter's job. `ruff format` would catch them but is Black-shaped and would
 rewrite the fleet against the house style, which we don't want.
 
-The fix is a second, check-only linter: `pycodestyle --select E12` as a blocking CI
-step (a checker, not a fixer — it cannot rewrite), with `autopep8 --select E12
---in-place` as the local remedy. Tracked in `TODO_DEFERRED.md` in the `~/.claude`
-repo, which records the verification. Not yet rolled out.
+The fix is a second, check-only linter: `pycodestyle --select E128` as a blocking CI
+step (a checker, not a fixer — it cannot rewrite), with `autopep8 --select E128
+--in-place` as the local remedy. **`E128`, not `E12`** — the house style deliberately
+ignores `E126` and `E127` (see the flake8 ignore list below), so selecting the whole
+family would flag code that is intentionally styled that way. Tracked in
+`TODO_DEFERRED.md` in the `~/.claude` repo, which records the verification. Not yet
+rolled out.
 
 ### Cython-lint config
 

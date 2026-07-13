@@ -25,13 +25,21 @@ The hard constraint: **no auto-rewriting.** `ruff format` is Black-shaped and wo
 reformat the fleet against the house style, which is not acceptable. We want a
 *check*, not a rewriter.
 
+**Select `E128`, not the whole `E12` family.** The house style *deliberately ignores*
+two continuation rules — the global flake8 config ignores `E126` (overhanging indent)
+and `E127` (continuation line over-indented). Verified 2026-07-13: `pycodestyle
+--select E12` fires `E127` on code the house style intentionally permits, so a blanket
+`E12` gate would fight the very style it exists to protect. `--select E128` flags only
+the under-indent, which is the actual bug. If more of the family is ever wanted, add
+codes individually (`E122`, `E125`, `E131`) — never `E126`/`E127`.
+
 Both viable options were tested on the sample above (2026-07-13). Neither rewrites
 the file:
 
-1. **`pycodestyle --select E12`** — the recommended gate. Output is standard linter
+1. **`pycodestyle --select E128`** — the recommended gate. Output is standard linter
    form (`file:2:5: E128 continuation line under-indented for visual indent`), exit 1.
    It is a checker, not a fixer, so it cannot rewrite anything even by accident.
-2. **`autopep8 --select E12 --diff --exit-code`** — prints the corrective diff and
+2. **`autopep8 --select E128 --diff --exit-code`** — prints the corrective diff and
    exits 2. Better as the *local fix* companion (drop `--diff`, add `--in-place`)
    than as the CI gate, since a diff is noisier to read in a CI log than a line
    number.
@@ -39,8 +47,8 @@ the file:
    entire style, not just continuation indents, and would fight the house style
    everywhere.
 
-So: `pycodestyle --select E12` as a blocking CI step alongside ruff; `autopep8
---select E12 --in-place` as the fix. Cost is a second linter in CI, which is the
+So: `pycodestyle --select E128` as a blocking CI step alongside ruff; `autopep8
+--select E128 --in-place` as the fix. Cost is a second linter in CI, which is the
 price of ruff not having ported these rules.
 
 Both tools are already installed (`~/.local/bin`) and autopep8 is already in the
