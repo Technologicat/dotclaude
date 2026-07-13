@@ -53,7 +53,7 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 | [`settings.json`](settings.json) | Claude Code settings: permission allowlist, statusline, effort level. |
 | [`statusline.sh`](statusline.sh) | Custom status line — venv, host, cwd, model, effort, context usage. |
 | [`skills/`](skills/) | On-demand reference material (see below). |
-| [`scripts/`](scripts/) | `build-webchat.py` (preferences-blob expander), `run-on-internal-gpu.sh` (hides the eGPU). |
+| [`scripts/`](scripts/) | `em` (open a file in the running Emacs), `build-webchat.py` (preferences-blob expander), `run-on-internal-gpu.sh` (hides the eGPU). |
 | [`briefs/`](briefs/) | Archived design briefs. |
 | `commands/` | Slash commands. Currently empty — the one that lived here became a skill. |
 

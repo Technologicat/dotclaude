@@ -8,7 +8,8 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # Essentials
 # jq: needed by ~/.claude/statusline.sh
 # xclip: needed by ~/.claude/scripts/build-webchat.py (degrades gracefully without it)
-sudo apt install git wget jq xclip ripgrep graphviz libturbojpeg0-dev espeak-ng
+# wmctrl: needed by ~/.claude/scripts/em (raises the Emacs window after opening a file)
+sudo apt install git wget jq xclip wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng
 
 # Python tooling
 sudo apt install python3-pip pipx
@@ -242,7 +243,13 @@ Both are optional: Claude Code ignores a missing `@import`, and nothing else rea
 
 Runtime state (`projects/`, `sessions/`, `memory/`, caches) is machine-local by design and is *not* synced — auto-memory accumulates per machine.
 
-The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`. Both are in the Essentials block above.
+Put `em` on PATH. The repo holds the only copy, so symlink it rather than copying — otherwise the two drift and you're editing the wrong one:
+
+```bash
+ln -s ~/.claude/scripts/em ~/.local/bin/em
+```
+
+The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
 ### Kitty terminal workaround
 

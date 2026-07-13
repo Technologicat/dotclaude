@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Open file(s) in Emacs. Without arguments, starts Emacs.
+# With --require-server (-r), fail if no server is running (for scripts/automation).
+#
+# Deploy by symlinking onto PATH, so this stays the single copy:
+#
+#     ln -s ~/.claude/scripts/em ~/.local/bin/em
+#
+# Needs emacsclient and wmctrl.
+
+require_server=false
+args=()
+for arg in "$@"; do
+    case "$arg" in
+        --require-server|-r) require_server=true ;;
+        *) args+=("$arg") ;;
+    esac
+done
+
+if $require_server; then
+    if ! emacsclient -n -e "t" &>/dev/null; then
+        echo "error: no Emacs server running" >&2
+        exit 1
+    fi
+fi
+
+# Check if there's an Emacs frame open
+emacsclient -n -e "(if (> (length (frame-list)) 1) 't)" 2>/dev/null | grep t &>/dev/null
+
+if [ "$?" -eq "1" ]; then
+    emacsclient -a '' -nqc "${args[@]}" &>/dev/null
+else
+    emacsclient -nq "${args[@]}" &>/dev/null
+fi
+
+# Focus the Emacs window
+wmctrl -a emacs

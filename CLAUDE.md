@@ -179,6 +179,8 @@ GPU models, torch device ordering, and benchmarks: see `~/.claude/HARDWARE-NOTES
 
 **Always use `em -r` (not bare `em`).** Bare `em` auto-starts Emacs if no server is running, which is not what we want from a script.
 
+`em` is mine, not a system tool: it lives at `~/.claude/scripts/em`, symlinked onto PATH.
+
 **Emacs auto-refreshes open files.** Only `em` a file once — after further edits to the same file, Emacs picks up changes from disk automatically.
 
 ## GitHub
