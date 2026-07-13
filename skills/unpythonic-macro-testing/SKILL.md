@@ -103,7 +103,9 @@ test[the[response]["status"] == "ok"]
 
 Auto-capture would have reported `response["status"]`, i.e. `"failed"` — true, and useless. Capturing `response` shows the whole dict, so whatever other keys the failure came with are in front of you.
 
-The common anti-pattern is wrapping the whole assertion — `test[the["X" in out]]` captures the *boolean result*, which tells you nothing. Write `test["X" in the[out]]` instead. The upstream reference lists the full set; pattern-match your draft against it before committing.
+The anti-pattern that bites hardest is wrapping the *whole* assertion: `test[the["X" in out]]` captures the boolean result, so the failure message tells you the assertion was false and never shows `out`. Write `test["X" in the[out]]` instead.
+
+There are a handful of others in the same family (wrapping an entire `==`, redundant capture of an auto-captured LHS, under-capturing a chained comparison). They're listed under **"Common `the[]` mistakes"** in the canonical reference (`unpythonic/CLAUDE.md`) — read that section and pattern-match your draft against it before committing.
 
 `the[]` is not supported inside `test_raises`, `test_signals`, `fail`, `error`, or `warn`.
 
