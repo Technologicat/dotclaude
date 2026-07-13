@@ -19,15 +19,17 @@ The test when adding a `Fixed` entry: **was the broken behavior present in the m
 
 ## Compact entries
 
-Changelog lines are not commit messages. One sentence, two at most: what changed, on what platform, and — for a latent bug — the trigger condition. The back-story, the diagnostic trail, and the "why it was tricky" go in the commit message body.
+**The target is the length needed to say what must be said, and not one word more.** Compactness is a *density* requirement, not a word count: cut back-story, never information. If dropping a word would hide what triggers a bug, or who is affected, or what the new thing actually is, the word stays.
 
-Compactness means removing back-story, not removing information. If cutting a word would hide *what triggers the bug* or *who is affected*, the word stays.
+That works out to different lengths per section, because the reader needs different things:
 
-Target density:
+- **`Fixed`** is usually short. The reader already knows what the function is; they need to know what broke, under what conditions, and whether it could have bitten them. A sentence or two, with the trigger condition, is normally the whole job:
 
-> `unpythonic.misc.timer` / `unpythonic.timeutil.ETAEstimator`: switched from `time.monotonic()` to `time.perf_counter()`. Latent Windows-only bug: `monotonic` is backed by a ~16 ms tick counter on Windows, so microsecond-scale `with timer() as t: ...` blocks recorded `t.dt = 0.0` and downstream divisions raised `ZeroDivisionError`. POSIX unaffected.
+  > `unpythonic.misc.timer` / `unpythonic.timeutil.ETAEstimator`: switched from `time.monotonic()` to `time.perf_counter()`. Latent Windows-only bug: `monotonic` is backed by a ~16 ms tick counter on Windows, so microsecond-scale `with timer() as t: ...` blocks recorded `t.dt = 0.0` and downstream divisions raised `ZeroDivisionError`. POSIX unaffected.
 
-Reference for the style: `unpythonic` v0.15.3 and earlier.
+- **`New`** runs longer, legitimately. A reader has to learn *what the thing is* before they can tell whether they want it — so a feature entry may well be a paragraph, with nested bullets for the caveats and consequences that come with it. That isn't verbosity; it's the minimum that does the job.
+
+What goes in the commit message instead, in both cases: the diagnostic trail, the back-story, and why it was tricky.
 
 ## Nest subordinate detail; don't flatten it
 
