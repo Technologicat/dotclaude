@@ -330,7 +330,15 @@ Timeshift is a GUI app, but **it has a full CLI** — you never need a working d
 
 Getting to a shell, in order of preference:
 
-1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F1 gets you a TTY login. Mint keeps the graphical session on tty7 in the traditional way, so F1–F6 are all plain text consoles and F1 is the natural first stop — it also shows what the dying session was complaining about on its way out. This works far more often than a black screen suggests. (Distros that run the display manager on tty1 — modern Ubuntu, for one — need F2 or higher instead.)
+1. **A text console.** If the kernel is alive and only X is broken (the usual case for a bad driver), Ctrl+Alt+F1 gets you a TTY login. Mint keeps the graphical session on tty7 in the traditional way, so F1–F6 are all plain text consoles. This works far more often than a black screen suggests. (Distros that run the display manager on tty1 — modern Ubuntu, for one — need F2 or higher instead.)
+
+   The console is a fresh login, not a view of the failure — to find out *why* X died, read the logs:
+
+   ```bash
+   less /var/log/Xorg.0.log              # the X server's own log; grep for (EE)
+   journalctl -b -u lightdm              # display manager, this boot
+   journalctl -b -k | grep -i nvidia     # kernel side: module load, DKMS
+   ```
 2. **GRUB recovery mode.** If even that fails: hold Shift (or Esc) during boot → *Advanced options* → the `(recovery mode)` entry → *root shell*. The root filesystem is mounted read-only there, so remount it first:
 
    ```bash
