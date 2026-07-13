@@ -212,7 +212,16 @@ Edit `~/.config/reshade/Shaders/CRT_Lottes.fx` with these changes:
 > = 0.7;    // fMask: was 0.5
 ```
 
-Five edits, and that's the complete set — every other `CRT_LOTTES_*` macro and uniform is at its upstream default (`TONE`, `CONTRAST`, `SATURATION` on; `MASK` = `GRILLE_LITE`; `2TAP`, `CUSTOM_RESOLUTION` off; `SMOOTH_DOWNSCALE` on). The shader records its own originals in trailing comments, so `grep '// ' CRT_Lottes.fx` re-derives this list from the live file if it ever drifts again.
+Five edits, and that's the complete set — every other `CRT_LOTTES_*` macro and uniform is at its upstream default (`TONE`, `CONTRAST`, `SATURATION` on; `MASK` = `GRILLE_LITE`; `2TAP`, `CUSTOM_RESOLUTION` off; `SMOOTH_DOWNSCALE` on).
+
+Note the trailing `// <old value>` comments: **that's our convention, not upstream's.** The stock shader carries no such annotations. Keep adding them when tuning — they make the local delta legible in place — but don't trust them as the record, since an edit made without one leaves no trace. The authoritative check is a diff against the pristine shader from the upstream checkout:
+
+```bash
+diff ~/Documents/koodit/vkBasalt-working-reshade-shaders/allshaders/reshade-shaders-working/Shaders/CRT_Lottes.fx \
+     ~/.config/reshade/Shaders/CRT_Lottes.fx
+```
+
+That should print exactly the five hunks above. Anything else is drift — either an undocumented tweak, or an upstream update that landed under the local edits.
 
 `fDownscale` stays at 2.0 (default). Even with `CRT_LOTTES_DOWNSCALE = 0`,
 this still controls scanline pitch — at 1080p output you get 540-line
