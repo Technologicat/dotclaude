@@ -20,7 +20,21 @@ sudo udevadm control --reload-rules
 sudo reboot
 ```
 
-**The `65-` prefix is load-bearing, and this is the whole trick.** The obvious instinct is a `99-` rule, and that is exactly what makes it fragile. For input devices, udev runs:
+**What changed.** The original rule (May 2026) only cleared the classification:
+
+```
+# 99-hide-input-remapper-from-steam.rules — obsolete
+SUBSYSTEM=="input", ATTRS{name}=="input-remapper gamepad", ENV{ID_INPUT_JOYSTICK}="0", ENV{ID_INPUT}="0"
+```
+
+That was enough for as long as Steam honored `ID_INPUT_JOYSTICK`, and the `99-` prefix was harmless: consumers read the *final* udev property, so it doesn't matter that the flag is cleared late. As of a July 2026 Steam update, Steam no longer consults the classification — it opens `/dev/input/event*` directly (confirmed with `fuser`, which showed steam holding the event node open). The rule went toothless: the device name never changed, Steam simply stopped asking the question the rule was answering.
+
+So the flag is no longer the lever. **Access is.** Hence the two additions:
+
+- `OWNER`/`GROUP`/`MODE` take the node to root-owned `0600`, so a direct open as a normal user fails outright.
+- `TAG-="uaccess"` stops the ACL that would otherwise hand the seat's user read-write access to the node regardless of its mode bits. Without this, `0600` is defeated — the ACL is precisely what grants a desktop user access to their own input devices.
+
+**And *that* is where the `65-` prefix becomes load-bearing.** For input devices, udev runs:
 
 | Priority | Rule | Effect |
 |---|---|---|
@@ -28,9 +42,7 @@ sudo reboot
 | 70 | `70-uaccess.rules` | sees `ID_INPUT_JOYSTICK=1` → adds `TAG+="uaccess"` |
 | 73 | `73-seat-late.rules` | matches the tag → runs the `uaccess` **builtin**, which writes the ACL |
 
-A rule at 99 removes the tag long after the builtin at 73 has already applied the ACL to the device node, and un-tagging a device whose ACL is already on disk does nothing. Rebooting doesn't help either — the same 60 → 70 → 73 → 99 order replays. **udev priorities are not "later wins" when builtins are involved:** suppression has to land in the window *between* the classification (60) and its consumer (70). Hence 65, where clearing `ID_INPUT_JOYSTICK` means the uaccess tag is never added and the builtin at 73 never fires. (`TAG-="uaccess"` is then redundant — it removes a tag that will never exist. Kept as documentation of intent.)
-
-**`OWNER`/`GROUP`/`MODE` are what stop current Steam.** As of a July 2026 update, Steam reads `/dev/input/event*` directly instead of honoring the udev joystick classification, which is what silently defeated the earlier tag-only rule (the device name never changed; Steam simply stopped asking the question the rule was answering). With the node owned by root at mode 0600, a direct open as a normal user fails outright regardless of classification.
+Dropping the tag at 99 would be too late: the builtin at 73 has already written the ACL to the device node, and un-tagging a device whose ACL is on disk does nothing (`getfacl` kept showing the user entry survive every variant of a `99-` rule, including one with `TAG-="uaccess"` in it). **udev priorities are not "later wins" when a builtin is involved** — the suppression has to land in the window *between* the classification at 60 and its consumer at 70. At 65, clearing `ID_INPUT_JOYSTICK` means `70-uaccess` never adds the tag in the first place, so the builtin at 73 never fires and no ACL is ever written. (Which makes the explicit `TAG-="uaccess"` clause redundant — it removes a tag that will never exist. Keep it as documentation of intent, and as insurance if the classification dodge is ever bypassed too.)
 
 **A reboot is genuinely required**, not as ritual: the live device node still carries the stale ACL granted under the old ordering, and the `uaccess` builtin only ever runs to *grant* — with the tag now absent it won't run at all, so it never revokes what's already there. `udevadm trigger` will not clear it. Only a fresh boot recreates the node through the corrected rule order.
 
