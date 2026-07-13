@@ -13,19 +13,35 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
-Make sure the in-progress changelog section is complete, and retitle it from "(in progress)" to the version being released.
+**Pick the release title** (see themes below), then close the changelog's in-progress section with it. The heading carries version, date and title:
+
+```markdown
+**2.2.0** (12 May 2026) — *"Hail Eris"* edition:
+```
+
+...replacing the stub heading it grew under:
+
+```markdown
+**2.2.1** (in progress):
+```
+
+The same title goes on the GitHub release, prefixed with the project name — `mcpyrate 4.2.0 — "X marks the spot"`.
+
+### Release title themes
+
+Each project draws its release titles from its own well:
+
+- **mcpyrate** — ships and pirates
+- **unpythonic** — meta-commentary, discordian
+- **pyan3** — cartography
+
+Hotfix and patch releases have gone out untitled (`**4.1.1** (8 May 2026) - hotfix:`, released as plain "Version 4.1.1"), so a title doesn't appear to be mandatory for those — but the pattern is observed, not stated policy. Ask if unsure.
 
 ## Post-release
 
 Bump the version to `X.Y.Z-dev` in source, and add the next changelog stub — "(in progress)", with "*No user-visible changes yet.*" under it. Commit and push.
 
 Do this immediately after tagging, rather than at the start of the next release: it means the next bugfix already has somewhere to write its changelog entry, which is what keeps entries getting written while the context is fresh instead of reconstructed from `git log` months later.
-
-## Release title themes
-
-- **mcpyrate** — ships and pirates
-- **unpythonic** — meta-commentary, discordian
-- **pyan3** — cartography
 
 ## Changelogs
 
