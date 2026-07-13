@@ -23,7 +23,7 @@ Two files are deliberately absent, gitignored, and hand-carried between machines
 - **`SECRET-SAUCE.md`** — a private `CLAUDE.md` fragment. `CLAUDE.md` ends with the line `@./SECRET-SAUCE.md`, which Claude Code resolves as an import at load time. When the file is absent — as on a fresh clone — nothing is imported and Claude Code does not complain.
 - **`HARDWARE-NOTES.md`** — the machine's GPU inventory and benchmark numbers. Not secret, just specific: it describes one box, and a full parts-and-timings listing is more than a config repo needs to publish. Where a hardware fact is *load-bearing* for something tracked here, it stays tracked — `scripts/run-on-internal-gpu.sh` documents how CUDA and `nvidia-smi` order the two GPUs, because a reader who doesn't know that will break the script, and `VKBASALT-SETUP.md` names the GPU its shader settings were tuned against.
 
-Machine hostnames are treated the same way: tracked files refer to a machine by its role ("the personal machine", "the work machine"), never by name.
+Machine hostnames are treated the same way: tracked files refer to a machine by its role ("the personal machine", "the work machine"), never by name. Privacy is the reason it started, but not the best reason to keep it — a hostname names a *box*, while these docs describe a *role*, and boxes get replaced while roles persist. Naming by role means a doc doesn't quietly go stale the day the hardware is swapped out.
 
 claude.ai has no import mechanism — its preferences field is one plain text blob — so `CLAUDE_webchat.md` carries the same `@./SECRET-SAUCE.md` placeholder and `scripts/build-webchat.py` expands it into a paste-ready blob.
 

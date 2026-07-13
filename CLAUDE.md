@@ -203,7 +203,7 @@ macropython -C path/to/dir     # or . at the repo root
 
 `~/.claude/` is itself a public git repo (`Technologicat/dotclaude`). Two consequences when editing anything in it:
 
-- **Machine hostnames are private.** Don't write them into tracked files — refer to a machine by its role ("this machine", "the personal machine", "the work machine") instead. Hostnames belong in `HARDWARE-NOTES.md` or `SECRET-SAUCE.md`, both gitignored.
+- **Name machines by role, never by hostname.** In tracked files, write "this machine", "the personal machine", "the work machine". Hostnames themselves belong in `HARDWARE-NOTES.md` or `SECRET-SAUCE.md`, both gitignored. Two reasons, and the second outlives the first: the repo is public, *and* a hostname names a box while the docs describe a role — boxes get replaced, roles don't, so a hostname in a doc is a stale reference waiting to happen.
 - Anything else that shouldn't be public goes in `SECRET-SAUCE.md`, imported below. The import is inert when the file is absent (a fresh clone, or a machine that doesn't need it) — Claude Code does not error on a missing import.
 
 @./SECRET-SAUCE.md
