@@ -308,10 +308,24 @@ works from the `pyproject.toml` declared deps. The CLI/contributor side
 benefits from reproducible dev environments, so the tiebreaker goes to
 "commit".
 
-### Fleet classification (as of 2026-04-15)
+### Don't keep a fleet classification list here
 
-- **No lockfile (libraries):** pylu, pydgq, mcpyrate, unpythonic, wlsqm
-- **Commit lockfile (apps):** pyan3, arxiv-api-search, raven
+A per-project list of who commits a lockfile is a cached copy of a fact that each
+repo already answers authoritatively, and it rots. (There *was* one here, dated
+2026-04-15; by mid-July it disagreed with reality for three of the eight projects
+it named, and omitted a fourth entirely — worse than useless, because someone would
+have "fixed" a repo to match it.)
+
+Ask the repo instead:
+
+```bash
+git ls-files pdm.lock          # tracked → this project commits its lockfile
+grep -n 'lock' .gitignore      # ignored → it doesn't
+```
+
+Then classify by what the project *is* — library, app, or dual-use — per the rule
+above. If the repo disagrees with the rule, that's a finding to raise, not a
+classification to record.
 
 ---
 

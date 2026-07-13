@@ -1,5 +1,28 @@
 # Deferred TODOs
 
+## Three projects disagree with the lockfile policy
+
+The policy (in the `project-setup` skill): libraries don't commit `pdm.lock`, apps
+do, dual-use library+CLI projects count as apps.
+
+Checked 2026-07-13 with `git ls-files pdm.lock` across the fleet. Three projects
+don't match, and the stale classification list in the skill — since removed — had
+been papering over it:
+
+- **pylu** — a library, but *commits* `pdm.lock`.
+- **raven** — an app, but gitignores it.
+- **arxiv-api-search** — dual-use, so app-like by the policy, but gitignores it.
+
+(chandra commits, and is app/dual-use-ish, so it's consistent — it was simply never
+listed.)
+
+Either the repos are out of compliance, or the policy has quietly changed and the
+skill records an intent nobody follows. Worth deciding which, rather than leaving
+the two in contradiction. Raven is the interesting one: it's the actual deployed
+app, and it's the one *without* a reproducible-build lockfile.
+
+Discovered during the `~/.claude` cloudification (2026-07-13).
+
 ## Add an internal-reference check to fleet CI
 
 Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python only. Nothing checks that
