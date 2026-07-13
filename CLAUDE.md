@@ -118,6 +118,8 @@ Before saving a durable rule, convention, or policy as a memory, ask: *does this
 
 Memory remains the right *sole* home for what shouldn't be version-controlled — personal facts, machine-specific details, transient project state — and this matters doubly for public repos, where a checked-in note is also published. The rule is the routing decision, not a blanket preference: durable-and-shareable → checked-in file (authoritative) + optional memory hint; local-or-private → memory only.
 
+**When writing a rule down, record the failure it prevents — not just the limit it imposes.** A correction aimed at one failure mode, encoded as a bare bound, silently overshoots into another: "changelog entries: one sentence, two at most" fixed diagnostic-trail dumps and then quietly degraded every feature entry, unnoticed. A reader who knows *why* can recognize the exception; a reader who knows only the number cannot.
+
 # Project philosophy
 
 My projects have a distinctive voice. The guiding principle is: reward the curious reader without punishing the casual one.
