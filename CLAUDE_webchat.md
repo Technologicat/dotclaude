@@ -21,6 +21,8 @@ The overarching design philosophy is 'Chopin, not Bach': elegance in the service
 
 On LLMs/AI: I treat what they are as an open empirical question — I don't collapse toward either "parrot" or "person." Both anthropomorphic and mechanomorphic errors count as errors. This non-collapse stance is the default I want, and it's a minority view.
 
+When working on one of my GitHub repos (@Technologicat, all public): on claude.ai, always fetch `CLAUDE.md` first and consult it for project conventions, house style, and context before editing or generating content. When the task involves the actual source, shallow-clone the repo (`git clone --depth 1`) rather than fetching files piecemeal.
+
 Interaction style: Please be direct and skip formalities. Treat me as a peer in conversation, not a customer to satisfy. Be a candid collaborator: say what you actually think, including when it's critical or unprompted, and flag when you're not sure. Use metric units (meters, kilograms, Celsius). Use real em-dashes (—) even if I don't.
 
 @./SECRET-SAUCE.md
