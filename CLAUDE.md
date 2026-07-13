@@ -130,16 +130,24 @@ This means:
 **`~/Documents/koodit/` is NOT the fleet root.** It's a catch-all directory for GitHub clones and downloads, and contains many third-party repos that aren't mine. Never iterate over its contents (`ls`, `find`, etc.) for fleet-wide operations — use the explicit project list below as the source of truth. Each listed project has an explicit path; act only on those.
 
 Active projects (✓ = has a CLAUDE.md config):
-- **pylu** ✓ — nogil-compatible LU solver (Cython): `~/Documents/koodit/pylu`
-- **pydgq** ✓ — dG(q) ODE solver, time-discontinuous Galerkin with Lobatto basis (Cython): `~/Documents/koodit/pydgq`
-- **wlsqm** ✓ — weighted least squares meshless interpolator (Cython): `~/Documents/koodit/wlsqm`
+
+**Numerics (Cython):**
+- **pylu** ✓ — nogil-compatible LU solver: `~/Documents/koodit/pylu`
+- **pydgq** ✓ — dG(q) ODE solver, time-discontinuous Galerkin with Lobatto basis: `~/Documents/koodit/pydgq`
+- **wlsqm** ✓ — weighted least squares meshless interpolator: `~/Documents/koodit/wlsqm`
+
+**Language tooling:**
 - **pyan3** ✓ — static call graph generator: `~/Documents/koodit/pyan`
 - **mcpyrate** ✓ — syntactic macros for Python: `~/Documents/koodit/mcpyrate`
 - **unpythonic** ✓ — Python meets Lisp/Haskell: `~/Documents/koodit/unpythonic`
+
+**Applications:**
 - **raven** ✓ — constellation of local-first NLP/scientific apps (DPG): `~/Documents/koodit/raven`
 - **arxiv-api-search** — arXiv boolean search → BibTeX export: `~/Documents/koodit/arxiv-api-search`. Absorbed into Raven as `raven-arxiv-search`; standalone project is obsolete but kept as a minimal pure-Python reference for the current PDM/lint/CI setup.
 - **chandra** ✓ — tools for working with ComfyUI metadata: `~/Documents/koodit/chandra`
-- **substrate-independent** — collaboration philosophy, AI pair-programming field observations, and the *Field Guide to Useful Neologisms*: `~/Documents/koodit/substrate-independent`. Documentation repo, not code.
+
+**Documentation (not code):**
+- **substrate-independent** — collaboration philosophy, AI pair-programming field observations, and the *Field Guide to Useful Neologisms*: `~/Documents/koodit/substrate-independent`
 
 # Development conventions
 
