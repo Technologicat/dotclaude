@@ -60,32 +60,6 @@ paragraph gets replaced with what was actually done.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
 
-## The per-project `flake8rc` snapshots are all stale
-
-unpythonic, mcpyrate and substrate-independent each commit a `flake8rc` — a
-documentary copy of the global flake8 config (`~/.spacemacs.d/flake8`, symlinked to
-`~/.config/flake8`). Checked 2026-07-13: **all three have drifted.** Each is missing
-`F824` and differs around `W504`.
-
-A stale snapshot documents nothing, so decide one way or the other:
-
-- **Re-sync** all three to the global, and accept that they'll drift again unless
-  something checks them (the internal-reference CI item above could cover it).
-- **Drop them.** flake8 is legacy here — kept only for Emacs flycheck, while ruff is
-  the enforced linter — and the global config is version-controlled and public in the
-  `spacemacs.d` repo, so nothing is lost by deleting the copies. Raven already did
-  this when it adopted ruff (`89c76af`).
-
-Leaning toward dropping: the copies exist to make the style travel with the repo, but
-a *wrong* copy is worse than a pointer.
-
-Note the copies are harmless *because* they're named `flake8rc` rather than `.flake8`
-— flake8 doesn't auto-discover that name, so a stale copy can't override the global.
-If anyone "tidies" them into `.flake8`, three repos start silently linting against a
-stale ruleset.
-
-Discovered during the `~/.claude` cloudification (2026-07-13).
-
 ## Three projects disagree with the lockfile policy
 
 The policy (in the `project-setup` skill): libraries don't commit `pdm.lock`, apps

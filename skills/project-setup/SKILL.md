@@ -457,36 +457,21 @@ Spacemacs config — that repo *is* the GitHub archive, no separate dotfiles cop
 needed), symlinked as `~/.config/flake8` (and `~/.config/pep8`). flycheck is
 pointed at the absolute path via `flycheck-flake8rc` in `~/.spacemacs.d/init.el`.
 
-**Per-project archival copy: a file named `flake8rc` (no leading dot).** Some
-projects (unpythonic, mcpyrate, substrate-independent) commit a `flake8rc` so the
-style config travels with the repo — a documentary *snapshot*, not a competing
-source of truth.
+**Don't commit a per-project flake8 config.** The global is the only copy.
 
-**The name is not auto-discovered, and that turns out to matter — though probably
-by accident rather than design.** flake8 auto-discovers `.flake8`, `setup.cfg` and
-`tox.ini`; `flake8rc` is on none of those lists, so these files never affect a
-`flake8 .` run. Nothing depends on that today (CI runs ruff, not flake8; flycheck
-reads `~/.config/flake8` by absolute path; a manual `flake8 .` picks up that same
-user-level config). But **all three committed snapshots have drifted from the
-global** — checked 2026-07-13, each is missing `F824` and differs around `W504`. Had
-they been named `.flake8`, every one of them would now be silently overriding the
-global with a stale ruleset on every manual run in those repos.
+Some projects used to carry a `flake8rc` — a snapshot of the global, meant to make
+the style travel with the repo. All of them were removed (2026-07-13), because
+nothing read them: CI lints with ruff, and flycheck reads `~/.config/flake8` by
+absolute path rather than the project copy. They had also all drifted from the
+global, so they documented a ruleset nobody used. A wrong copy is worse than a
+pointer. (Raven had already dropped its own when it adopted ruff, `89c76af`.)
 
-So: keep the non-discoverable name. Don't rationalize it as foresight — the value is
-real but was gotten for free.
-
-- **Do** keep the archival copy non-dot (`flake8rc`).
-- **Don't** name it `.flake8` / `setup.cfg` / `tox.ini` — those auto-load and would
-  let a stale snapshot hijack the global config.
-- The global (`~/.spacemacs.d/flake8`, symlinked to `~/.config/flake8`) is the only
-  active config.
-
-**The snapshots are stale, and a stale snapshot documents nothing.** Either re-sync
-them to the global, or drop them and let the global be the single copy — flake8 is
-legacy here anyway, kept only for Emacs flycheck, since ruff is the enforced linter.
-Tracked in `TODO_DEFERRED.md` in the `~/.claude` repo. (Raven had one from its
-initial commit and dropped it when ruff was adopted, `89c76af`, which may simply
-have been the right call.)
+**If you ever do add one back, do not name it `.flake8`, `setup.cfg` or `tox.ini`.**
+flake8 auto-discovers those, so a project-level copy would silently *override* the
+global on every `flake8 .` — and a copy that has drifted (they all do) means linting
+against a stale ruleset without any indication. The old `flake8rc` name was safe
+precisely because flake8 doesn't auto-discover it, which was luck rather than
+design.
 
 **Reference excerpt — not the source of truth.** The live config is
 `~/.spacemacs.d/flake8` (public repo, cloned by `NEW-MACHINE-SETUP.md`, symlinked to
