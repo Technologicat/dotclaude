@@ -284,13 +284,16 @@ The `--set-upstream-to` line is load-bearing. `git init` followed by `reset` lea
 
 Then hand-carry `SECRET-SAUCE.md` and `HARDWARE-NOTES.md` as above.
 
-Finally, sweep the leftovers. Top-level files the repo has since superseded — old notes that now live under `skills/` or `briefs/` — are *ignored* by the reset, not removed, so `git status` reads clean while they linger and go stale:
+Finally, sweep the leftovers. A hard reset rewrites tracked files and deletes nothing else, so anything the repo has since superseded simply stays on disk. It comes in two flavours, and `git` marks them differently:
 
 ```bash
-git status --ignored --short | grep '^!!'
+git status --ignored --short        # ?? and !! lines are both leftovers
 ```
 
-Anything at the top level that is neither runtime state nor one of the two private files is a superseded copy; delete it. Machine-local Claude Code settings do not belong back in the tracked `settings.json` — put them in `settings.local.json`, which the deny-all already ignores.
+- `!!` — *ignored* cruft at the top level: old notes that now live under `skills/` or `briefs/`, stray backups, an orphaned `memory/` from a previous Claude Code layout. The deny-all hides these, so a plain `git status` reads clean while they linger and go stale.
+- `??` — *untracked* stragglers inside the allowlisted directories (`commands/`, `scripts/`, `skills/`, `briefs/`). These are the sneakier ones: an old `commands/foo.md`, from before that command became a skill, is not ignored — so Claude Code still loads it as a slash command, alongside the skill that superseded it.
+
+Anything that is neither runtime state nor one of the two private files is a superseded copy; diff it against whatever replaced it, then delete it. Machine-local Claude Code settings do not belong back in the tracked `settings.json` — put them in `settings.local.json`, which the deny-all already ignores.
 
 ### Kitty terminal workaround
 
