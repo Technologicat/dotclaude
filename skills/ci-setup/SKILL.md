@@ -39,9 +39,15 @@ and over, to test code that mostly doesn't touch it.
 So Raven's CI installs an explicit list instead (with CPU-only torch wheels from PyTorch's
 own index, rather than the CUDA build), installs the package with `pip install -e . --no-deps`
 so the rest of the tree is never resolved, and runs `pytest -m "not ml"` to skip the tests
-that need real model weights. A secondary benefit: the full tree includes a
-Python-version-pinned TTS stack, which constrains the matrix and invites resolver trouble
-across operating systems — sidestepped for free.
+that need real model weights.
+
+A second benefit, worth knowing because it isn't obvious: since the heavy TTS stack is never
+installed in CI, the matrix can add **macOS and Windows** runners without depending on that
+stack having wheels for them. The torch CPU index carries wheels for all three OSes, so the
+install line works unchanged. (This is about the portability of the *CI job*, not of the
+project: the full install resolves fine for users on the supported Python versions — that's
+what "supported" means. The project's Python cap comes from the TTS stack itself, and the
+matrix respects it either way.)
 
 **The cost of that last pattern is a second, hand-maintained list.** Add a test dep and you
 must add it in two places — `[dependency-groups].dev` and the CI pip step — with nothing
