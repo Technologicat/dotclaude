@@ -168,9 +168,12 @@ different styles:
 
 - **unpythonic** uses `unpythonic.test.fixtures`, its own macro-aware test framework (see
   the `unpythonic-macro-testing` skill).
-- **mcpyrate** uses bare `assert`. It *can't* use unpythonic's framework: unpythonic depends
-  on mcpyrate, so the dependency would be circular. The macro expander cannot be tested with
-  a tool built on top of it — no system bootstraps itself cleanly.
+- **mcpyrate** uses bare `assert`, and could not do otherwise. `unpythonic.test.fixtures`
+  needs two things mcpyrate cannot supply: a *working macro expander* — which is precisely
+  what mcpyrate is, and therefore what's under test, so the tests would presuppose their own
+  subject — and a Common-Lisp-style conditions-and-restarts system, which is unpythonic's and
+  well outside mcpyrate's remit (its only job is to be the expander). That's also why the
+  framework lives in unpythonic rather than in mcpyrate.
 
 Either way pytest-cov is not in play, so coverage is driven by coverage.py directly:
 
