@@ -413,7 +413,7 @@ This installs `llmster` into `~/.lmstudio/` and puts `lms` on PATH via `~/.lmstu
 
 **GUI app:** download the AppImage (or .deb) from https://lmstudio.ai/download — the CLI installer does not include the GUI. Symlink or place the AppImage wherever local apps live (e.g. `~/.local/bin/`).
 
-**Models** live under `~/.lmstudio/models/` (GGUF format). Transfer from an existing machine via Warpinator or download through the LM Studio GUI. MCP server configuration is covered above under "LM Studio MCP servers" in the Node.js section.
+**Models** live under `~/.lmstudio/models/PUBLISHER/MODEL/` (GGUF format) — e.g. `~/.lmstudio/models/lmstudio-community/Qwen2.5-14B-Instruct-GGUF/`. Transfer from an existing machine via Warpinator (preserve the two-level directory structure) or download through the LM Studio GUI. MCP server configuration is covered above under "LM Studio MCP servers" in the Node.js section.
 
 ### ComfyUI
 
@@ -436,6 +436,18 @@ mkdir -p ~/stable-diffusion-models
 ```
 
 Transfer models selectively from an existing machine — a full collection is large and not all models are needed on every box.
+
+**Custom nodes:** copy or clone into `~/ComfyUI/custom_nodes/`. If copying from a machine with a different Python version, clean stale bytecode first:
+
+```bash
+macropython -C ~/ComfyUI/custom_nodes
+```
+
+Then install their dependencies (with the venv active):
+
+```bash
+for req in ~/ComfyUI/custom_nodes/*/requirements.txt; do pip install -r "$req"; done
+```
 
 **Running:** `cd ~/ComfyUI && source venv/bin/activate && python main.py` — opens a web UI on `http://127.0.0.1:8188`.
 
