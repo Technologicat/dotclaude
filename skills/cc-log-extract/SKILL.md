@@ -6,13 +6,22 @@ description: Extract readable conversation turns from Claude Code JSONL session 
 # Extracting Claude Code session logs
 
 Claude Code stores every session as a JSONL transcript under
-`~/.claude/projects/<munged-project-path>/<session-uuid>.jsonl`
-(the project dir name is the absolute cwd with `/` → `-`). Each line is one
-record: `user` / `assistant` messages, plus harness records (`ai-title`,
-`permission-mode`, `file-history-snapshot`, …). Assistant content is a list of
-`text` / `thinking` / `tool_use` blocks; user content is a string or a list
-that may include `tool_result` blocks. Raw, these files are mostly tool-I/O
-noise — useless to read directly.
+`~/.claude/projects/<munged-project-path>/<session-uuid>.jsonl`. The project dir
+name is the absolute cwd with `/` **and `.`** both replaced by `-` — so
+`/home/me/.claude` becomes `-home-me--claude` (note the doubled dash where the dot
+was), and `/home/me/Documents/koodit/raven` becomes
+`-home-me-Documents-koodit-raven`. Don't reconstruct the name by hand; `ls` the
+`projects/` directory and match.
+
+Each line is one record: `user` / `assistant` messages, plus harness records
+(`ai-title`, `permission-mode`, `file-history-snapshot`, `system`, …). Assistant
+content is a list of `text` / `thinking` / `tool_use` blocks; user content is a
+string or a list that may include `tool_result` blocks. Raw, these files are mostly
+tool-I/O noise — useless to read directly.
+
+Subagent transcripts live beside the session that spawned them, at
+`<session-uuid>/subagents/agent-<id>.jsonl` — a directory named after the session
+UUID, sibling to the session's own `.jsonl`.
 
 `cc-log-extract.py` distills them into readable Markdown: HUMAN + CC prose
 turns, tool calls collapsed to one-liners (`[Edit: foo.py]`, `[Bash: pytest]`),
