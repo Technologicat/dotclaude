@@ -140,8 +140,10 @@ is public). It's in auto-memory; if it isn't, ask.
   older naming, two dated releases could share `family-major-minor` and still be
   genuinely different models — `claude-3-5-sonnet-20240620` and
   `claude-3-5-sonnet-20241022` were distinct models, and there the date was the *only*
-  thing telling them apart. If identifiers of that shape ever turn up in the logs, the
-  stamp will merge them and be wrong to do so.
+  thing telling them apart. (Both appear in Anthropic's
+  [model deprecations list](https://platform.claude.com/docs/en/about-claude/model-deprecations),
+  which is the place to check identifiers of this kind.) If identifiers of that shape
+  ever turn up in the logs, the stamp will merge them and be wrong to do so.
 
   This is why the raw API strings are preserved verbatim in the header: the grouping is
   a convenience, the raw strings are the record, and nothing has been thrown away if
