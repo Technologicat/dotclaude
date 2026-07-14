@@ -11,6 +11,10 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 ## Pre-release
 
+**Tag only once CI is green on the exact commit you intend to tag.** Push the release commit, wait for the run to pass, *then* tag and push the tag. Never tag and push in one motion on the strength of a local test run.
+
+The failure this prevents: a red tag run means the publish never happens, and recovering costs either force-moving a public tag or burning the version number entirely. On an ordinary push a red CI is cheap — fix it and push again. On a tag it is not, and the asymmetry is the whole reason the rule exists. (A local suite passing is not the same as CI passing: CI also lints.)
+
 Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
 **Settle the version number first — the stub's is provisional.** The in-progress stub was opened right after the last release, when the only guess available was "next patch". What it actually becomes depends on what landed in it, per semver:

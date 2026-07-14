@@ -1,5 +1,29 @@
 # Deferred TODOs
 
+## Evaluate pyan's extra ruff rules for the rest of the fleet
+
+pyan selects `E, W, F, I, B, C4, UP, ARG, SIM`; raven, unpythonic, mcpyrate and chandra
+select only `E, W, F, SIM`. So `I` (isort), `B` (bugbear), `C4` (comprehensions), `UP`
+(pyupgrade) and `ARG` (unused arguments) are enforced in exactly one project.
+
+The divergence is provenance, not design: pyan has always been its own thing, with more
+community involvement than the rest of the fleet. **pyan keeps its config** — this item
+is only about whether any of those rules would earn their place elsewhere.
+
+The one measurement taken so far: enabling `I` on raven reports **211 violations**. Raven's
+imports are grouped thematically (stdlib, then dependencies, then local) and alphabetised
+*within* each group — which is isort's own model, so the count is surprising and worth
+understanding before drawing a conclusion. It may be the `import x` / `from x import y`
+interleaving rule, or the section boundaries not being where isort infers them.
+
+The question to answer for each rule, per the house line that linters are advisors and
+working code shouldn't be rewritten to satisfy one: **does it maintain the house style, or
+fight it?** `I` in particular could go either way — it might codify the existing import
+discipline, or it might flatten deliberate thematic grouping. Look at what the autofix
+actually does to a few real files before deciding.
+
+Discovered during the `~/.claude` cloudification (2026-07-14).
+
 ## Design a study: does CLAUDE.md rule count degrade rule-following?
 
 `CLAUDE.md` currently holds ~66 top-level bullets and 9 sub-rules; discounting the
