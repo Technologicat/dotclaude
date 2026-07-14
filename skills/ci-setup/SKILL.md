@@ -377,9 +377,9 @@ Whole fleet was pinned this way on 2026-06-11; every default branch has zero flo
 ```yaml
 on:
   push:
-    branches: [DEFAULT-BRANCH]   # master or main — check the repo
+    branches: [master]   # or [main] — check the repo; the brackets are YAML list syntax, keep them
   pull_request:
-    branches: [DEFAULT-BRANCH]   # master or main — check the repo
+    branches: [master]   # or [main] — check the repo; the brackets are YAML list syntax, keep them
 
 permissions:
   contents: read
@@ -413,10 +413,10 @@ Publishes sdist + wheels to PyPI automatically when a version tag is pushed. Use
 ```yaml
 on:
   push:
-    branches: [DEFAULT-BRANCH]   # master or main — check the repo
+    branches: [master]   # or [main] — check the repo; the brackets are YAML list syntax, keep them
     tags: ["v*"]          # or ["*"] for bare-version tags — match the project's tag format
   pull_request:
-    branches: [DEFAULT-BRANCH]   # master or main — check the repo
+    branches: [master]   # or [main] — check the repo; the brackets are YAML list syntax, keep them
   workflow_dispatch:
 
 permissions:
