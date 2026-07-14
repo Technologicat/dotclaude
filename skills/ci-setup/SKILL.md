@@ -162,7 +162,23 @@ signal doesn't repay the machinery. Don't "fix" the missing file.
 
 ### Coverage generation — pytest-cov vs coverage.py
 
-**Note:** This section applies to projects using pytest. Projects with custom test runners (e.g. `runtests.py` with bare asserts or a custom test framework) will need a different approach — likely `coverage run runtests.py` followed by `coverage xml`.
+**Note:** This section applies to projects using **pytest**. Two fleet projects don't —
+mcpyrate and unpythonic drive their tests through a top-level `runtests.py`, using
+`unpythonic.test.fixtures` (the macro-aware test framework; see the
+`unpythonic-macro-testing` skill). pytest-cov is not in play there, so coverage is driven
+by coverage.py directly:
+
+```yaml
+- name: Generate coverage report
+  run: |
+    # `source` and `omit` come from [tool.coverage.run] in pyproject.toml.
+    pdm run python -m coverage run -m runtests
+    pdm run python -m coverage xml
+```
+
+Note `-m runtests` (module form), and no `--source` flag — the scoping belongs in
+`[tool.coverage.run]`, where it also applies to local runs. (unpythonic still passes a
+redundant `--source=.`; mcpyrate's form is the one to copy.)
 
 **Gotcha:** if `pytest.ini` has `--cov=<package>` in `addopts`, then `coverage run -m pytest` conflicts with pytest-cov — `coverage xml` afterwards will say "No data was collected."
 
