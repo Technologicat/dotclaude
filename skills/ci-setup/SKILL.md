@@ -153,8 +153,9 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
       token: ${{ secrets.CODECOV_TOKEN }}
   ```
 
-**Cython projects have no coverage job, deliberately.** pylu, pydgq and python-wlsqm have CI
-but no `coverage.yml`, and that is a decision, not an oversight: measuring coverage of
+### Cython projects have no coverage job, deliberately
+
+pylu, pydgq and python-wlsqm have CI but no `coverage.yml`, and that is a decision, not an oversight: measuring coverage of
 compiled Cython requires building the extensions with line tracing enabled (`linetrace`
 directive plus `CYTHON_TRACE`) and running coverage.py's Cython plugin — a separate build
 configuration, maintained solely for the coverage run. For small numerical kernels the
@@ -246,7 +247,9 @@ The `omit` config applies even when the CLI uses `--source=.` (or any other over
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](http://makeapullrequest.com/)
 ```
 
-**Three namespaces, and all three can differ.** Don't infer one from another:
+#### Three namespaces
+
+The local directory, the GitHub repo and the PyPI package are three different names, and all three can differ. Don't infer one from another:
 
 | | local directory | GitHub repo | PyPI package |
 |---|---|---|---|
