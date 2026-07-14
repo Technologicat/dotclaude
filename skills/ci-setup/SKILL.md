@@ -82,12 +82,13 @@ badges that render as "unknown" — both of which fail *quietly*.
 gh repo view --json defaultBranchRef -q .defaultBranchRef.name
 ```
 
-Authoritative, and the network is always there — an agent working on these repos is online
-by construction.
+Authoritative. It needs the network, which is normally a non-issue — a cloud-hosted agent
+is online whenever it's working at all, and you're pushing to these repos anyway.
 
-**Don't** use `git symbolic-ref --short HEAD`: it reports the branch you are *currently
-on*, which is the default branch only by luck. On a feature branch — i.e. most of the time
-during development — it quietly gives the wrong answer.
+**Don't** use `git symbolic-ref --short HEAD`: it answers a different question — *which
+branch am I on* — and cannot tell you whether that happens to be the default one. It's
+right whenever you're on `master`/`main`, which is often, and silently wrong when you're
+not. A command that's correct only when you already know the answer is no help.
 
 **Don't rely on `git rev-parse --abbrev-ref origin/HEAD` either.** It's the textbook
 offline answer, but that ref is written by `git clone` — and most of these repos were born
