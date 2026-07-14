@@ -50,12 +50,18 @@ Both forms are readable by both audiences. What differs is the kind of question 
   raven-xdot-viewer /tmp/pyan3_callgraph.dot &
   ```
 
-  The viewer runs the layout engine itself, so it takes the `.dot` directly — no
-  need to rasterize for it. The `raven-xdot-viewer` shell function activates Raven's
-  venv on its own, so there's nothing to set up first. **Must background** (`&`).
+  Hand it the `.dot` — it runs graphviz's *layout* pass itself to get an `.xdot`
+  (skipping that step if you hand it an `.xdot` already), and then draws with its own
+  DPG-based xdot renderer. Graphviz's rasterizer is not involved: interactive rendering
+  is Raven's, which is what makes zoom and pan stay sharp. So don't pre-render a PNG
+  for the user — that would flatten the graph they want to explore.
 
-  You cannot drive the viewer yourself — it's a GUI app. Render a PNG for your own
-  eyes, launch the viewer for theirs.
+  The `raven-xdot-viewer` shell function activates Raven's venv on its own, so there's
+  nothing to set up first. **Must background** (`&`).
+
+  You cannot drive the viewer yourself — it's a GUI app. Rasterize a PNG for your own
+  eyes (graphviz does both layout *and* rasterization there); launch the viewer for
+  theirs.
 
 Report the **pyan3** command you ran, and any warnings it emitted — for either output
 format. (The graph is only as good as what pyan could resolve statically; the warnings
