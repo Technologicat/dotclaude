@@ -16,9 +16,9 @@ Sibling skill: `project-setup` covers the build system and linter config.
 - **Trigger:** push + PR to the repo's **default branch**, and workflow_dispatch. That branch is not the same across the fleet — see "Default branch: `master` or `main`" below
 - **Matrix:** all supported Python versions, `fail-fast: false`
 - **Steps:** checkout → setup-python → install deps → ruff lint → pytest
-- Use `actions/checkout` and `actions/setup-python` (v6 as of Apr 2026) — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
+- Use `actions/checkout` and `actions/setup-python` — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
 - **Top-level `permissions: contents: read`** (after `on:`, before `jobs:`) — least-privilege `GITHUB_TOKEN` (see "Least-privilege `GITHUB_TOKEN` permissions")
-- For pre-release Python versions (e.g. 3.15): `allow-prereleases: true`
+- For pre-release Python versions: `allow-prereleases: true`
 - **Install pytest as a raw pip step alongside the other build/test deps** (see "Test dependencies in CI" below). Don't use `[project.optional-dependencies].test` — pytest is dev tooling, not a published library feature.
 - Install ruff and cython-lint separately in the lint job — they're CI tools, not project test deps. (They also live in `[dependency-groups].dev` so local dev has them.)
 - **Cython extensions on Windows:** add an `ilammy/msvc-dev-cmd` step (SHA-pinned, like every action) before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
@@ -76,7 +76,7 @@ due to a known false positive on relative cimports. See the
 ### GitHub Actions — Coverage (`.github/workflows/coverage.yml`)
 
 - **Trigger:** push to the default branch only (not PRs)
-- **Single Python version** (e.g. 3.12) — no matrix needed
+- **Single Python version** — no matrix needed; pick one the project supports
 - Uses `codecov/codecov-action`, SHA-pinned like every action
 - Upload step:
   ```yaml
@@ -316,7 +316,7 @@ jobs:
       - uses: actions/checkout@<sha>                 # v6.x
       - uses: actions/setup-python@<sha>             # v6.x
         with:
-          python-version: "3.14"
+          python-version: "3.14"   # a currently-supported version; not a fixed recommendation
       - run: pip install build
       - run: python -m build
       - uses: actions/upload-artifact@<sha>          # v7.x
