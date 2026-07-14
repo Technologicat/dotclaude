@@ -132,8 +132,11 @@ autofix-unsafe for multi-guard patterns. `cython-lint` runs non-blocking
 due to a known false positive on relative cimports. See the
 `project-setup` skill for the full rationale.
 
-**Legacy flake8** config is not per-project — it lives globally at
-`~/.config/flake8`. Don't duplicate it into project-level files.
+**Legacy flake8** config is not per-project. It is active at `~/.config/flake8`, which is a
+symlink to `~/.spacemacs.d/flake8` — version-controlled and public at
+[Technologicat/spacemacs.d](https://github.com/Technologicat/spacemacs.d/blob/master/flake8), which is the authoritative copy. Don't duplicate it into project-level files: per-project copies drift,
+and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and silently
+*override* the global. See the `project-setup` skill for the full story.
 
 ### GitHub Actions — Coverage (`.github/workflows/coverage.yml`)
 

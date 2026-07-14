@@ -459,10 +459,12 @@ Not used in CI (ruff is the CI linter).
 **Active config is the global `~/.config/flake8`** — the single source of truth
 flycheck reads, shared across all projects and edited in one place. CI does not
 use flake8 at all; `[tool.ruff]` in each `pyproject.toml` is the enforced linter.
-The authoritative file is `~/.spacemacs.d/flake8` (version-controlled with the
-Spacemacs config — that repo *is* the GitHub archive, no separate dotfiles copy
-needed), symlinked as `~/.config/flake8` (and `~/.config/pep8`). flycheck is
-pointed at the absolute path via `flycheck-flake8rc` in `~/.spacemacs.d/init.el`.
+The authoritative file is `~/.spacemacs.d/flake8`, version-controlled with the Spacemacs
+config and public at
+[Technologicat/spacemacs.d/flake8](https://github.com/Technologicat/spacemacs.d/blob/master/flake8) — that repo *is* the archive, so no separate
+dotfiles copy is needed. It is symlinked as `~/.config/flake8`
+(and `~/.config/pep8`). flycheck is pointed at the absolute path via `flycheck-flake8rc` in
+`~/.spacemacs.d/init.el`.
 
 **Don't commit a per-project flake8 config.** The global is the only copy.
 
