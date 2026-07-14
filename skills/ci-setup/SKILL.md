@@ -505,20 +505,19 @@ so that meson finds `cl.exe` first:
   if: runner.os == 'Windows'
 ```
 
-**Add it to BOTH the `test` job AND the `build-wheels` job.** In the
-test job, place it between `actions/setup-python` and the
-`pip install --no-build-isolation -e .` step. In the build-wheels job,
-place it before the `pypa/cibuildwheel` step. Contrary to initial
-assumption, cibuildwheel does NOT automatically activate MSVC for
-meson-python builds — distutils/setuptools based projects get MSVC
-auto-detection from distutils itself (via its "python-was-built-with-
-MSVC" logic), but meson-python uses meson's own compiler discovery,
-which picks up whichever compiler is first on the runner PATH. On
-GitHub Actions Windows runners that's Strawberry Perl's bundled
-MinGW-w64 gcc (`C:\Strawberry\c\bin`) — so without the step, the
-wheel build links against MinGW's libgomp/libgcc_s_seh and the
-resulting wheel fails at import time in cibuildwheel's own test phase
-with the same "DLL load failed" error.
+**Add it to BOTH the `test` job AND the `build-wheels` job.** In the test job, place it
+between `actions/setup-python` and the `pip install --no-build-isolation -e .` step. In the
+build-wheels job, place it before the `pypa/cibuildwheel` step.
+
+**cibuildwheel does not activate MSVC for you** — a natural thing to assume, and false.
+Setuptools/distutils projects get MSVC auto-detection from distutils itself (its
+"python-was-built-with-MSVC" logic), but meson-python uses meson's own compiler discovery,
+which takes whichever compiler comes first on the runner's PATH. On GitHub Actions Windows
+runners that is Strawberry Perl's bundled MinGW-w64 gcc (`C:\Strawberry\c\bin`).
+
+So without the step, the wheel builds against MinGW's `libgomp`/`libgcc_s_seh`, and then
+fails at import — inside cibuildwheel's own test phase — with the same "DLL load failed"
+error described above.
 
 MSVC-built `.pyd` files link only against the universal CRT
 (`api-ms-win-crt-*.dll`, always present on Windows 10+) and `vcomp140.dll`
