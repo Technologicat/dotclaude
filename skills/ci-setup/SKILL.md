@@ -443,7 +443,16 @@ jobs:
           packages-dir: dist/
 ```
 
-**For pure Python projects** (no cibuildwheel), the build job is simpler:
+**The `publish` job above is the same for every project.** What differs is the **build** job
+that produces the artifacts it uploads, and there are two shapes:
+
+- **Pure Python** — one job, `python -m build`, producing an sdist and a universal wheel.
+- **Cython/meson-python** — a `cibuildwheel` matrix, producing a compiled wheel per platform
+  and Python version. That's the heavy one: it needs the platform matrix, MSVC activation on
+  Windows (see "Windows CI for Cython extensions"), and manylinux containers on Linux. See
+  pylu's `ci.yml` for the full setup rather than reproducing it here.
+
+The pure-Python build job:
 
 ```yaml
   build:
@@ -460,8 +469,6 @@ jobs:
           name: dist
           path: dist/
 ```
-
-**For Cython projects**, use cibuildwheel (see pylu's `ci.yml` for the full setup with platform matrix).
 
 **One-time setup per project:**
 
