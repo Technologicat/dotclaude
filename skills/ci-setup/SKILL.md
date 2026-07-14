@@ -358,7 +358,15 @@ gh api repos/OWNER/REPO/releases/latest -q '.tag_name'
 
 **Vet a bump before pinning it.** A green CI run proves the action *works*, not that it's *trustworthy* — and a legit publisher can still be a hijacked account. Check, in rough order of strength: (1) GPG-signed tag with *key continuity* — the same maintainer key signed the version you already trust and the new one (`gh api .../git/tags/SHA -q '.verification'`); a hijacker with token access can't forge the GPG signature. (2) Release cadence consistent with real development (multi-week RC cycle, many linked PRs — not a sudden lone release). (3) No open security advisories (`gh api repos/OWNER/REPO/security-advisories`). codecov-action and cibuildwheel were vetted this way before the fleet bump.
 
-**Once vetted, front-run Dependabot.** When a bump is already reviewed-trustworthy, apply it fleet-wide rather than waiting for each repo's weekly Dependabot slot to fire — less wall-clock window where a floating tag could be repointed.
+**Once vetted, front-run Dependabot.** When you've already reviewed a bump and found it trustworthy, apply it across the fleet in one pass rather than waiting for each repo's weekly Dependabot slot.
+
+Note this is *not* a security argument — with everything SHA-pinned there is no floating tag left to repoint, which is the whole point of pinning. The reasons are practical:
+
+- **One review, nine repos.** You vetted the bump once; Dependabot would otherwise open the same PR nine times, at nine random moments over the following week, each wanting the same decision re-made.
+- **Less notification noise.** Nine PRs firing on their own schedules, each on a different day and hour, is a week of inbox churn for a change already approved.
+- **The fleet stays in step.** Same action, same SHA, everywhere — so "what version is X on?" has one answer rather than nine.
+
+The one case where speed *is* security: a bump that fixes a known vulnerability in the action. There the exposure is the *old* pinned version, and applying the fix sooner shortens it — but that's about the flaw you're leaving behind, not about anything the new pin prevents.
 
 Whole fleet was pinned this way on 2026-06-11; every default branch has zero floating refs. Each repo also needs `.github/dependabot.yml` (see "Dependabot") so the pins stay maintained.
 
