@@ -9,34 +9,40 @@ Reference for CI/coverage setup across projects.
 
 Sibling skill: `project-setup` covers the build system and linter config.
 
-## First: three environments, three ways to install
+## First: how does CI install dependencies?
 
-Dependencies get installed three different ways here, and the differences are
-deliberate. Knowing which environment you're configuring is most of the battle.
+There are three patterns in the fleet, and picking the right one is the first decision.
+Local dev always uses `pdm install` (which reads `[dependency-groups].dev`); what varies
+is CI.
 
-| Environment | How deps arrive | What it contains |
+| Pattern | Projects | CI install |
 |---|---|---|
-| **Local dev** | `pdm install` — reads `[dependency-groups].dev` | Everything: the project's full dependency tree, plus test and editor tooling |
-| **CI test job** | raw `pip install <explicit list>` | A hand-picked *subset*, deliberately lighter than dev |
-| **CI lint job** | raw `pip install ruff` (+ `cython-lint`) | Just the linters — CI tools, not project deps |
+| **`pdm install`** | pure-Python PDM projects | `pip install pdm` → `pdm install`. Dep groups work; nothing to hand-maintain |
+| **Raw pip + build deps** | Cython / meson-python projects | `pip install meson-python meson ninja Cython numpy pytest` → `pip install --no-build-isolation -e .` |
+| **Raw pip + hand-picked subset** | the heavy-dependency app (currently only Raven) | explicit list → `pip install -e . --no-deps` |
 
-Two separate reasons the CI jobs don't simply run `pdm install`:
+**If the project is pure Python, just use `pdm install` in CI.** It reads the dep groups,
+so there is no second list to maintain. That's the default, and most of the fleet does it.
 
-- **Mechanical.** PEP 735 `[dependency-groups]` are only visible to tools that
-  implement them (PDM, uv). Raw `pip` cannot install a dependency group at all. So a
-  CI job that uses plain pip *has* to list what it needs.
-- **Deliberate, and the more important one.** The CI environment is not meant to be
-  the dev environment. Raven is the clear case: its full tree pulls in
-  torch/torchvision (multi-GB) and a Python-version-pinned TTS stack, none of which the
-  test suite needs — so CI installs a hand-picked subset and runs `pytest -m "not ml"`
-  to skip the tests that would require the heavy half. Installing everything would cost
-  minutes per job to test code that isn't exercised.
+**Cython/meson-python projects can't**, because the editable install needs
+`--no-build-isolation` (so meson picks up the right compiler and the pinned build deps),
+which means the build deps must already be in the environment. Raw pip is a consequence of
+the build system, not a preference. Note the constraint underneath: PEP 735
+`[dependency-groups]` are invisible to raw `pip` — only PDM and uv implement them — so a
+pip-based job *must* list what it needs.
 
-The consequence worth internalizing: **`[dependency-groups].dev` and the CI pip list are
-two different lists, maintained in parallel, and they are allowed to differ.** Keep them
-consistent in the parts that overlap (a test dep CI needs should also be in `dev`, so a
-local `pdm install` exercises what CI exercises), but don't try to make one derive from
-the other — the divergence is the point.
+**The hand-picked subset is a last resort, and exactly one project needs it.** Raven's full
+resolve drags in a Python-version-pinned TTS stack and would risk resolver blow-ups across
+the OS matrix, so its CI installs an explicit list (including CPU-only torch wheels from
+PyTorch's own index), installs the package with `--no-deps` so nothing else is pulled, and
+runs `pytest -m "not ml"` to skip the tests that need real model weights.
+
+**The cost of that last pattern is a second, hand-maintained list.** Add a test dep and you
+must add it in two places — `[dependency-groups].dev` and the CI pip step — with nothing
+enforcing the overlap: a test importing something CI doesn't install fails only on push.
+That is why it's reserved for the project that genuinely can't do without it, and why both
+Raven's `pyproject.toml` and its workflow carry comments explaining the divergence. Without
+those, the next reader "fixes" the discrepancy and reintroduces the problem.
 
 ## Components
 
@@ -181,7 +187,9 @@ Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is 
 
 **Don't use `[project.optional-dependencies].test`** (i.e. the `pip install -e .[test]` pattern). `[project.optional-dependencies]` is for published library features — optional runtime deps that a downstream user might opt into. `test` isn't a feature; it's dev plumbing. Nobody actually does `pip install pylu[test]` — it only exists so CI has something to install.
 
-**Canonical pattern:** put `pytest` (and any other test deps like `pytest-cov`, `coverage`) in `[dependency-groups].dev` for local dev, and install them as a raw pip step in CI alongside the other build deps:
+**Where the test deps live:** `[dependency-groups].dev`, always. How CI *gets* them depends on the pattern (see "How does CI install dependencies?" at the top) — a `pdm install` job picks them up from the dep group with nothing further to do; a raw-pip job has to name them, because pip cannot see dep groups.
+
+For a raw-pip job, install them alongside the build deps: 
 
 ```yaml
 - name: Install build and test dependencies
@@ -205,16 +213,12 @@ For *why* CI installs this way rather than running `pdm install`, see "three env
 three ways to install" at the top — the short version is that PEP 735 dep groups are
 invisible to raw pip, *and* the CI environment is deliberately lighter than the dev one.
 
-**The CI list is hand-maintained, and that's the cost of the approach.** Adding a test
-dep means adding it in two places: `[dependency-groups].dev` (so local dev has it) and
-the CI pip step (so CI has it). Nothing enforces this — a test that imports something CI
-doesn't install fails only in CI, on push. When adding a dependency to a test, check both.
-
-**Where a project deliberately tests a subset**, say so in the workflow *and* in
-`pyproject.toml`, so the divergence reads as intent rather than an oversight. Raven's dev
-group carries a comment explaining that its CI skips the multi-GB ML stack, and its test
-job runs `pytest -m "not ml"` to match. Without that note, the next person to look would
-"fix" the CI install list by adding torch.
+**In a raw-pip project, the CI list is hand-maintained, and that's its cost.** Adding a
+test dep means adding it in two places — `[dependency-groups].dev` and the CI pip step —
+with nothing enforcing the overlap. A test that imports something CI doesn't install fails
+only in CI, on push. When adding a dependency to a test, check both. (A `pdm install`
+project has no such hazard, which is a good reason to prefer it where the build system
+allows.)
 
 **Consolidation note:** don't duplicate the pytest version pin across `[project.optional-dependencies]` and `[dependency-groups].dev` — pick one. The canonical form has only `[dependency-groups].dev` with `pytest>=8.0`.
 
