@@ -246,7 +246,7 @@ The `omit` config applies even when the CLI uses `--source=.` (or any other over
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](http://makeapullrequest.com/)
 ```
 
-Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is the PyPI name (e.g. `pyan3`) — these may differ, and the directory name may differ from both (`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`; check `git remote -v`). `BRANCH` is the repo's default branch, which is *not* uniform across the fleet — see below. Badges referencing `PACKAGE` require a PyPI release; omit them for GitHub-only projects.
+Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is the PyPI name (e.g. `pyan3`) — these may differ, and the directory name may differ from both (`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`; check `git remote -v`). `BRANCH` is the repo's default branch, which is *not* uniform across the fleet — see "Default branch: `master` or `main`" above. Badges referencing `PACKAGE` require a PyPI release; omit them for GitHub-only projects.
 
 ## Test dependencies in CI
 
