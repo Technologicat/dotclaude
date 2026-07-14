@@ -231,6 +231,13 @@ for anything new.
 
 ## Shared dev dependency baseline
 
+> **Adding a dependency here may not be enough.** Whether CI picks it up depends on how
+> that project's CI installs: a `pdm install` job reads `[dependency-groups].dev` directly
+> and needs nothing further, but a **raw-pip job** (every Cython/meson-python project, and
+> Raven) installs an explicit list, and will not see what you added here. The dep must go
+> in *both* places, and nothing checks that it did — the test fails on push, in a workflow
+> you weren't editing. See the `ci-setup` skill, "How does CI install dependencies?".
+
 Both pure-Python and Cython projects should have this in
 `[dependency-groups].dev` in `pyproject.toml`:
 

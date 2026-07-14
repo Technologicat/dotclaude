@@ -1,6 +1,6 @@
 ---
 name: ci-setup
-description: Reference for setting up or modernizing CI for a Python project in the fleet — GitHub Actions, test matrix, pytest coverage and Codecov, cibuildwheel for Cython extensions, Windows MSVC activation, automated PyPI publishing via trusted publishers, and supply-chain hardening (pinning actions to commit SHAs, least-privilege GITHUB_TOKEN permissions, vetting action bumps). Use when configuring CI workflows, adding coverage, fixing CI failures, hardening CI / pinning actions to SHAs / setting workflow token permissions, or scaffolding a new project's CI.
+description: Reference for setting up or modernizing CI for a Python project in the fleet — GitHub Actions, test matrix, how CI installs dependencies (pdm install vs raw pip vs hand-picked subset), pytest coverage and Codecov, cibuildwheel for Cython extensions, Windows MSVC activation, automated PyPI publishing via trusted publishers, and supply-chain hardening (pinning actions to commit SHAs, least-privilege GITHUB_TOKEN permissions, vetting action bumps). Use when configuring CI workflows, adding coverage, fixing CI failures, hardening CI / pinning actions to SHAs / setting workflow token permissions, or scaffolding a new project's CI — and also when **adding or changing a dependency**, especially a test dependency: in projects whose CI installs deps by hand (Cython/meson-python projects, and Raven), the dep must be added to the CI install step as well as to pyproject.toml, and nothing enforces that.
 ---
 
 # CI/Coverage setup
