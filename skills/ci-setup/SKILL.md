@@ -31,11 +31,17 @@ the build system, not a preference. Note the constraint underneath: PEP 735
 `[dependency-groups]` are invisible to raw `pip` — only PDM and uv implement them — so a
 pip-based job *must* list what it needs.
 
-**The hand-picked subset is a last resort, and exactly one project needs it.** Raven's full
-resolve drags in a Python-version-pinned TTS stack and would risk resolver blow-ups across
-the OS matrix, so its CI installs an explicit list (including CPU-only torch wheels from
-PyTorch's own index), installs the package with `--no-deps` so nothing else is pulled, and
-runs `pytest -m "not ml"` to skip the tests that need real model weights.
+**The hand-picked subset is a last resort, and exactly one project needs it.** The reason is
+CI cost: Raven's full dependency tree is multi-gigabyte, and a matrix installs it *once per
+entry, on every push*. That is the whole argument — the install would dominate the run, over
+and over, to test code that mostly doesn't touch it.
+
+So Raven's CI installs an explicit list instead (with CPU-only torch wheels from PyTorch's
+own index, rather than the CUDA build), installs the package with `pip install -e . --no-deps`
+so the rest of the tree is never resolved, and runs `pytest -m "not ml"` to skip the tests
+that need real model weights. A secondary benefit: the full tree includes a
+Python-version-pinned TTS stack, which constrains the matrix and invites resolver trouble
+across operating systems — sidestepped for free.
 
 **The cost of that last pattern is a second, hand-maintained list.** Add a test dep and you
 must add it in two places — `[dependency-groups].dev` and the CI pip step — with nothing
