@@ -134,8 +134,15 @@ is public). It's in auto-memory; if it isn't, ask.
   The stamp groups by `family-major-minor`, folding a bare identifier
   (`claude-opus-4-7`) together with a dated pin of the same version
   (`claude-opus-4-7-20260416`) — under the current naming scheme those are the same
-  model, and splitting them would fragment the attribution for no reason. Note this is
-  a property of the *present* scheme rather than a law: under older naming, two dated
-  releases could share family-major-minor and genuinely differ (the `3-5-sonnet` pair
-  of 2024). The raw API strings are preserved verbatim in the header precisely so that
-  if the distinction ever matters, nothing has been thrown away.
+  model, and splitting them would fragment the attribution for no reason.
+
+  Note this is a property of the *present* naming scheme rather than a law. Under
+  older naming, two dated releases could share `family-major-minor` and still be
+  genuinely different models — `claude-3-5-sonnet-20240620` and
+  `claude-3-5-sonnet-20241022` were distinct models, and there the date was the *only*
+  thing telling them apart. If identifiers of that shape ever turn up in the logs, the
+  stamp will merge them and be wrong to do so.
+
+  This is why the raw API strings are preserved verbatim in the header: the grouping is
+  a convenience, the raw strings are the record, and nothing has been thrown away if
+  the distinction turns out to matter.
