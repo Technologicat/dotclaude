@@ -583,11 +583,19 @@ vcomp140.dll                       (only for OpenMP-using modules)
 
 Remove the diagnostic step once the fix is confirmed.
 
-## Project-Specific Considerations
+## What varies per project — check, don't assume
 
-When setting up CI for a project, check:
+Nothing in this fleet is uniform. Every item below differs between projects, and each one
+fails *quietly* when guessed wrong. Look it up in the repo; the linked sections say how.
 
-- **Build system**: in CI, always install test deps (`pytest`, etc.) as a separate raw-pip step and the project itself with plain `pip install -e .` (or `pip install --no-build-isolation -e .` for meson-python projects). Don't use `[test]` extras — see "Test dependencies in CI" above.
-- **Test runner**: Some projects use pytest, some have a custom runner (`runtests.py`). Adjust CI steps accordingly.
-- **Action versions**: the usual set is `actions/checkout`, `actions/setup-python`, `codecov/codecov-action`, `actions/upload-artifact`, `actions/download-artifact`. Don't copy version numbers out of this file — they go stale. Resolve the current release of each and pin its SHA (see "Pin GitHub Actions to commit SHAs" for the `gh api` one-liners); Dependabot maintains the pins from there.
-- **pytest-cov conflict**: Check if `pytest.ini` / `pyproject.toml` has pytest-cov in addopts (see the gotcha under "Coverage generation").
+| Check | Why it bites |
+|---|---|
+| **How CI installs deps** — `pdm install`, raw pip + build deps, or a hand-picked subset | See "How does CI install dependencies?". Getting this wrong means a job that can't build, or a second dep list nobody knew existed |
+| **Default branch** — `master` or `main` | See "Default branch: `master` or `main`". A wrong branch means a workflow that never triggers and badges that read "unknown" — no error either way |
+| **Test runner** — pytest, or a `runtests.py` driving `unpythonic.test.fixtures` (unpythonic) or bare asserts (mcpyrate) | Determines whether coverage runs through pytest-cov or coverage.py directly. See "Coverage generation" |
+| **Coverage job's Python version** — should be the newest the project supports | See "GitHub Actions — Coverage". Left alone it freezes at whatever was current when the file was written |
+| **Whether there's a coverage job at all** — Cython projects deliberately have none | See "Cython projects have no coverage job, deliberately". Don't "fix" the absence |
+| **The three names** — local directory, GitHub repo, PyPI package | See "Three namespaces". Guessing resolves to *someone else's* project rather than failing |
+| **Tag format** — `vX.Y.Z` or bare `X.Y.Z` | See the `release` skill. A tag in the wrong format won't fire the publish workflow |
+| **Action versions** | Don't copy any version number out of this file — resolve the current release and pin its SHA. See "Pin GitHub Actions to commit SHAs" |
+| **pytest-cov in `addopts`** | Conflicts with `coverage run -m pytest`. See the gotcha under "Coverage generation" |
