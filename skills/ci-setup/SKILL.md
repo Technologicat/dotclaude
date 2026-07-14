@@ -13,7 +13,7 @@ Sibling skill: `project-setup` covers the build system and linter config.
 
 ### GitHub Actions — Test matrix (`.github/workflows/ci.yml`)
 
-- **Trigger:** push + PR to master, and workflow_dispatch
+- **Trigger:** push + PR to the repo's **default branch**, and workflow_dispatch. That branch is not the same across the fleet — see "Default branch: `master` or `main`" below
 - **Matrix:** all supported Python versions, `fail-fast: false`
 - **Steps:** checkout → setup-python → install deps → ruff lint → pytest
 - Use `actions/checkout` and `actions/setup-python` (v6 as of Apr 2026) — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
@@ -22,6 +22,21 @@ Sibling skill: `project-setup` covers the build system and linter config.
 - **Install pytest as a raw pip step alongside the other build/test deps** (see "Test dependencies in CI" below). Don't use `[project.optional-dependencies].test` — pytest is dev tooling, not a published library feature.
 - Install ruff and cython-lint separately in the lint job — they're CI tools, not project test deps. (They also live in `[dependency-groups].dev` so local dev has them.)
 - **Cython extensions on Windows:** add an `ilammy/msvc-dev-cmd` step (SHA-pinned, like every action) before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
+
+### Default branch: `master` or `main`
+
+**The fleet is split, so don't assume.** The older projects are on `master`; the ones
+started later are on `main`. Getting this wrong means workflows that never trigger and
+badges that render as "unknown" — both of which fail *quietly*.
+
+```bash
+git symbolic-ref --short HEAD          # in a clean checkout of the default branch
+gh repo view --json defaultBranchRef -q .defaultBranchRef.name    # authoritative
+```
+
+Prefer the `gh` form: a local checkout can be on a feature branch, or stale. (While
+you're at it, note that the *directory* name is not the repo name either —
+`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`. Read `git remote -v`.)
 
 ### Lint configuration — see the `project-setup` skill
 
@@ -60,7 +75,7 @@ due to a known false positive on relative cimports. See the
 
 ### GitHub Actions — Coverage (`.github/workflows/coverage.yml`)
 
-- **Trigger:** push to master only (not PRs)
+- **Trigger:** push to the default branch only (not PRs)
 - **Single Python version** (e.g. 3.12) — no matrix needed
 - Uses `codecov/codecov-action`, SHA-pinned like every action
 - Upload step:
@@ -121,8 +136,8 @@ The `omit` config applies even when the CLI uses `--source=.` (or any other over
 ![100% Python](https://img.shields.io/github/languages/top/OWNER/REPO)
 ![supported language versions](https://img.shields.io/pypi/pyversions/PACKAGE)
 ![supported implementations](https://img.shields.io/pypi/implementation/PACKAGE)
-![CI status](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/tests.yml?branch=master)
-[![codecov](https://codecov.io/gh/OWNER/REPO/branch/master/graph/badge.svg)](https://codecov.io/gh/OWNER/REPO)
+![CI status](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/tests.yml?branch=BRANCH)
+[![codecov](https://codecov.io/gh/OWNER/REPO/branch/BRANCH/graph/badge.svg)](https://codecov.io/gh/OWNER/REPO)
 ![version on PyPI](https://img.shields.io/pypi/v/PACKAGE)
 ![PyPI package format](https://img.shields.io/pypi/format/PACKAGE)
 ![dependency status](https://img.shields.io/librariesio/github/OWNER/REPO)
@@ -131,7 +146,7 @@ The `omit` config applies even when the CLI uses `--source=.` (or any other over
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](http://makeapullrequest.com/)
 ```
 
-Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is the PyPI name (e.g. `pyan3`) — these may differ. Badges referencing `PACKAGE` require a PyPI release; omit them for GitHub-only projects.
+Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is the PyPI name (e.g. `pyan3`) — these may differ, and the directory name may differ from both (`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`; check `git remote -v`). `BRANCH` is the repo's default branch, which is *not* uniform across the fleet — see below. Badges referencing `PACKAGE` require a PyPI release; omit them for GitHub-only projects.
 
 ## Test dependencies in CI
 
@@ -226,9 +241,9 @@ Whole fleet was pinned this way on 2026-06-11; every default branch has zero flo
 ```yaml
 on:
   push:
-    branches: [master]
+    branches: [DEFAULT-BRANCH]   # master or main — check the repo
   pull_request:
-    branches: [master]
+    branches: [DEFAULT-BRANCH]   # master or main — check the repo
 
 permissions:
   contents: read
@@ -262,10 +277,10 @@ Publishes sdist + wheels to PyPI automatically when a version tag is pushed. Use
 ```yaml
 on:
   push:
-    branches: [master]
+    branches: [DEFAULT-BRANCH]   # master or main — check the repo
     tags: ["v*"]          # or ["*"] for bare-version tags — match the project's tag format
   pull_request:
-    branches: [master]
+    branches: [DEFAULT-BRANCH]   # master or main — check the repo
   workflow_dispatch:
 
 permissions:
