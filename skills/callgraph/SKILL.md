@@ -10,18 +10,26 @@ defines / calls / uses what), or with `--module-level` a module dependency
 graph. Useful for understanding code structure, visual/structural testing, and
 exploration.
 
-## Choose the output format by audience
+## Choose the output format by the question, not by the reader
 
-- **For your own understanding** (you, the agent, reading the wiring) — use
-  `--text`. It produces a human-readable adjacency list you can read directly,
-  no viewer needed.
+Both forms are readable by both audiences. What differs is the kind of question each one answers.
+
+- **You have a specific question** — does F call G? what calls F? how does F reach G?
+  — use `--text`. It's an adjacency list: precise, greppable, and it answers the
+  question you asked. This holds whoever is asking; a human chasing one call path
+  wants text too, not a picture.
 
   ```
   pyan3 <paths> --text
   pyan3 --module-level <paths> --text      # module dependency graph
   ```
 
-- **For the user to view visually** — render to dot and open the viewer:
+- **You don't yet know what to ask** — render to dot and open the viewer. Layout *is*
+  information: clusters, hubs, unexpected edges and lopsided coupling are visible at a
+  glance and essentially invisible in an adjacency list. Reach for it for a lateral
+  look at an unfamiliar codebase, not to answer a question you could have grepped. The
+  viewer also has interactive search, so you can navigate from the overview into
+  specifics without regenerating anything.
 
   ```
   pyan3 <paths> --dot --colored --grouped --nested-groups --concentrate --file /tmp/pyan3_callgraph.dot
