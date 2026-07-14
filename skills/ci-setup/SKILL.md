@@ -185,9 +185,10 @@ Either way pytest-cov is not in play, so coverage is driven by coverage.py direc
     pdm run python -m coverage xml
 ```
 
-Note `-m runtests` (module form), and no `--source` flag — the scoping belongs in
-`[tool.coverage.run]`, where it also applies to local runs. (unpythonic still passes a
-redundant `--source=.`; mcpyrate's form is the one to copy.)
+Note `-m runtests` (module form), and **no `--source` flag** — the scoping belongs in
+`[tool.coverage.run]`, where it also applies to local runs. A CLI `--source` *overrides* the
+config rather than adding to it, so passing one silently discards the package scoping and
+measures the whole tree.
 
 **Gotcha:** if `pytest.ini` has `--cov=<package>` in `addopts`, then `coverage run -m pytest` conflicts with pytest-cov — `coverage xml` afterwards will say "No data was collected."
 
