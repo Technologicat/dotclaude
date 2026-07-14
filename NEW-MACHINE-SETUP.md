@@ -182,7 +182,7 @@ This is sourced by interactive shells only — so **GUI apps launched outside an
 
 ### LM Studio MCP servers
 
-`mcp.json` lives at `~/.lmstudio/mcp.json` (LM Studio follows Cursor's notation: a top-level `mcpServers` object). LM Studio spawns one process per server; for npx-based local servers, npx must be on the *spawned* process's PATH — which, per the nvm gotcha above, it isn't when LM Studio is launched from the desktop. The login-shell wrapper (`bash -lc`) re-sources the profile so npx resolves, and survives Node upgrades (no hardcoded version directory). Confirmed working:
+`mcp.json` lives at `~/.lmstudio/mcp.json` (LM Studio follows Cursor's notation: a top-level `mcpServers` object). LM Studio spawns one process per server; for npx-based local servers, npx must be on the *spawned* process's PATH — which, per the nvm gotcha above, it isn't when LM Studio is launched from the desktop. The login-shell wrapper (`bash -lc`) re-sources the profile so npx resolves, and survives Node upgrades (no hardcoded version directory). Confirmed working, using the [open-meteo](https://github.com/cmer81/open-meteo-mcp) weather server as the example:
 
 ```json
 {
@@ -202,7 +202,17 @@ Notes on the npx invocation, for future debugging:
 - `-y` auto-approves the install so the non-interactive spawned process doesn't hang on a prompt.
 - `-p X X` is `--package` (what to fetch) + the trailing command (what to run); they collide on the same name here, so a bare `npx -y open-meteo-mcp-server` would resolve identically. The explicit form is the README author's.
 - Cache reuse means you don't pull fresh arbitrary code every launch (good) but also don't auto-get upstream security fixes until the cache entry clears (less good). For a pinned, controlled artifact: `npm install -g open-meteo-mcp-server@<version>` and point `command` at the installed binary instead.
-- Tools appear under the Program tab, gated behind LM Studio's per-call confirmation dialog. If they don't appear after saving `mcp.json`, check LM Studio's logs for a spawn/ENOENT error on npx — that's the PATH problem, meaning the `-lc` bridge above didn't fire.
+- Once running, the server's tools show up in the chat UI (hammer icon, as of mid-2026 — the devs move the GUI around), gated behind LM Studio's per-call confirmation dialog. If they don't appear after saving `mcp.json`, check LM Studio's logs for a spawn/ENOENT error on npx — that's the PATH problem, meaning the `-lc` bridge above didn't fire.
+
+Pre-flight check, from a fresh terminal on the target machine:
+
+```bash
+bash -lc 'which npx && node --version'
+```
+
+A path plus a version means the config above will work. Empty output means the login shell isn't sourcing the nvm block — fix that on the dotfile side, not in `mcp.json`.
+
+npx package names drift over time. If `open-meteo-mcp-server` ever stops resolving, that's the first thing to check when copying this config to a new machine after a long gap: run the `npx -y -p …` line directly in a terminal and watch for a resolution failure. From LM Studio's side the symptom is silent — the server just never comes up.
 
 ## Spacemacs
 
@@ -414,6 +424,16 @@ This installs `llmster` into `~/.lmstudio/` and puts `lms` on PATH via `~/.lmstu
 **GUI app:** download the AppImage (or .deb) from https://lmstudio.ai/download — the CLI installer does not include the GUI. Symlink or place the AppImage wherever local apps live (e.g. `~/.local/bin/`).
 
 **Models** live under `~/.lmstudio/models/PUBLISHER/MODEL/` (GGUF format) — e.g. `~/.lmstudio/models/lmstudio-community/Qwen2.5-14B-Instruct-GGUF/`. Transfer from an existing machine via Warpinator (preserve the two-level directory structure) or download through the LM Studio GUI. MCP server configuration is covered above under "LM Studio MCP servers" in the Node.js section.
+
+**Web search** comes from a Hub plugin, not an MCP server:
+
+```bash
+lms get npacker/web-tools
+```
+
+Then enable and configure it in the LM Studio GUI. It bundles web search, image search, visit-website and fetch-images. Hub page: https://lmstudio.ai/npacker/web-tools
+
+**Install by exact slug.** `web-tools` has a cloud of near-identical forks on the Hub (`rezet`, `webbrain`, `vanily123`, `altra`, …); `npacker/web-tools` is the maintained, widely-used one (a few thousand downloads, updated within the last month, as of mid-2026). The slug matters more than it looks, because the Hub's browse surface went dead around June 2026 — the `/plugins` index page vanished — so you can't eyeball the forks apart in a browser; grabbing by exact slug sidesteps the question.
 
 ### ComfyUI
 
