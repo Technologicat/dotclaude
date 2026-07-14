@@ -83,10 +83,59 @@ sessions at once.
    releases, per-session gist) — then write the report from those. This keeps
    the orchestrator's context clean.
 
+4. **Archive the per-project digests** alongside the report, in a dated subfolder
+   (`YYYY-MM/<project>.md`). They are the readable backing detail: the report
+   asserts what was built, the digests are the evidence, and next month's report
+   often needs to look back at them.
+
+### House format for the report
+
+```markdown
+# Activity Report — June 2026
+
+*Covers 2026-06-03 through 2026-06-29. Executive summary across active projects.
+Drafted from Claude Code session logs; all work this period ran on Opus 4.8.*
+
+---
+
+## Releases shipped this period
+
+## <project> — <one-line description of what it is>
+### <component>            (only where a project needs the breakdown)
+
+## Cross-cutting: <named theme>     (e.g. fleet-wide CI supply-chain hardening)
+
+## Cross-cutting themes
+```
+
+- **Coverage line** (italic, under the title): the actual date range covered, and
+  the model(s) the work ran on. The date range comes from the *contents* of the
+  sessions, not the calendar month — say what was really covered.
+- **Releases shipped this period** goes first: it's the part with hard artifacts.
+- **One section per active project**, titled with a short gloss of what the project
+  *is* — the report is read by people who don't know the fleet.
+- **Cross-cutting sections** for work that spanned projects (a fleet-wide CI change,
+  a convention rollout). These are the ones a per-project digest can't see, so they
+  have to be assembled deliberately.
+
+**Versioning:** `activity-report-YYYY-MM-vN.md`, starting at `v0` (draft) and
+iterating as the user revises. `.docx`/`.odt` exports may sit beside the final `.md`.
+
+**Where reports live** is machine-local and deliberately not recorded here (this repo
+is public). It's in auto-memory; if it isn't, ask.
+
 ## Other uses
 
 - **"How did we build X?"** — extract the relevant session with `--tools edits`
   to see the actual diffs inline.
-- **Ethnography / field notes** — `--no-tools` for pure HUMAN↔CC dialogue; the
-  model stamps let you attribute behavior to a specific model version (the date
-  suffix in raw strings is the *deployment* date, not the model identity).
+- **Ethnography / field notes** — `--no-tools` for pure HUMAN↔CC dialogue; the model
+  stamps let you attribute behavior to a specific model version.
+
+  The stamp groups by `family-major-minor`, folding a bare identifier
+  (`claude-opus-4-7`) together with a dated pin of the same version
+  (`claude-opus-4-7-20260416`) — under the current naming scheme those are the same
+  model, and splitting them would fragment the attribution for no reason. Note this is
+  a property of the *present* scheme rather than a law: under older naming, two dated
+  releases could share family-major-minor and genuinely differ (the `3-5-sonnet` pair
+  of 2024). The raw API strings are preserved verbatim in the header precisely so that
+  if the distinction ever matters, nothing has been thrown away.
