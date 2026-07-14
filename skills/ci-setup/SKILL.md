@@ -141,7 +141,9 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
 ### GitHub Actions — Coverage (`.github/workflows/coverage.yml`)
 
 - **Trigger:** push to the default branch only (not PRs)
-- **Single Python version** — no matrix needed; pick one the project supports
+- **Single Python version** — no matrix needed. **Use the newest the project supports**, i.e. the top of its CI matrix. That's the version most users will be on, and it's where new-syntax code paths actually run
+  - **It needs bumping when the matrix grows**, and nothing will remind you — Dependabot updates actions, not this. Left alone, a `coverage.yml` freezes at whatever was newest the day it was written, which is exactly what happened across the fleet: the coverage jobs currently sit at 3.10, 3.12, 3.13 and 3.14 with no rationale behind any of them. When you add a Python version to the CI matrix, bump the coverage job in the same commit
+  - **Version-gated code will look under-covered**, unavoidably. A single-version coverage run cannot exercise `if sys.version_info < (3, 12):` fallback branches. That's an artifact of the choice, not a defect to chase — running coverage across the whole matrix to fix it would cost far more than the signal is worth
 - Uses `codecov/codecov-action`, SHA-pinned like every action
 - Upload step:
   ```yaml
