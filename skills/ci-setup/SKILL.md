@@ -82,21 +82,19 @@ badges that render as "unknown" — both of which fail *quietly*.
 gh repo view --json defaultBranchRef -q .defaultBranchRef.name
 ```
 
-That's authoritative, and needs the network — which you have, since you're working on a
-repo you push to.
+Authoritative, and the network is always there — an agent working on these repos is online
+by construction.
 
 **Don't** use `git symbolic-ref --short HEAD`: it reports the branch you are *currently
-on*, which is the default branch only by luck. On a feature branch — i.e. most of the
-time during development — it quietly gives the wrong answer.
+on*, which is the default branch only by luck. On a feature branch — i.e. most of the time
+during development — it quietly gives the wrong answer.
 
-The offline equivalent is `git rev-parse --abbrev-ref origin/HEAD`, which reads a
-symbolic ref recorded at clone time. But check before relying on it: it is **unset in
-most of the fleet's clones** (7 of 9, at last look), and prints `origin/HEAD` with an
-error rather than a branch name. Populate it once per clone with:
-
-```bash
-git remote set-head origin -a          # needs network anyway
-```
+**Don't rely on `git rev-parse --abbrev-ref origin/HEAD` either.** It's the textbook
+offline answer, but that ref is written by `git clone` — and most of these repos were born
+here (`git init`, then pushed to a new GitHub repo), so they never had a clone to write it.
+It is unset in 7 of 9, where it prints `origin/HEAD` and an error instead of a branch name.
+If you want it locally, `git remote set-head origin -a` populates it — which needs the
+network anyway, so you may as well have asked `gh`.
 
 (While you're here: the *directory* name is not the repo name either —
 `~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`. Read `git remote -v`.)
