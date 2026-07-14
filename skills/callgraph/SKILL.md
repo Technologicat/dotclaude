@@ -1,6 +1,6 @@
 ---
 name: callgraph
-description: Generate a static call graph or module-level dependency graph for Python source with pyan3. Use when mapping how functions or modules connect, understanding the structure/wiring of an unfamiliar codebase, exploring a Python source tree's shape, doing visual or structural testing, or when you (the agent) need an adjacency list of who-calls-what to reason about code. Produces `--text` for direct agent reading, or a `--dot` graph for visual viewing.
+description: Generate a static call graph or module-level dependency graph for Python source with pyan3. Use when mapping how functions or modules connect, understanding the structure/wiring of an unfamiliar codebase, exploring a Python source tree's shape, doing visual or structural testing, answering "what calls this function?" or "how does F end up calling G?" (via `--function --direction up` and `--paths-from`/`--paths-to`), or when you (the agent) need an adjacency list of who-calls-what to reason about code. Produces `--text` for direct agent reading, or a `--dot` graph for visual viewing.
 ---
 
 # Call graphs with pyan3
@@ -28,21 +28,43 @@ exploration.
   raven-xdot-viewer /tmp/pyan3_callgraph.dot &
   ```
 
-  The viewer runs the layout engine itself (no precompute needed).
-  `raven-xdot-viewer` requires Raven's venv to be active. Report the command
-  used and any warnings.
+  The viewer runs the layout engine itself (no precompute needed), and the
+  `raven-xdot-viewer` shell function activates Raven's venv on its own — nothing
+  to set up first. **Must background** (`&`).
 
-## Targets and flags
+  Report the **pyan3** command you ran, and any warnings it emitted. (The graph is
+  only as good as what pyan could resolve statically; the warnings say what it
+  couldn't.)
 
-`<paths>` is one or more files or glob patterns, plus any extra pyan3 flags
-appended after the paths:
+## Targets
 
-- `raven/common/gui/xdotwidget/*.py` — a single package
-- `raven/**/*.py` — an entire project (globstar)
-- `raven/visualizer/app.py` — a single file
-- `--module-level raven/` — module dependency graph (recursive)
-- `raven/librarian/*.py --no-defines` — uses-only graph
-- `raven/librarian/*.py --depth 1` — collapse to modules + top-level
+`<paths>` is one or more files or glob patterns:
 
-See `pyan3 --help` for the full flag set. The target normally comes from the
-user's request; pick `--text` vs `--dot` by who's going to read the result.
+- `pkg/subpkg/*.py` — a single package
+- `pkg/**/*.py` — an entire project (globstar)
+- `pkg/app.py` — a single file
+- `--module-level pkg/` — module dependency graph (recursive)
+
+## Flags worth knowing
+
+`pyan3 --help` is the full list; these are the ones that change what you can answer.
+
+**Scoping the graph** — a whole-project call graph is usually too big to read:
+
+- `--depth N` — collapse to at most N nesting levels. `0` = modules only, `1` = modules + classes/top-level functions, `2` = + methods, `max` = full detail (default).
+- `-x PATTERN`, `--exclude PATTERN` — repeatable. Basename match without a path separator, full-path match with one. Quote it: `--exclude 'test_*.py' --exclude '*/tests/*'`.
+- `--namespace NS` / `--function F` — filter to one region.
+- `--direction {up,down,both}` — with `--function`/`--namespace`: `down` = callees only, `up` = callers only. **This is how you answer "what calls this?"** without reading the whole graph.
+
+**Answering specific questions:**
+
+- `--paths-from F --paths-to G` — list the call paths between two functions (`--max-paths`, default 100). Use when the question is "*how* does F end up calling G?" rather than "what does the code look like".
+- `-a`, `--annotated` — annotate nodes with module and source line number. Turns the graph into something you can navigate back into the source from.
+- `-n`, `--no-defines` — uses-only graph (drop the "defines" edges, keep the calls).
+
+**Correctness gotchas:**
+
+- `--root ROOT` — package root. Inferred by default, but inference **cannot** detect a PEP 420 namespace package (no `__init__.py` at the package directory), and will silently produce wrong module names. If the top-level package is a namespace package, pass `--root` explicitly.
+- `--namespace-constructor FQN` — register a constructor whose kwargs become attribute bindings, so `config.attr` resolves through it. Built in: `unpythonic.env.env`, `types.SimpleNamespace`, `argparse.Namespace`. Add your own (repeatable, or comma-separated) when a project passes config objects around and the graph comes out missing those edges.
+
+Pick `--text` vs `--dot` by who's going to read the result.
