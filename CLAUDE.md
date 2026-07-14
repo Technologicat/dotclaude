@@ -190,6 +190,8 @@ GPU models, torch device ordering, and benchmarks: see `~/.claude/HARDWARE-NOTES
 
 **Emacs auto-refreshes open files.** Only `em` a file once — after further edits to the same file, Emacs picks up changes from disk automatically.
 
+**Images are readable by you, not just sendable to me.** Rendering something and looking at it is a legitimate way to *investigate*, not only a way to present. A plot, a diagram, a rendered call graph (`dot -Tpng`, then read the PNG) can answer in one glance what would take a dozen targeted text queries — and it shows you what you didn't know to ask for. Reach for it when the question is about *shape* or *structure* rather than a specific fact.
+
 ## GitHub
 
 When commenting on issues or PRs via `gh`, append an attribution footer naming the model that actually wrote the comment — currently `*— Claude (Opus 4.8)*`. This distinguishes AI-drafted comments from manually written ones. Use your own version, not the one in this line: it's an example, and it will lag.
