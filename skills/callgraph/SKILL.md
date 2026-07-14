@@ -54,8 +54,6 @@ They both give you a module-scale picture, and they are not the same graph:
 
 So an import that's never used shows up in `--module-level` and not in `--depth 0`. Pick by the question: "who actually depends on this at runtime?" is the call graph; "what does this module pull in?" is module-level.
 
-> **Bug, open as of 2026-07-14** ([pyan#138](https://github.com/Technologicat/pyan/issues/138)): `--module-level` skips any module that contains no `import` statements, so such a module is missing as a node **and every edge into it is silently dropped**. Leaf modules — constants, small helpers, plain dataclasses — are exactly the ones affected. Until it's fixed, treat a `--module-level` graph as a lower bound on dependencies, and cross-check with `--depth 0`, which handles the same code correctly.
-
 ## Flags worth knowing
 
 `pyan3 --help` is the full list; these are the ones that change what you can answer.
