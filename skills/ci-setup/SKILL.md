@@ -162,11 +162,17 @@ signal doesn't repay the machinery. Don't "fix" the missing file.
 
 ### Coverage generation — pytest-cov vs coverage.py
 
-**Note:** This section applies to projects using **pytest**. Two fleet projects don't —
-mcpyrate and unpythonic drive their tests through a top-level `runtests.py`, using
-`unpythonic.test.fixtures` (the macro-aware test framework; see the
-`unpythonic-macro-testing` skill). pytest-cov is not in play there, so coverage is driven
-by coverage.py directly:
+**Note:** This section applies to projects using **pytest**. Two fleet projects don't — both
+drive their tests through a top-level `runtests.py`, but for different reasons and in
+different styles:
+
+- **unpythonic** uses `unpythonic.test.fixtures`, its own macro-aware test framework (see
+  the `unpythonic-macro-testing` skill).
+- **mcpyrate** uses bare `assert`. It *can't* use unpythonic's framework: unpythonic depends
+  on mcpyrate, so the dependency would be circular. The macro expander cannot be tested with
+  a tool built on top of it — no system bootstraps itself cleanly.
+
+Either way pytest-cov is not in play, so coverage is driven by coverage.py directly:
 
 ```yaml
 - name: Generate coverage report
