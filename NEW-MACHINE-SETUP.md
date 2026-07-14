@@ -303,6 +303,71 @@ Claude Code may leave the terminal in raw mode on exit. Add to `~/.bashrc`:
 alias claude='command claude; reset'
 ```
 
+## Bashrc additions for project commands
+
+Several projects need venv activation and environment setup before their CLI entry points work. These shell wrappers go in `~/.bashrc` and handle the ceremony in a subshell so the caller's environment stays clean.
+
+**Chandra** (image gen metadata tools):
+
+```bash
+export CHANDRA_MODELS_DIR=~/stable-diffusion-models/:~/ComfyUI/models/unet/:~/ComfyUI/models/vae/:~/ComfyUI/models/text_encoders/
+
+chandra() {
+    (
+        cd ~/Documents/koodit/chandra/ &&
+        eval "$(pdm venv activate)" &&
+        cd - > /dev/null &&
+        command chandra "$@"
+    )
+}
+```
+
+**Raven** (NLP/scientific apps): each command activates the Raven venv and sources `env.sh` (CUDA library paths). `raven-server` additionally sources `run-on-internal-gpu.sh` (to pin to the internal dGPU on multi-GPU machines) and `no-hammer-hf.sh` (to skip HuggingFace network hits at startup, once models are cached).
+
+```bash
+raven-arxiv-download() {
+    (
+        cd ~/Documents/koodit/raven/ &&
+        eval "$(pdm venv activate)" &&
+        source env.sh &&
+        cd - > /dev/null &&
+        command raven-arxiv-download "$@"
+    )
+}
+
+raven-xdot-viewer() {
+    (
+        cd ~/Documents/koodit/raven/ &&
+        eval "$(pdm venv activate)" &&
+        source env.sh &&
+        cd - > /dev/null &&
+        command raven-xdot-viewer "$@"
+    )
+}
+
+raven-cherrypick() {
+    (
+        cd ~/Documents/koodit/raven/ &&
+        eval "$(pdm venv activate)" &&
+        source env.sh &&
+        cd - > /dev/null &&
+        command raven-cherrypick "$@"
+    )
+}
+
+raven-server() {
+    (
+        cd ~/Documents/koodit/raven/ &&
+        eval "$(pdm venv activate)" &&
+        source env.sh &&
+        source run-on-internal-gpu.sh &&
+        source no-hammer-hf.sh &&
+        cd - > /dev/null &&
+        command raven-server "$@"
+    )
+}
+```
+
 ## Project setup (all projects)
 
 Each project needs editor tooling in dev dependencies so Spacemacs finds them via auto-activated pyvenv. Standard dev deps block:
@@ -329,6 +394,50 @@ pdm install -G cuda
 
 - `requires-python` narrowed to `<3.13` due to kokoro/misaki TTS dependency
 - After activating the venv, `source env.sh` to set up CUDA library paths (LD_LIBRARY_PATH, ptxas). The script auto-discovers all pip-installed NVIDIA lib dirs — works with CUDA 12 and 13.
+
+## Local AI stack
+
+LM Studio (LLM inference) and ComfyUI (image generation) form the local AI stack. Both require an NVIDIA GPU with current drivers.
+
+### LM Studio
+
+Two separate installs: the headless CLI daemon (`lms`/`llmster`) and the desktop GUI app.
+
+**CLI daemon:**
+
+```bash
+curl -fsSL https://lmstudio.ai/install.sh | bash
+```
+
+This installs `llmster` into `~/.lmstudio/` and puts `lms` on PATH via `~/.lmstudio/bin`. The installer appends a PATH export to `~/.bashrc`. Same `curl | bash` tradeoff as nvm — acceptable for a personal dev box.
+
+**GUI app:** download the AppImage (or .deb) from https://lmstudio.ai/download — the CLI installer does not include the GUI. Symlink or place the AppImage wherever local apps live (e.g. `~/.local/bin/`).
+
+**Models** live under `~/.lmstudio/models/` (GGUF format). Transfer from an existing machine via Warpinator or download through the LM Studio GUI. MCP server configuration is covered above under "LM Studio MCP servers" in the Node.js section.
+
+### ComfyUI
+
+```bash
+cd ~
+git clone https://github.com/comfyanonymous/ComfyUI.git
+cd ComfyUI
+python3.12 -m venv venv
+source venv/bin/activate
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu130
+pip install -r requirements.txt
+```
+
+Python 3.12 is the safe choice for custom node compatibility (3.13 works, 3.14 may not with all nodes). The PyTorch install is large (~3 GB download).
+
+**Model directories:** ComfyUI expects models under `~/ComfyUI/models/` (subdirs: `checkpoints/`, `unet/`, `vae/`, `text_encoders/`, etc.). Models shared with Chandra also live under `~/stable-diffusion-models/`. The `CHANDRA_MODELS_DIR` env var in `~/.bashrc` points at both locations.
+
+```bash
+mkdir -p ~/stable-diffusion-models
+```
+
+Transfer models selectively from an existing machine — a full collection is large and not all models are needed on every box.
+
+**Running:** `cd ~/ComfyUI && source venv/bin/activate && python main.py` — opens a web UI on `http://127.0.0.1:8188`.
 
 ## NVIDIA driver
 
