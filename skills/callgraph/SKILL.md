@@ -24,25 +24,42 @@ Both forms are readable by both audiences. What differs is the kind of question 
   pyan3 --module-level <paths> --text      # module dependency graph
   ```
 
-- **You don't yet know what to ask** — render to dot and open the viewer. Layout *is*
-  information: clusters, hubs, unexpected edges and lopsided coupling are visible at a
-  glance and essentially invisible in an adjacency list. Reach for it for a lateral
-  look at an unfamiliar codebase, not to answer a question you could have grepped. The
-  viewer also has interactive search, so you can navigate from the overview into
-  specifics without regenerating anything.
+- **You don't yet know what to ask** — render the graph. Layout *is* information:
+  clusters, hubs, unexpected edges and lopsided coupling are visible at a glance and
+  essentially invisible in an adjacency list. Worth it for a lateral look at an
+  unfamiliar codebase; not for a question you could have grepped.
+
+  Two ways to render, depending on who's looking:
+
+  **You (the agent) can look at the graph yourself** — rasterize with graphviz and read
+  the image:
 
   ```
   pyan3 <paths> --dot --colored --grouped --nested-groups --concentrate --file /tmp/pyan3_callgraph.dot
+  dot -Tpng /tmp/pyan3_callgraph.dot -o /tmp/pyan3_callgraph.png
+  ```
+
+  ...then read `/tmp/pyan3_callgraph.png`. This works and is often the fastest way to
+  get a feel for an unfamiliar module's shape.
+
+  **For the user to explore interactively**, hand them the viewer instead — it has
+  search, zoom, and pan, so they can go from overview to specifics without regenerating
+  anything:
+
+  ```
   raven-xdot-viewer /tmp/pyan3_callgraph.dot &
   ```
 
-  The viewer runs the layout engine itself (no precompute needed), and the
-  `raven-xdot-viewer` shell function activates Raven's venv on its own — nothing
-  to set up first. **Must background** (`&`).
+  The viewer runs the layout engine itself, so it takes the `.dot` directly — no
+  need to rasterize for it. The `raven-xdot-viewer` shell function activates Raven's
+  venv on its own, so there's nothing to set up first. **Must background** (`&`).
 
-  Report the **pyan3** command you ran, and any warnings it emitted. (The graph is
-  only as good as what pyan could resolve statically; the warnings say what it
-  couldn't.)
+  You cannot drive the viewer yourself — it's a GUI app. Render a PNG for your own
+  eyes, launch the viewer for theirs.
+
+Report the **pyan3** command you ran, and any warnings it emitted — for either output
+format. (The graph is only as good as what pyan could resolve statically; the warnings
+say what it couldn't.)
 
 ## Targets
 
