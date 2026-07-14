@@ -76,13 +76,29 @@ those, the next reader "fixes" the discrepancy and reintroduces the problem.
 started later are on `main`. Getting this wrong means workflows that never trigger and
 badges that render as "unknown" — both of which fail *quietly*.
 
+**Ask GitHub:**
+
 ```bash
-git symbolic-ref --short HEAD          # in a clean checkout of the default branch
-gh repo view --json defaultBranchRef -q .defaultBranchRef.name    # authoritative
+gh repo view --json defaultBranchRef -q .defaultBranchRef.name
 ```
 
-Prefer the `gh` form: a local checkout can be on a feature branch, or stale. (While
-you're at it, note that the *directory* name is not the repo name either —
+That's authoritative, and needs the network — which you have, since you're working on a
+repo you push to.
+
+**Don't** use `git symbolic-ref --short HEAD`: it reports the branch you are *currently
+on*, which is the default branch only by luck. On a feature branch — i.e. most of the
+time during development — it quietly gives the wrong answer.
+
+The offline equivalent is `git rev-parse --abbrev-ref origin/HEAD`, which reads a
+symbolic ref recorded at clone time. But check before relying on it: it is **unset in
+most of the fleet's clones** (7 of 9, at last look), and prints `origin/HEAD` with an
+error rather than a branch name. Populate it once per clone with:
+
+```bash
+git remote set-head origin -a          # needs network anyway
+```
+
+(While you're here: the *directory* name is not the repo name either —
 `~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`. Read `git remote -v`.)
 
 ### Lint configuration — see the `project-setup` skill
