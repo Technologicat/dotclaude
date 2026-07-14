@@ -1,5 +1,32 @@
 # Deferred TODOs
 
+## Coverage jobs are running stale Python versions
+
+Now that the `ci-setup` skill says the coverage job should run the *newest* Python the
+project supports, the fleet can be measured against it — and most of it is behind. Each
+`coverage.yml` froze at whatever was newest the day it was written, and nothing ever
+prompted a bump.
+
+Checked 2026-07-14:
+
+| project | coverage runs | CI matrix tops out at |
+|---|---|---|
+| mcpyrate | **3.10** | 3.14 |
+| unpythonic | **3.12** | 3.14 |
+| chandra | **3.13** | 3.14 |
+| pyan | 3.14 | 3.14 — correct |
+| raven | 3.12 | 3.12 — correct (its cap) |
+
+Mechanical fix: bump the three, in one commit each. Worth doing not because the coverage
+number changes much, but because a coverage job on 3.10 never exercises the newest-syntax
+paths — which is where new code lives.
+
+(pylu, pydgq and python-wlsqm have no coverage job at all. That is deliberate — Cython
+coverage needs a line-traced build and coverage.py's plugin, judged not worth it during
+their modernization — and is now recorded in the `ci-setup` skill so nobody "fixes" it.)
+
+Discovered during the `~/.claude` cloudification (2026-07-14).
+
 ## Evaluate pyan's extra ruff rules for the rest of the fleet
 
 pyan selects `E, W, F, I, B, C4, UP, ARG, SIM`; raven, unpythonic, mcpyrate and chandra

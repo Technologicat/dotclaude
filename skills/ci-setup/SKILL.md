@@ -153,6 +153,13 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
       token: ${{ secrets.CODECOV_TOKEN }}
   ```
 
+**Cython projects have no coverage job, deliberately.** pylu, pydgq and python-wlsqm have CI
+but no `coverage.yml`, and that is a decision, not an oversight: measuring coverage of
+compiled Cython requires building the extensions with line tracing enabled (`linetrace`
+directive plus `CYTHON_TRACE`) and running coverage.py's Cython plugin — a separate build
+configuration, maintained solely for the coverage run. For small numerical kernels the
+signal doesn't repay the machinery. Don't "fix" the missing file.
+
 ### Coverage generation — pytest-cov vs coverage.py
 
 **Note:** This section applies to projects using pytest. Projects with custom test runners (e.g. `runtests.py` with bare asserts or a custom test framework) will need a different approach — likely `coverage run runtests.py` followed by `coverage xml`.
