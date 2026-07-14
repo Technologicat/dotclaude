@@ -262,6 +262,36 @@ ln -s ~/.claude/scripts/em ~/.local/bin/em
 
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
+### Adopting an existing `~/.claude` into the repo
+
+`git clone` refuses a non-empty directory, so a machine that has already been running Claude Code — with accumulated `projects/`, `sessions/`, `memory/`, `history.jsonl` — cannot take the clone above. Turn the existing directory into the repo in place instead.
+
+This is safe because of how `.gitignore` is built: a deny-all (`/*`) plus an explicit allowlist, so every piece of runtime state is ignored, and `git reset --hard` rewrites only *tracked* files. Memories and session logs survive untouched; the machine's stale configs are replaced by the authoritative ones. That replacement is the point of the operation, not a side effect of it.
+
+```bash
+# Safety copy — cheap, and Claude Code keeps running from the original
+cp -a ~/.claude ~/.claude.pre-sync.bak
+
+cd ~/.claude
+git init -b main
+git remote add origin git@github.com:Technologicat/dotclaude.git
+git fetch origin
+git reset --hard origin/main                  # tracked files only; ignored state stays put
+git branch --set-upstream-to=origin/main main
+```
+
+The `--set-upstream-to` line is load-bearing. `git init` followed by `reset` leaves `main` tracking nothing, and with no upstream, bare `git pull` and `git push` both refuse and `git status` cannot report ahead/behind — which is the one thing worth having when the whole point is keeping two machines in step.
+
+Then hand-carry `SECRET-SAUCE.md` and `HARDWARE-NOTES.md` as above.
+
+Finally, sweep the leftovers. Top-level files the repo has since superseded — old notes that now live under `skills/` or `briefs/` — are *ignored* by the reset, not removed, so `git status` reads clean while they linger and go stale:
+
+```bash
+git status --ignored --short | grep '^!!'
+```
+
+Anything at the top level that is neither runtime state nor one of the two private files is a superseded copy; delete it. Machine-local Claude Code settings do not belong back in the tracked `settings.json` — put them in `settings.local.json`, which the deny-all already ignores.
+
 ### Kitty terminal workaround
 
 Claude Code may leave the terminal in raw mode on exit. Add to `~/.bashrc`:
