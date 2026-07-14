@@ -246,7 +246,24 @@ The `omit` config applies even when the CLI uses `--source=.` (or any other over
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](http://makeapullrequest.com/)
 ```
 
-Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is the PyPI name (e.g. `pyan3`) — these may differ, and the directory name may differ from both (`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`; check `git remote -v`). `BRANCH` is the repo's default branch, which is *not* uniform across the fleet — see "Default branch: `master` or `main`" above. Badges referencing `PACKAGE` require a PyPI release; omit them for GitHub-only projects.
+**Three namespaces, and all three can differ.** Don't infer one from another:
+
+| | local directory | GitHub repo | PyPI package |
+|---|---|---|---|
+| | `~/Documents/koodit/wlsqm` | `Technologicat/python-wlsqm` | `wlsqm` |
+| | `~/Documents/koodit/pyan` | `Technologicat/pyan` | `pyan3` |
+| | `~/Documents/koodit/raven` | `Technologicat/raven` | `raven-visualizer` |
+
+So: `OWNER/REPO` comes from `git remote -v`, and `PACKAGE` comes from `name` in
+`pyproject.toml` — never from the directory you happen to be sitting in. (Guessing is worse
+than useless here: `raven` *is* a real PyPI package — Sentry's old client — so a wrong guess
+resolves to somebody else's project instead of 404ing.)
+
+`BRANCH` is the repo's default branch, which is *not* uniform across the fleet — see
+"Default branch: `master` or `main`" above.
+
+Badges referencing `PACKAGE` need a PyPI release. Most of the fleet has one; omit those
+badges for the projects that don't (currently Raven, which is unpublished).
 
 ## Test dependencies in CI
 
