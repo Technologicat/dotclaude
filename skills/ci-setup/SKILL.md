@@ -54,7 +54,7 @@ those, the next reader "fixes" the discrepancy and reintroduces the problem.
 - Use `actions/checkout` and `actions/setup-python` — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
 - **Top-level `permissions: contents: read`** (after `on:`, before `jobs:`) — least-privilege `GITHUB_TOKEN` (see "Least-privilege `GITHUB_TOKEN` permissions")
 - For pre-release Python versions: `allow-prereleases: true`
-- **Install pytest as a raw pip step alongside the other build/test deps** (see "Test dependencies in CI" below). Don't use `[project.optional-dependencies].test` — pytest is dev tooling, not a published library feature.
+- **Install deps by whichever of the three patterns fits** (see above). In a raw-pip job, install pytest alongside the build deps; in a `pdm install` job it comes from `[dependency-groups].dev` for free. Either way, **don't use `[project.optional-dependencies].test`** — pytest is dev tooling, not a published library feature (see "Test dependencies in CI" below).
 - Install ruff and cython-lint separately in the lint job — they're CI tools, not project test deps. (They also live in `[dependency-groups].dev` so local dev has them.)
 - **Cython extensions on Windows:** add an `ilammy/msvc-dev-cmd` step (SHA-pinned, like every action) before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
 
