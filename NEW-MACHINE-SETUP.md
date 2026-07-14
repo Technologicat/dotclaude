@@ -449,6 +449,15 @@ Then install their dependencies (with the venv active):
 for req in ~/ComfyUI/custom_nodes/*/requirements.txt; do pip install -r "$req"; done
 ```
 
+`comfyui_controlnet_aux` has unlisted dependencies — its `requirements.txt` is incomplete. After the batch install above, also:
+
+```bash
+pip install matplotlib scikit-image onnxruntime-gpu
+```
+
+- `matplotlib` and `scikit-image` (imported as `skimage`) are hard imports in the DWPose detector; without them the node fails to load entirely.
+- `onnxruntime-gpu` provides CUDA-accelerated ONNX inference for DWPose. Without it, DWPose falls back to OpenCV on CPU (functional but slow).
+
 **Running:** `cd ~/ComfyUI && source venv/bin/activate && python main.py` — opens a web UI on `http://127.0.0.1:8188`.
 
 ## NVIDIA driver
