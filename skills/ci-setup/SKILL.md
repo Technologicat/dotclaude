@@ -9,7 +9,7 @@ Reference for CI/coverage setup across projects.
 
 Sibling skill: `project-setup` covers the build system and linter config.
 
-## First: how does CI install dependencies?
+## How does CI install dependencies?
 
 There are three patterns in the fleet, and picking the right one is the first decision.
 Local dev always uses `pdm install` (which reads `[dependency-groups].dev`); what varies
@@ -252,7 +252,7 @@ Note: `OWNER/REPO` is the GitHub path (e.g. `Technologicat/pyan`), `PACKAGE` is 
 
 **Don't use `[project.optional-dependencies].test`** (i.e. the `pip install -e .[test]` pattern). `[project.optional-dependencies]` is for published library features — optional runtime deps that a downstream user might opt into. `test` isn't a feature; it's dev plumbing. Nobody actually does `pip install pylu[test]` — it only exists so CI has something to install.
 
-**Where the test deps live:** `[dependency-groups].dev`, always. How CI *gets* them depends on the pattern (see "How does CI install dependencies?" at the top) — a `pdm install` job picks them up from the dep group with nothing further to do; a raw-pip job has to name them, because pip cannot see dep groups.
+**Where the test deps live:** `[dependency-groups].dev`, always. How CI *gets* them depends on the pattern (see "How does CI install dependencies?" above) — a `pdm install` job picks them up from the dep group with nothing further to do; a raw-pip job has to name them, because pip cannot see dep groups.
 
 For a raw-pip job, install them alongside the build deps: 
 
