@@ -241,7 +241,7 @@ ln -s ~/.config/flake8 ~/.config/pep8
 
 ### Wiktionary dictionary
 
-Copy `~/.spacemacs.d/dictionaries_enwiktionary/` from old machine (Matthias Buchmeier's Wiktionary extraction, dictd format). Update from `http://en.wiktionary.org/wiki/User:Matthias_Buchmeier` if desired.
+Copy `~/.spacemacs.d/dictionaries_enwiktionary/` from old machine (Matthias Buchmeier's Wiktionary extraction, dictd format). Update from [Matthias Buchmeier's Wiktionary user page](http://en.wiktionary.org/wiki/User:Matthias_Buchmeier) if desired.
 
 ### Fonts
 
@@ -380,19 +380,7 @@ raven-server() {
 
 ## Project setup (all projects)
 
-Each project needs editor tooling in dev dependencies so Spacemacs finds them via auto-activated pyvenv. Standard dev deps block:
-
-```toml
-[dependency-groups]
-dev = [
-    "pytest>=8.0",
-    "flake8",
-    "autopep8",
-    "importmagic",
-    "epc",
-    "jedi>=0.19.2",
-]
-```
+The canonical dev-dependency block (editor tooling so Spacemacs finds jedi/epc/importmagic via auto-activated pyvenv), lint config, and the PDM flow live in the `project-setup` skill — see it for the authoritative version.
 
 ### Raven-specific
 
