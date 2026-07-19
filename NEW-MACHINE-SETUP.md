@@ -100,6 +100,15 @@ pipx install pyan3
 pipx install build
 pipx install twine
 
+# GGUF metadata tools (gguf-dump et al.), from the llama.cpp project.
+# `gguf-dump --no-tensors model.gguf` prints a local LLM's metadata, including its
+# `tokenizer.chat_template`. Reading that template is the only reliable way to find
+# out what message shapes a model actually accepts — backends surface a rejected
+# shape as a template-parser error that names the parser, not the offending message,
+# and the templates' own error strings can be misleading (Qwen3.5's "System message
+# must be at the beginning" is really a count rule: exactly one, at index 0).
+pipx install gguf
+
 # Global macro-enabled IPython (on latest Python)
 pipx install ipython --python python3.14
 pipx inject ipython mcpyrate
