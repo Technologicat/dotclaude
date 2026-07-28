@@ -9,5 +9,8 @@ if [ -n "$VIRTUAL_ENV" ]; then
     venv_name=$(sed -n 's/^prompt *= *//p' "$VIRTUAL_ENV/pyvenv.cfg" 2>/dev/null)
     venv_prefix="(${venv_name:-$(basename "$VIRTUAL_ENV")}) "
 fi
-printf '%s\033[01;32m%s@%s\033[00m:\033[01;34m%s\033[00m  \033[00;36m%s\033[00m  effort \033[00;33m%s\033[00m  ctx %s%%' \
-    "$venv_prefix" "$(whoami)" "$(hostname -s)" "$(pwd)" "$model" "$effort" "$pct"
+branch=$(git branch --show-current 2>/dev/null)
+branch_segment=""
+[ -n "$branch" ] && branch_segment=$(printf '  \033[00;35m⎇ %s\033[00m' "$branch")
+printf '%s\033[01;32m%s@%s\033[00m:\033[01;34m%s\033[00m%s  \033[00;36m%s\033[00m  effort \033[00;33m%s\033[00m  ctx %s%%' \
+    "$venv_prefix" "$(whoami)" "$(hostname -s)" "$(pwd)" "$branch_segment" "$model" "$effort" "$pct"
