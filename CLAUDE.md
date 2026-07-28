@@ -73,6 +73,22 @@ So, when writing a *why* — a rationale, a causal story, a mechanism — into a
 
 This is not a request for hedging everywhere. State verified things plainly and without qualifiers. The point is that the confidence should track the checking.
 
+## Leave the last turn fit to be compacted
+
+Compaction keeps the last turn and summarizes everything before it. So when I say I'm about to compact — or
+when a session is winding down — the last turn is the handover, and it should read like one: where we
+stopped, what state the tree is in, and what the next session picks up first. Not a summary of the day; a
+description of the seam.
+
+The corollary matters more, and is the part that gets missed: **anything that must survive has to be in a
+file before that turn is written.** A decision that exists only in conversation is gone, however clearly it
+was stated. Write it to the brief, the TODO, the deferred list, or the code comment where it belongs, and
+*then* describe where we are. If a decision doesn't obviously belong to any existing file, that usually
+means it needs a new one, not that it can ride in the transcript.
+
+The failure this prevents: a session that ends with a good verbal summary and no artifact, so the next
+session re-derives the same decisions — usually differently, and without knowing it is re-deriving them.
+
 ## Deferred issue tracking
 
 During a task, if you discover unrelated bugs, improvements, or issues, do not act on them. Instead, append a brief note to `TODO_DEFERRED.md` (what you noticed, and where), then continue with the current task. Similarly, if I mention an unrelated issue mid-task, note it in `TODO_DEFERRED.md` and continue unless I explicitly say otherwise. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
