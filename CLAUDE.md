@@ -119,6 +119,18 @@ Rules:
 - Items are **removed** when done; no "Done" archive section. Git is authoritative for completed work.
 - Blank line before each `##`.
 
+## Edit files with the edit tools, not with shell text-munging
+
+I review your work **live, from the diffs** as they scroll past. An edit made through the edit/write tools renders as a reviewable diff; an edit made with `sed -i`, `>>`, `cat > file`, `python - <<EOF ... write_text()`, or any other shell redirection does not. It just happens, and the change reaches a commit without ever having been shown to me.
+
+So: any change to a tracked file goes through the edit tools. This holds for the unglamorous files too — a one-word CI workflow tweak, an appended `TODO_DEFERRED.md` item, a version bump — because those are exactly the ones that slip through unreviewed, and "it's only one line" is not a reason I would not want to see it.
+
+**The failure this prevents:** a change I never saw, that I believe I reviewed. Silence looks the same whether I read a diff and approved it or the diff was never rendered — so an unreviewed edit is worse than a visible one I object to. (Live case: a CI dependency addition and a deferred-TODO append both went in via shell redirection, and I only noticed afterwards that they had never appeared as diffs.)
+
+Shell text processing remains right for what it is *for*: reading, searching, counting, and generating scratch files under `/tmp`. The rule is about **mutating files in the repo**, not about using the shell.
+
+Reportedly an Opus habit from ~4.7 onward — a reflex toward `sed` over the edit tool — so treat it as a live tendency to correct, not a hypothetical.
+
 ## Promote useful investigation code to the test suite
 
 When you write a throwaway script in `/tmp` to investigate behavior or verify a fix, ask one question before moving on: *does this assert something about the system that I'd want to keep asserting?* If yes, port it to the project's test suite as part of the current task — don't wait to be asked. Treat this as default behavior, the way "add a CHANGELOG entry alongside the fix" is default behavior.
