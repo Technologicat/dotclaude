@@ -129,6 +129,18 @@ So: any change to a tracked file goes through the edit tools. This holds for the
 
 Shell text processing remains right for what it is *for*: reading, searching, counting, and generating scratch files under `/tmp`. The rule is about **mutating files in the repo**, not about using the shell.
 
+**Exception: mechanical, content-preserving transforms.** The point of the rule is that I can *review* the change — not that the diff be small. Some transforms invert that: the diff becomes pure noise (every line marked changed, nothing to learn from reading it) while hand-retyping through the edit tools risks corrupting working code. Re-indenting a block, renaming a symbol across many sites, moving a section unchanged, reflowing comments, sorting an `__all__`, a literal find-replace across files — all have this shape.
+
+What qualifies is not the *kind* of edit but three properties together:
+
+- **The intent fits in one sentence** ("indent this block by four", "move this section, unchanged").
+- **Reading the diff would not verify it** — I'd be checking hundreds of lines for an absence of change, which is exactly what humans are bad at.
+- **A mechanical check can prove the invariant.** `diff -w` empty for a re-indent. Every moved item grep-able back out for a move. Counts equal before and after. Tests still green for a rename.
+
+When those hold, do it with a script — and then **say you are doing it, name the invariant, run the check, and show the result.** The check replaces the diff as the thing I review; without it, this is just an unreviewed edit with a justification attached. If no such check exists, the transform is not mechanical: use the edit tools.
+
+The failure this prevents is the mirror of the main rule's: not an unseen change, but a *seen-and-unverifiable* one — a wall of noise that looks reviewed because it scrolled past.
+
 Reportedly an Opus habit from ~4.7 onward — a reflex toward `sed` over the edit tool — so treat it as a live tendency to correct, not a hypothetical.
 
 ## Promote useful investigation code to the test suite
