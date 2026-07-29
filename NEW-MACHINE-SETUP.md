@@ -9,7 +9,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # jq: needed by ~/.claude/statusline.sh
 # xclip: needed by ~/.claude/scripts/build-webchat.py (degrades gracefully without it)
 # wmctrl: needed by ~/.claude/scripts/em (raises the Emacs window after opening a file)
-sudo apt install git wget jq xclip wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng
+# xdotool: drives a GUI app from the shell - activate a window, inject keystrokes. With xclip, this
+#          is how a GUI feature gets verified end-to-end (press the hotkey, read the clipboard back)
+#          rather than only through unit tests. Needed for live testing of the DPG apps in Raven.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng
 
 # Python tooling
 sudo apt install python3-pip pipx
