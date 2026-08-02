@@ -1,5 +1,28 @@
 # Deferred TODOs
 
+## Add `~/.spacemacs.d` to the fleet, after the personal machine's reinstall
+
+`Technologicat/spacemacs.d` is checked out at `~/.spacemacs.d` on both machines and
+belongs in the project list on the same reasoning that put `dotclaude` there: config
+that lives outside `~/Documents/koodit`, is on GitHub, and silently drifts between
+machines.
+
+**Blocked, and the block is the point.** The repo has moved on for the work machine's
+newer Emacs/Spacemacs; the personal machine is still on the older pair, with a locally
+modified `init.el` (its HEAD is at `fa49f14`, 2026-04-11). Adding it to the table now
+would mean the next `fleet-pull.sh` run on the personal machine pulls config written
+for software that is not installed there — and the stash-pop would put the local
+`init.el` edits straight into the collision path. So: not until the personal machine's
+OS upgrade, which is planned as a full reinstall and cleanup.
+
+When that lands, the change is three lines: an entry under **Harness (not code)** in
+`CLAUDE.md`, a row in the `PROJECTS` table in `scripts/fleet-pull.sh` carrying the
+explicit path `$HOME/.spacemacs.d`, and an alternation for it in the CLAUDE.md
+cross-check regex in `check_project_list` (which currently matches only the `koodit`
+paths and `~/.claude`).
+
+Noticed while adding dotclaude to the fleet (2026-08-03).
+
 ## Coverage jobs are running stale Python versions
 
 Now that the `ci-setup` skill says the coverage job should run the *newest* Python the
