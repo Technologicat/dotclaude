@@ -12,7 +12,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # xdotool: drives a GUI app from the shell - activate a window, inject keystrokes. With xclip, this
 #          is how a GUI feature gets verified end-to-end (press the hotkey, read the clipboard back)
 #          rather than only through unit tests. Needed for live testing of the DPG apps in Raven.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng
+# shellcheck: linter for the bash scripts in ~/.claude/scripts/. Bash fails quietly - an unquoted
+#          expansion or a typo'd variable produces a wrong result rather than an error - so a linter
+#          catches things a test run does not.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck
 
 # Python tooling
 sudo apt install python3-pip pipx
