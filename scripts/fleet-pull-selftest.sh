@@ -31,8 +31,17 @@ mkdir -p "$W/remotes" "$W/seed" "$W/fleet"
 
 sed -e "s|^FLEET_ROOT=.*|FLEET_ROOT=\"$W/fleet\"|" \
     -e "s|    local url=.*|    local url=\"$W/remotes/\$repo.git\"|" \
+    -e "s|\\\$HOME/\\.claude\"|$W/fleet/dotclaude\"|" \
     "$(dirname "$(readlink -f "$0")")/fleet-pull.sh" > "$W/fleet-pull.sh"
 chmod +x "$W/fleet-pull.sh"
+
+# dotclaude is the one project reached by an absolute path rather than through
+# FLEET_ROOT, so it is also the one the patching above could miss — and missing it
+# would point a test run at the real harness repo. Refuse to run if it is still there.
+if grep -q 'HOME/\.claude"' "$W/fleet-pull.sh"; then
+    echo "selftest: the dotclaude entry was not redirected into the fixture; refusing to run" >&2
+    exit 1
+fi
 
 # A repository with two files, cloned into the fixture fleet: $1 is the local
 # directory name, $2 the name it is published under.
@@ -81,8 +90,11 @@ git -C "$W/fleet/mcpyrate" commit -q -am "local work"
 make_repo pyan pyan                             # not on disk at all
 rm -rf "$W/fleet/pyan"
 
+make_repo dotclaude dotclaude                   # reached by explicit path, not through FLEET_ROOT
+upstream_commit dotclaude
+
 set +e
-output=$("$W/fleet-pull.sh" unpythonic pylu pydgq wlsqm mcpyrate pyan 2>&1)
+output=$("$W/fleet-pull.sh" unpythonic pylu pydgq wlsqm mcpyrate pyan dotclaude 2>&1)
 status=$?
 
 failures=0
@@ -136,6 +148,9 @@ fi
 
 expect_summary 'ALERT +mcpyrate +diverged'                   "diverged repo reported as an alert"
 expect_file    mcpyrate/b.txt "b LOCAL"                      "diverged repo left untouched"
+
+expect_summary 'CHANGED +dotclaude +fast-forwarded 1 commit' "repo outside the fleet root fast-forwarded"
+expect_file    dotclaude/a.txt "a UPSTREAM"                  "repo outside the fleet root has the upstream edit"
 
 expect_summary 'CHANGED +pyan +cloned'                       "missing repo cloned"
 if [ -d "$W/fleet/pyan/.git" ]; then

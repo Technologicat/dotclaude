@@ -12,7 +12,7 @@
 # at the other. So the design leans hard on "never surprise the user" — every
 # case that needs a human decision stops and says so, rather than guessing.
 #
-# Four decisions worth knowing about:
+# Five decisions worth knowing about:
 #
 #   - The project table below is the list of clone URLs, but ~/.claude/CLAUDE.md
 #     is the authoritative list of *projects*. These can drift, so the script
@@ -39,6 +39,15 @@
 #     exists locally as an untracked file — and git handles it well: the merge
 #     aborts before touching anything, and that surfaces as an alert.
 #
+#   - The fleet includes the repo this script lives in, so a run can pull a new
+#     version of the script while it is executing. Measured rather than assumed:
+#     git checkout writes a *new* file and moves it into place instead of editing
+#     the existing one, so the inode changes and the running shell keeps reading
+#     the one it opened. The run therefore finishes coherently as the version it
+#     started as, and a pulled change takes effect on the next run. (Bash reads a
+#     script incrementally rather than slurping it, which is why this needed
+#     checking at all; a genuinely in-place rewrite would be a real hazard.)
+#
 # Anything that needs your attention is reported in the summary and sets the
 # exit status to 1.
 
@@ -46,8 +55,11 @@ FLEET_ROOT="$HOME/Documents/koodit"
 GITHUB_USER="Technologicat"
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
-# Local directory name, and the GitHub repository it clones from.
+# Project name, the GitHub repository it clones from, and — only for a project
+# that does not live in the fleet root — where it lives on disk instead.
 PROJECTS=(
+    "dotclaude              dotclaude              $HOME/.claude"
+
     "pylu                   pylu"
     "pydgq                  pydgq"
     "wlsqm                  python-wlsqm"
@@ -89,6 +101,17 @@ project_dirs() {
     printf '%s\n' "${PROJECTS[@]}" | awk '{print $1}'
 }
 
+# Where each project lives, written the way CLAUDE.md writes paths, so the two
+# can be compared directly.
+project_paths() {
+    local entry dir repo path
+    for entry in "${PROJECTS[@]}"; do
+        read -r dir repo path <<<"$entry"
+        [ -n "$path" ] || path="$FLEET_ROOT/$dir"
+        echo "${path/#$HOME/\~}"
+    done
+}
+
 # Warn if the table above and the project list in CLAUDE.md have drifted apart.
 # CLAUDE.md lists each project's path in backticks, which is specific enough to
 # pick out exactly the fleet: the bare fleet root and paths to files inside a
@@ -100,23 +123,23 @@ check_project_list() {
         return
     fi
 
-    local listed tabled only_listed only_tabled name
+    local listed tabled only_listed only_tabled path
     # The backticks below are literal text to match in CLAUDE.md, not a substitution.
     # shellcheck disable=SC2016
-    listed=$(grep -oE '`~/Documents/koodit/[A-Za-z0-9_.-]+`' "$CLAUDE_MD" |
-                 tr -d '`' | sed 's|.*/||' | sort -u)
-    tabled=$(project_dirs | sort -u)
+    listed=$(grep -oE '`(~/Documents/koodit/[A-Za-z0-9_.-]+|~/\.claude)`' "$CLAUDE_MD" |
+                 tr -d '`' | sort -u)
+    tabled=$(project_paths | sort -u)
 
     only_listed=$(comm -23 <(echo "$listed") <(echo "$tabled"))
     only_tabled=$(comm -13 <(echo "$listed") <(echo "$tabled"))
 
-    for name in $only_listed; do
+    for path in $only_listed; do
         printf '%swarning:%s %s is in CLAUDE.md but not in this script — add it, with its GitHub repository name\n' \
-               "$C_YELLOW" "$C_RESET" "$name"
+               "$C_YELLOW" "$C_RESET" "$path"
     done
-    for name in $only_tabled; do
+    for path in $only_tabled; do
         printf '%swarning:%s %s is in this script but no longer in CLAUDE.md — retired?\n' \
-               "$C_YELLOW" "$C_RESET" "$name"
+               "$C_YELLOW" "$C_RESET" "$path"
     done
 }
 
@@ -130,8 +153,7 @@ is_selected() {
 }
 
 sync_project() {
-    local dir="$1" repo="$2"
-    local path="$FLEET_ROOT/$dir"
+    local dir="$1" repo="$2" path="$3"
     local url="git@github.com:$GITHUB_USER/$repo.git"
 
     printf '\n%s==> %s%s\n' "$C_BOLD" "$dir" "$C_RESET"
@@ -141,7 +163,7 @@ sync_project() {
             record SKIP "$dir" "missing; would clone from $url"
             return
         fi
-        mkdir -p "$FLEET_ROOT"
+        mkdir -p "$(dirname "$path")"
         if git clone "$url" "$path"; then
             record CHANGED "$dir" "cloned"
         else
@@ -292,8 +314,9 @@ check_project_list
 $DRY_RUN && printf '%sdry run: nothing will be changed%s\n' "$C_BOLD" "$C_RESET"
 
 for entry in "${PROJECTS[@]}"; do
-    read -r dir repo <<<"$entry"
-    is_selected "$dir" && sync_project "$dir" "$repo"
+    read -r dir repo path <<<"$entry"
+    [ -n "$path" ] || path="$FLEET_ROOT/$dir"
+    is_selected "$dir" && sync_project "$dir" "$repo" "$path"
 done
 
 print_summary

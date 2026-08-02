@@ -199,6 +199,9 @@ Active projects (✓ = has a CLAUDE.md config):
 **Documentation (not code):**
 - **substrate-independent** — collaboration philosophy, AI pair-programming field observations, and the *Field Guide to Useful Neologisms*: `~/Documents/koodit/substrate-independent`
 
+**Harness (not code):**
+- **dotclaude** — the Claude Code configuration itself: this `CLAUDE.md`, the skills, the scripts: `~/.claude`. The one project that lives outside the `koodit` directory.
+
 # Development conventions
 
 - **Setting up a new project or modernizing a build system:** use the `project-setup` skill (pure-Python PDM flow, Cython/meson-python editable-install setup, PEP 639 license metadata, canonical lint/style config). For CI and coverage specifics, the `ci-setup` skill.
