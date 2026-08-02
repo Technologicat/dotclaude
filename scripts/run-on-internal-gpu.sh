@@ -25,7 +25,7 @@
 # reordering devices for every CUDA process in the shell. Not worth it just to
 # make one script read more obviously.)
 
-if [ $(nvidia-smi -L | wc -l) -ge 2 ]; then
+if [ "$(nvidia-smi -L | wc -l)" -ge 2 ]; then
     # eGPU is attached, so CUDA sees it first. The internal dGPU is device 1.
     GPU_ID=1
 else
