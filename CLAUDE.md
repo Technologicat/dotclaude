@@ -91,7 +91,18 @@ session re-derives the same decisions — usually differently, and without knowi
 
 ## Deferred issue tracking
 
-During a task, if you discover unrelated bugs, improvements, or issues, do not act on them. Instead, append a brief note to `TODO_DEFERRED.md` (what you noticed, and where), then continue with the current task. Similarly, if I mention an unrelated issue mid-task, note it in `TODO_DEFERRED.md` and continue unless I explicitly say otherwise. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
+During a task, if you discover unrelated bugs, improvements, or issues, **first decide whether to fix it now or defer it** — the two are different actions, and defaulting to "defer" is what produced the problem below. Similarly if I mention an unrelated issue mid-task. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
+
+**Fix it now, in its own commit, when the fix lives inside the understanding the current task already required.** Defer it when the fix needs *new* context — a different subsystem, a measurement, a design decision.
+
+The test is **context cost, not size**. Line count is the wrong measure and it's gameable in the moment: mid-task momentum makes everything look like "eh, that's small". What actually costs is the reload — the subsystem you'd have to page in, the thing you'd have to go measure. If you already have it in hand, fixing it is nearly free and deferring it is the expensive option, because someone pays the full reload later to save five minutes now.
+
+Two guards on "fix it now":
+
+- **It must be independently committable.** If the fix can't stand as its own commit — if it has to tangle into the current one — it isn't small, whatever its size. A separate commit is also what keeps it reviewable: it shows up as its own diff with its own rationale, rather than as noise inside an unrelated change.
+- **It must not need my decision.** A one-liner that changes behaviour in a way I'd want a say in is a deferred item even though it's one line. Cheap to type is not the same as cheap to decide.
+
+**The failure this prevents:** a `TODO_DEFERRED.md` that has stopped being a queue and become an archive. Raven's passed 120 items — long past the point where anyone reads it end to end, so items are neither done nor found again, and every one of them charges standing attention rent for nothing. This is the *hydra tax* (glossary): closing an item genuinely surfaces adjacent ones, so the backlog grows even under honest work, and backlog *length* is a misleading score. The corrective is twofold — the rule above throttles the inflow, and a periodic **dehydration pass** (also glossary: a cleanup sprint whose whole purpose is retiring items faster than feature work spawns them) drains the standing pile. Schedule the pass; don't wait for the list to become unbearable, because by then reading it is itself the obstacle. Expect a meaningful fraction to be already done or already stale.
 
 **Exception: bugs surfaced by the tests you're writing.** When extending test coverage uncovers a latent bug in the code under test, the fix is part of the current task — fix it inline, not in a deferred item. Adding the test *is* the act of exercising a previously-untested branch, so this is the first-and-best moment to correct it. Only defer if the fix needs a major rewrite or crosses into unrelated subsystems.
 
