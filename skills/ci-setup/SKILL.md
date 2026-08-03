@@ -361,6 +361,19 @@ gh api repos/OWNER/REPO/releases/latest -q '.tag_name'
 
 **Vet a bump before pinning it.** A green CI run proves the action *works*, not that it's *trustworthy* — and a legit publisher can still be a hijacked account. Check, in rough order of strength: (1) GPG-signed tag with *key continuity* — the same maintainer key signed the version you already trust and the new one (`gh api .../git/tags/SHA -q '.verification'`); a hijacker with token access can't forge the GPG signature. (2) Release cadence consistent with real development (multi-week RC cycle, many linked PRs — not a sudden lone release). (3) No open security advisories (`gh api repos/OWNER/REPO/security-advisories`). codecov-action and cibuildwheel were vetted this way before the fleet bump.
 
+**Two limits on those checks, worth knowing before leaning on them:**
+
+- **A tag-gated job means CI validates nothing about the action.** The `publish` job runs only on tags, so a `gh-action-pypi-publish` bump shows `publish: SKIPPED` on every PR run in this fleet. The green checkmark covers lint, tests and wheel builds; the action that was actually bumped never ran. Its first exercise is the next release you cut — so if a release misbehaves at upload time, a recently-bumped publish action is the first suspect. Every other pin (checkout, setup-python, cibuildwheel, codecov) does run on the PR, which is why this one is the exception to watch.
+- **Not every action signs its tags, so check (1) is sometimes unavailable.** `pypa/gh-action-pypi-publish` uses GPG-signed annotated tags, and key continuity is checkable across versions. `pypa/cibuildwheel` does not sign at all — v4.1.1 is a lightweight tag pointing straight at an unsigned commit (verified 2026-08-03). When the strongest check is missing, fall back to (2) and (3) and say which check you *couldn't* run. Confirm it's the status quo and not a change: an action that signed the version you already trust and stopped signing the new one is a genuine signal, whereas one that never signed is just a weaker baseline.
+
+Extracting the signing key id, when you need continuity rather than a bare `verified: true` (the API reports validity, not *which* key):
+
+```bash
+obj=$(gh api repos/OWNER/REPO/git/ref/tags/TAG -q '.object.sha')
+gh api repos/OWNER/REPO/git/tags/$obj -q '.verification.signature' \
+  | gpg --list-packets 2>/dev/null | grep -o 'keyid [0-9A-F]*' | head -1
+```
+
 **Once vetted, front-run Dependabot.** When you've already reviewed a bump and found it trustworthy, apply it across the fleet in one pass rather than waiting for each repo's weekly Dependabot slot.
 
 Note this is *not* a security argument — with everything SHA-pinned there is no floating tag left to repoint, which is the whole point of pinning. The reasons are practical:
