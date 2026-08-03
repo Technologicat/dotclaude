@@ -95,7 +95,9 @@ During a task, if you discover unrelated bugs, improvements, or issues, **first 
 
 **Fix it now, in its own commit, when the fix lives inside the understanding the current task already required.** Defer it when the fix needs *new* context — a different subsystem, a measurement, a design decision.
 
-The test is **context cost, not size**. Line count is the wrong measure and it's gameable in the moment: mid-task momentum makes everything look like "eh, that's small". What actually costs is the reload — the subsystem you'd have to page in, the thing you'd have to go measure. If you already have it in hand, fixing it is nearly free and deferring it is the expensive option, because someone pays the full reload later to save five minutes now.
+The test is **context cost, not size**. Line count is the wrong measure and it's gameable in the moment: mid-task momentum makes everything look like "eh, that's small". What actually costs is the reload — the subsystem you'd have to page in, the thing you'd have to go measure. If you already have it in hand, fixing it is nearly free and deferring it is the expensive option.
+
+And the reload is only half the price. **The extra hydra head is a substantial cost in its own right**: an entry has to be written well enough to survive out of context, then re-read by everyone who scans the file afterwards, then eventually recognized as done or stale. That overhead is charged whether or not anyone ever acts on it. So a two-line fix routed through a durable-artifact process is *baroque* — Bach, not Chopin: an elaborate structure standing in for the thing it describes. Just fix it and commit it.
 
 Two guards on "fix it now":
 
