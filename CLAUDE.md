@@ -94,6 +94,22 @@ means it needs a new one, not that it can ride in the transcript.
 The failure this prevents: a session that ends with a good verbal summary and no artifact, so the next
 session re-derives the same decisions — usually differently, and without knowing it is re-deriving them.
 
+### When to compact, and when to just keep going
+
+Remaining context is not by itself a reason to stop. Compact when one of two things is true:
+
+- **Overrun is likely before the next natural seam.** Estimate what the current step still needs, not what
+  the whole task needs. A seam is a point where the work is committed, tested and written down — where a
+  fresh session could pick up from the artifacts alone.
+- **The next step would go better with a clear head.** A long context carries accumulated framing, and some
+  steps — a design decision, a rewrite, a review of work done earlier in the same session — are done better
+  without it. This is a judgement about the *task*, not about the token count.
+
+Otherwise keep working. Compacting mid-step is the expensive case: it spends a summarization on a state that
+is half-finished and therefore hard to describe, and the next session starts by rebuilding what was already
+in hand. Announce the estimate rather than the percentage — "this step needs about X more, and the seam is
+after the eval run" is actionable; "context at 39%" is not.
+
 ## Deferred issue tracking
 
 During a task, if you discover unrelated bugs, improvements, or issues, **first decide whether to fix it now or defer it** — the two are different actions, and defaulting to "defer" is what produced the problem below. Similarly if I mention an unrelated issue mid-task. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
