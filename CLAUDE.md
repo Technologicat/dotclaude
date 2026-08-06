@@ -319,6 +319,36 @@ a re-run under a profiler often will not reproduce whatever it was doing.
     session with `sudo sysctl -w kernel.yama.ptrace_scope=0` (resets at reboot) — and since that needs a
     password, ask me to run it rather than attempting sudo.
 
+## Write commit messages through a quoted heredoc, not a shell-quoted string
+
+`git commit -m "…"` runs the message through the shell first, so anything the shell treats as syntax is
+consumed before git sees it. Backticks are the one that bites: a message describing `` `shared` `` or a
+function name in backticks becomes command substitution, and the word **silently vanishes** from the
+committed message. `$foo` expands the same way, and `!` can trigger history expansion.
+
+This matters here specifically because the house style *encourages* backticks — identifiers, flags and
+filenames are written that way throughout, so a good commit message is exactly the kind that breaks.
+
+Use a quoted heredoc, which passes the text through untouched:
+
+```bash
+git commit -F - <<'EOF'
+subject line
+
+Body mentioning `shared`, $HOME and !important without any of it being eaten.
+
+Co-Authored-By: …
+EOF
+```
+
+The `'EOF'` quoting is the load-bearing part — an unquoted `<<EOF` still expands. The same applies to
+`gh pr create --body` and `gh issue comment --body`, for the same reason.
+
+**The failure is silent and post-hoc.** Nothing errors, the commit succeeds, and the gap is only visible
+if you re-read the message afterwards — by which time it is usually pushed, and a one-word repair is not
+worth rewriting shared history over. (Live case: a commit body explaining why a test was wrong lost the
+very identifier it was about.)
+
 ## Don't `cd` into a directory to run a command there
 
 Reach for the tool's own directory option instead. `git -C <dir> status`, `pytest <dir>`,
