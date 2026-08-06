@@ -18,7 +18,10 @@
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(ruff:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)"
     ]
   },
   "statusLine": {

@@ -302,6 +302,23 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `cc-log-extract` — distilling Claude Code session logs into readable Markdown.
 - `unpythonic-macro-testing` — testing macro-enabled Python with `unpythonic.test.fixtures`.
 
+## Is it hung, or is it working?
+
+A long-running job that goes quiet is ambiguous, and the ambiguity is worth resolving before killing it —
+a re-run under a profiler often will not reproduce whatever it was doing.
+
+- **Liveness, no privileges, one command each**: `ls -l /proc/<pid>/fd` (is it holding its inputs open?)
+  and `grep rchar /proc/<pid>/io` sampled twice (is it still reading?). A climbing `rchar` settles the
+  question without attaching anything. Note that a *stalled progress display* and a *flat output counter*
+  are both consistent with healthy work in an unreported phase, so neither is evidence of a hang.
+- **Where it actually is**: `py-spy dump --pid <pid>` prints a stack per thread of a running process, and
+  `py-spy top --pid <pid>` profiles it live. It's in the fleet dev-dependency baseline (`project-setup`
+  skill), so `pdm install` provides it.
+  - **It needs ptrace permission, and Ubuntu's default denies it.** With `kernel.yama.ptrace_scope = 1`
+    py-spy can only attach to its own descendants; otherwise it reports `Permission Denied`. Fix for the
+    session with `sudo sysctl -w kernel.yama.ptrace_scope=0` (resets at reboot) — and since that needs a
+    password, ask me to run it rather than attempting sudo.
+
 ## Cleaning `__pycache__`
 
 When stale bytecode interferes with an import (typical symptom: circular-import errors pointing at a rename that looks fine in source, or an import cycle that only repros in one entry order), clean with:

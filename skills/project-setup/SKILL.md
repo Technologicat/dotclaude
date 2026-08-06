@@ -261,7 +261,28 @@ Both pure-Python and Cython projects should have this in
         # Release and CI-workflow tooling
         "build",                   # `python -m build --sdist` for pre-release sanity checks, matching the CI sdist job
         "pyyaml>=6.0.3",           # validate .github/workflows/*.yml from the dev venv without a separate pip install
+
+        # Diagnostics
+        "py-spy",                  # sampling profiler; attaches to a *running* process, no instrumentation
     ]
+
+**`py-spy` earns its place on the "is it hung or is it working?" question**, which cProfile cannot
+answer because it has to be in the process from the start. `py-spy dump --pid <pid>` prints a stack per
+thread of an already-running program, and `py-spy top --pid <pid>` gives a live profile — so a batch job
+that has gone quiet can be interrogated where it stands instead of being killed and re-run under a
+profiler, which is often the one thing that will not reproduce it.
+
+**It needs ptrace permission, and the default on Ubuntu denies it.** With
+`kernel.yama.ptrace_scope = 1`, py-spy can only attach to its own descendants and otherwise reports
+`Permission Denied`. Either run it under `sudo env "PATH=$PATH" py-spy ...`, or lift the restriction for
+the session:
+
+    sudo sysctl -w kernel.yama.ptrace_scope=0     # resets at reboot
+
+Before reaching for it, note what needs no permissions at all and often settles the question: a process
+holding file descriptors on its inputs (`ls -l /proc/<pid>/fd`) and a climbing `read_bytes` in
+`/proc/<pid>/io` is doing I/O, not spinning. That is a *liveness* check rather than a *where* answer, so
+it is complementary — but it costs one command and no privileges.
 
 **Why the editor tooling is per-project, not global.** With `venv.in_project true`,
 Emacs (pyvenv / anaconda-mode) selects each project's `.venv` interpreter when you
@@ -279,6 +300,13 @@ global install:
 They're in the dev baseline (rather than installed once globally) precisely so that
 opening any fleet project in Emacs yields a working IDE with no per-project fiddling.
 (`pip` is listed for the same reason: a guaranteed `python -m pip` inside the venv.)
+
+**`pdm add` rewrites `[dependency-groups]` and drops every comment in it.** The table above is heavily
+commented for a reason — the `pytest-cov` note is what stops someone "fixing" Raven's CI to use
+`pdm install` — and a single `pdm add -dG dev <pkg>` silently deletes all of it while the diff looks like
+an ordinary one-line addition. Either edit the table by hand, or check `git diff pyproject.toml` after
+and restore what went missing. (Observed on PDM 2.26, adding `py-spy` to Raven: one line added, ten
+deleted.)
 
 Cython projects add on top:
 
