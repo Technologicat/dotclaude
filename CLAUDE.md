@@ -349,6 +349,33 @@ if you re-read the message afterwards — by which time it is usually pushed, an
 worth rewriting shared history over. (Live case: a commit body explaining why a test was wrong lost the
 very identifier it was about.)
 
+## A `pgrep -f` wait-loop finds itself, and then waits forever
+
+`until ! pgrep -f "myscript.py"; do sleep 30; done` never exits. The shell running the loop has
+`myscript.py` in its own command line, so `pgrep -f` matches *it*, and the condition can never become
+true. One such loop polled for **11 hours** before being noticed.
+
+This is the `pkill -f` hazard in a worse costume. `pkill -f myscript` announces itself — it kills the
+invoking shell, the command dies with exit 144, and something is obviously wrong. `pgrep -f` in a
+*condition* fails silently: nothing errors, nothing is killed, the loop simply never finishes and the
+work queued after it never runs. A background task that should have finished in minutes is still
+"running" the next morning.
+
+Filter the shell out by requiring the process to be what you actually want:
+
+```bash
+# waits for real python processes only; the polling shell is /bin/bash and is excluded
+until [ "$(pgrep -af myscript.py | awk '$2 ~ /python/' | wc -l)" = 0 ]; do sleep 30; done
+```
+
+`pgrep -af` prints `PID full-command-line`, so `$2` is the executable — `python` for the job, `/bin/bash`
+for the watcher. Note the `wc -l` belongs *outside* the awk quotes; putting it inside makes awk parse
+`| wc -l` as a malformed pipe expression and the whole condition breaks.
+
+**Better still, wait on a PID or a file rather than a name.** `until ! kill -0 "$PID" 2>/dev/null` and
+`until [ -f result.json ]` cannot match themselves at all, so the failure mode does not exist. Prefer them
+whenever the PID or the output path is known — which, for a job this shell just launched, it is.
+
 ## Don't `cd` into a directory to run a command there
 
 Reach for the tool's own directory option instead. `git -C <dir> status`, `pytest <dir>`,
