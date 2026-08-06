@@ -319,7 +319,26 @@ a re-run under a profiler often will not reproduce whatever it was doing.
     session with `sudo sysctl -w kernel.yama.ptrace_scope=0` (resets at reboot) — and since that needs a
     password, ask me to run it rather than attempting sudo.
 
-## Cleaning `__pycache__`
+## Don't `cd` into a directory to run a command there
+
+Reach for the tool's own directory option instead. `git -C <dir> status`, `pytest <dir>`,
+`ruff check <dir>`, `make -C <dir>`, `tar -C <dir>` — nearly everything worth running this way has one.
+
+Three reasons, and the third is the one that actually bites:
+
+- **`cd` before `git` prompts for permission**, because changing directory first means git may execute
+  hooks from the target repo, which the harness cannot vet in advance. `git -C` does not carry that
+  warning. A pattern that needs approving every time is a pattern that will eventually be approved
+  without reading.
+- **The working directory persists between Bash calls**, so a `cd` is not scoped to the command that
+  used it. It silently relocates every later call in the session.
+- **Which fails at a distance, and the error blames the wrong thing.** A `cd subdir` that ran fine, or
+  even one that *failed*, leaves the next `sed -n '...' raven/librarian/hybridir.py` reporting **"No such
+  file or directory"** for a file that is plainly there. The obvious readings — bad path, deleted file,
+  wrong branch — are all wrong, and none of them mention the cwd. (Live case this session, twice.)
+
+Where no directory option exists, prefer an absolute path in the command. If a `cd` is genuinely
+unavoidable, run it in a subshell — `(cd <dir> && cmd)` — so the parent's cwd is untouched.
 
 When stale bytecode interferes with an import (typical symptom: circular-import errors pointing at a rename that looks fine in source, or an import cycle that only repros in one entry order), clean with:
 
