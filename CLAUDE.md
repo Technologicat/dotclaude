@@ -409,6 +409,25 @@ If it's somehow missing, the global pipx installs are version-suffixed — `ls ~
 
 **Do not** use `find -name __pycache__ -exec rm -rf {} +` for this — `rm -rf` is destructive, and a typo in the find expression can nuke the wrong tree. `macropython -C` is the safe routine-maintenance form.
 
+## Don't reach for a meta-command to tidy up output
+
+`xargs`, `sh -c`, `bash -c`, `find -exec`, `env`, `timeout`, `nohup`, `watch`, `nice`, `parallel` and
+`python -c` all take **a command as their argument**. That makes them unclassifiable in advance: the
+read/write-ness lives in the argument, so `xargs basename` and `xargs rm -rf` are the same command as far
+as any permission rule can tell. This is why they are not auto-allowed and why each one costs a prompt —
+correctly, since the prompt is the only place the argument gets looked at.
+
+So the cost is real, and it should be spent on the jobs that genuinely need one — the documented
+`pgrep -af <app> | awk '$2 ~ /python/ {print $1}' | xargs -r kill`, a `find -exec` over a set that cannot
+be globbed. **Not on cosmetics.** Piping a file list through `xargs -n1 basename` to strip directory
+prefixes off output I was about to read anyway buys nothing and charges a prompt for it. Read the paths;
+use `ls -1`; use the Glob tool. Same for `sh -c` wrapping something a plain command already does.
+
+The failure this prevents is not a security breach but **prompt inflation**: every avoidable prompt trains
+the reflex to approve without reading, and that reflex is what makes the *unavoidable* prompts — the ones
+guarding a `kill` or an `rm` — worthless. A permission dialog is a scarce resource, and spending it on
+`basename` devalues the currency.
+
 ## Filesystem
 
 - **`/tmp` is a ramdisk on both my machines** — it lives in RAM and is wiped at every boot (not just cleared of old files; gone). Fine for scratch: probes, dry-run copies, intermediate artifacts that only matter within the session. **Never** treat it as durable storage: don't stash a backup, a generated report, or anything I'd want after a reboot there. Anything worth keeping goes in the repo (committed), a project file, or `~`. (This is also why investigation code that captured a real invariant must be promoted to the test suite — see "Promote useful investigation code to the test suite" — rather than left in `/tmp`.)
