@@ -56,6 +56,39 @@ That is why it's reserved for the project that genuinely can't do without it, an
 Raven's `pyproject.toml` and its workflow carry comments explaining the divergence. Without
 those, the next reader "fixes" the discrepancy and reintroduces the problem.
 
+### Catch that failure locally, in about ten seconds
+
+A dev machine has the full stack, so an import CI can't satisfy is invisible there. Block the
+modules CI omits and run collection:
+
+```python
+import sys, importlib.abc, pytest
+
+BLOCKED = {"sseclient", "spacy", "transformers"}   # what CI's subset omits — check, don't guess
+
+class Blocker(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split(".")[0] in BLOCKED:
+            raise ModuleNotFoundError(f"No module named {fullname!r}")
+        return None
+
+sys.meta_path.insert(0, Blocker())
+raise SystemExit(pytest.main(["<pkg>/tests/", "--collect-only", "-q", "-p", "no:cacheprovider"]))
+```
+
+Exit 0 means collection survives. **Derive `BLOCKED` from the workflow, not from memory** — a
+too-broad list produces failures that aren't real, which is worse than no check because it
+sends you fixing the wrong thing. Read *every* install step: things arriving from a separate
+index (torch from PyTorch's CPU wheels) or from the requirements file are present, not missing.
+
+**`--collect-only` is the point, not a shortcut.** The failure mode this catches is
+*collection*, and it is much worse than a failing test: an import error inside a `conftest.py`
+takes down the whole directory, so a package's entire suite vanishes rather than the few tests
+that needed the missing module. Individual test modules can guard with
+`pytest.importorskip`; a conftest cannot, because everything beside it depends on it. So a
+conftest must import only what CI installs — and if it needs more, it needs a copy of the data
+plus a drift test parked behind some *other* module's `importorskip`.
+
 ## Components
 
 ### GitHub Actions — Test matrix (`.github/workflows/ci.yml`)
