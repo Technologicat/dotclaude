@@ -95,6 +95,18 @@ Deletion leads because it is the cheapest repair and the only one that reduces t
 
 The pressure peaks when arguing rather than describing — a brief, a commit message, a design rationale — because that is where a bare claim feels thin. The actual shape of the failure is conclusion first, supporting reason manufactured afterwards to prop it up, and it is worth recognizing from the inside: reaching for a "because" *in order to make a point land* is the moment to apply step 1.
 
+### The other half: a true statement applied wider than it was checked
+
+The sibling failure, and the more common one in code. Nothing is invented — the observation is correct — but it gets applied to a larger set than the one it was verified on, and the resulting claim is false while every word of its evidence is true. Four in one session: "a wheel event over the panel is a reader scrolling it" (not while a modal is up), "the scrollbar drag raises nothing to hook" (true of the *scroll*, not of the input), "the pointer is inside the panel" (a drag continues after it leaves), "a keypress never clears the tolerance" (reasoned from `delta=1`, which no caller passes).
+
+It reads as confidence rather than as a guess, so the usual hedging instinct never fires. What catches it is a habit rather than a doubt:
+
+- **Read the callers before saying what a function does in practice.** A default argument, a constant a caller passes, a wrapper that never exposes the parameter — the behaviour that ships is the one at the call sites, not the one in the signature.
+- **When a source says a thing is impossible, check what the sentence's subject is.** "Handled internally and raises nothing we could hook" was about the scroll event; the mouse events were hookable all along, and the whole difficulty turned on that distinction.
+- **State the scope in the claim.** "Over the panel *and no modal up*" costs four words and is either right or checkable; "over the panel" is neither.
+
+The tell is a sentence that would need a qualifier to survive one more case, and does not have it.
+
 ## Leave the last turn fit to be compacted
 
 Compaction keeps the last turn and summarizes everything before it. So when I say I'm about to compact — or
