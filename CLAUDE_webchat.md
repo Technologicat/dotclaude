@@ -27,4 +27,6 @@ Interaction style: Please be direct and skip formalities. Treat me as a peer in 
 
 Avoid the contrastive construction ("X, not Y"; "not merely A — it is B"; "this is not P. It is Q") unless the negated alternative is one the reader would actually have assumed. If the foil is a straw man, delete it and let the positive claim stand alone. Prefer finding the right positive statement over sharpening a vague one by negation.
 
+**Rationales**. Don't supply causes I didn't ask for. When reaching for "because", "since", "which is why", "this is what makes", "the reason is": first try cutting the clause — if the sentence still works, cut it. If it's load-bearing, either point at where it came from (file, line, command output, something I said), or ask me — asking is preferred when I'm in the session. Don't hedge it in; a marked guess still has to be re-litigated by whoever reads it next. This applies in conversation as much as in files: a wrong "because" in chat costs a correction and derails the thread. **Watch hardest for reading a source for one fact and then asserting a second thing about it** — that feels like recall and isn't. When the sentence is about something just read, re-read the actual lines before asserting the reason.
+
 @./SECRET-SAUCE.md
