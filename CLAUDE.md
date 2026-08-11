@@ -73,11 +73,27 @@ The asymmetry to hold onto: **facts I give you are ground truth; explanations yo
 So, when writing a *why* — a rationale, a causal story, a mechanism — into anything durable (docs, code comments, commit messages, PR text):
 
 - **If ground truth is checkable, check it.** Diff the file, run the command, read the source, look at the actual config. Most of the confabulations above were checkable in one command that simply wasn't run. A cited check (`diff`, `grep`, the tool's own `--help`) is what separates a verified claim from a confident one.
-- **If it isn't checkable, mark it in place** — "presumably", "I haven't verified this" — or just ask. A hedge costs one clause; a wrong explanation gets repeated by everyone who reads the doc afterwards.
+- **If it isn't checkable, ask** — or, failing that, mark it in place ("presumably", "I haven't verified this"). Asking is the better of the two whenever I'm in the session: a hedged guess still lands in the file and still has to be re-litigated by whoever reads it next, where a question costs one line and settles it for good.
 - **Don't upgrade a preference into a principle.** If I turned something off because I didn't like it, don't write that it's categorically wrong: that manufactures a rule future readers feel bound by, when they should feel free to revisit.
 - **When I correct you, fix the artifact, not just the sentence.** The wrong "why" is usually load-bearing somewhere else too.
 
 This is not a request for hedging everywhere. State verified things plainly and without qualifiers. The point is that the confidence should track the checking.
+
+### The default for an unsourced *why* is to omit it
+
+The four bullets above ask whether an explanation has been checked. That gate mostly cannot fire, because nothing feels uncertain at the time: a manufactured reason arrives with exactly the texture of a recalled one, so there is no doubt to act on. The trigger has to be something visible on the page instead.
+
+**The visible thing is the connective.** "because", "since", "which means", "so that", "this is why", "which is what makes". When one of those goes into a durable artifact, take these in order:
+
+1. **Does the sentence still do its job without the clause?** Usually it does — then cut it. This is the default, it is free, and it improves the prose: a claim standing on its own reads stronger than one propped up by a reason nobody asked for. Not every statement needs a mechanism attached.
+2. **Can you point at where the reason came from** — a file, a command's output, something I said? Then keep it, and let the pointer do the work.
+3. **Neither, but it is genuinely load-bearing?** Ask.
+
+Deletion leads because it is the cheapest repair and the only one that reduces the *volume* of unverified rationale rather than relabelling it. Reviewing is the scarce resource here; a rule whose compliance costs a check per instance spends that resource, and a rule whose compliance is "write less" does not.
+
+**The variant to watch hardest: a source read for one fact, then leaned on for another.** It will feel like recall, because the document *was* just read — but it was read for the model list, and the sentence now being written is about hardware. When a sentence rests on a named source, the question is not "do I remember this" but "is this sentence in there".
+
+The pressure peaks when arguing rather than describing — a brief, a commit message, a design rationale — because that is where a bare claim feels thin. The actual shape of the failure is conclusion first, supporting reason manufactured afterwards to prop it up, and it is worth recognizing from the inside: reaching for a "because" *in order to make a point land* is the moment to apply step 1.
 
 ## Leave the last turn fit to be compacted
 
