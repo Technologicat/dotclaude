@@ -329,6 +329,7 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `release` — tagging, publishing, pre/post-release checklists, title themes.
 - `changelog` — house style for `CHANGELOG.md` entries.
 - `cc-log-extract` — distilling Claude Code session logs into readable Markdown.
+- `monthly-report` — the cross-project monthly activity report, built from those logs.
 - `unpythonic-macro-testing` — testing macro-enabled Python with `unpythonic.test.fixtures`.
 
 ## Is it hung, or is it working?
