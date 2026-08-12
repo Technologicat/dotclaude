@@ -103,6 +103,20 @@ The script lives in the **substrate-independent** repo, not in this one:
 So a fix to it lands there — pulling `~/.claude` does not bring it. The `cc-log-extract`
 skill has the options and the model-stamp semantics.
 
+**Session logs expire, so extraction is the step with a deadline.** Claude Code prunes
+`~/.claude/projects/` on a rolling window — observed at 30 days, with no retention key
+set in `settings.json`. Consequences, all of which bite quietly:
+
+- **A month cannot be re-drafted from logs once it ages out.** Past the window the
+  archived digests in `YYYY-MM/` are not backing detail, they are the only record. This
+  is what makes step 5 load-bearing rather than tidy.
+- **An empty scan is not an idle period.** Finding no sessions in a stretch older than
+  the window means the logs are gone, not that nothing happened. Say which of the two
+  it is, or say you cannot tell — a coverage line that implies an idle fortnight is a
+  claim the evidence does not support.
+- **Extract before drafting, not while drafting.** If a report slips a few weeks, run
+  step 2 anyway on whatever is still there; the digests keep, the logs do not.
+
 ### 3. Verify the releases against git
 
 The *Releases shipped this period* section is the one part made of hard artifacts, so
