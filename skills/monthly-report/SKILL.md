@@ -133,6 +133,11 @@ set in `settings.json`. Consequences, all of which bite quietly:
 - **Extract before drafting, not while drafting.** If a report slips a few weeks, run
   step 2 anyway on whatever is still there; the digests keep, the logs do not.
 
+**The default retention is deliberate** — considered on 2026-08-12 and left alone. The
+logs are large and in practice never read again once a report is done, so the digests are
+the artifact worth keeping and the raw logs are not. Don't propose raising the window as a
+fix for the above; extract on time instead.
+
 ### 3. Verify the releases against git
 
 The *Releases shipped this period* section is the one part made of hard artifacts, so
