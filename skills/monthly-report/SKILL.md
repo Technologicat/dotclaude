@@ -167,6 +167,19 @@ exactly the kind of file that collides, and it is worth writing precisely when t
 suffix is for the digests" is the failure: a generic name is a generic name whatever is
 inside it.
 
+**That gives the layout its invariant: everything in `YYYY-MM/` is per-machine and
+merges by suffix; the report-dir root holds the synthesized report and nothing else.**
+So a *partial* report — one machine drafting from its own digests before the sets are
+merged — belongs in the folder too, as
+`activity-report-YYYY-MM-$(hostname).md`. No `vN`: it is input to the report, not a
+revision of it, and the version numbers belong to the one document at the root. Its
+opening lines should say which digest set it was built from and what is therefore
+missing.
+
+Drafting a partial is worth doing rather than waiting — it is the step that surfaces
+what the other machine still owes — but it must not be mistaken for the report, and the
+filename is what prevents that.
+
 ### 6. Export for email (on request)
 
 Outlook doesn't parse Markdown, so the report gets pasted in as rich text:
@@ -246,6 +259,11 @@ not familiar with these particular repos.
 
 ## Versioning
 
-`activity-report-YYYY-MM-vN.md`, starting at `v0` for the draft. Later versions are the
-user's own edits; write `v0` and stop there unless asked to revise. Exports sit beside
-the `.md` with the same stem.
+`activity-report-YYYY-MM-vN.md` at the report-dir root, starting at `v0` for the draft.
+Later versions are the user's own edits; write `v0` and stop there unless asked to
+revise. Exports sit beside the `.md` with the same stem.
+
+A per-machine partial drafted before the digest sets are merged is *not* a version of
+this: it is `activity-report-YYYY-MM-$(hostname).md` inside `YYYY-MM/`, and it never
+enters the `vN` sequence. Root means synthesized and authoritative; the folder means
+per-machine and mergeable.
