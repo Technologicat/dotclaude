@@ -32,7 +32,7 @@ bound is the last session before today; for a back-fill or a re-draft of an olde
 month, it is the following report's start, and the windows must abut without gap or
 overlap.
 
-Two things make the window ragged, and both need a deliberate call:
+Three things make the window ragged, and each needs a deliberate call:
 
 - **Boundary spanners.** A file's mtime is its *last* turn, so an mtime filter selects
   sessions by where they **ended**. Two consequences, both one-directional:
@@ -54,6 +54,16 @@ Two things make the window ragged, and both need a deliberate call:
   machine-local; synthesis is the step that needs everything at once, and the
   cross-cutting sections are exactly what two separately-written reports cannot see.
   Raw logs stay where they are — synthesis never reads them.
+- **A session still running when you draft.** A long-lived session — the kind a big
+  sprint produces, weeks of turns in one file — can be live at the moment of writing,
+  so the window closes at its last recorded turn: a **mid-session, mid-day boundary**,
+  not the tidy day boundary the other cases give you.
+
+  That is correct, and it needs to be *written into the coverage line* — timestamp,
+  session UUID, and which machine — because next month's window opens **inside the same
+  file**. A reader who assumes one file belongs to one month will either double-count
+  its early turns or drop them. Name any work that was mid-flight at the cut, too, so
+  the next report knows it is picking up a thread rather than starting one.
 
 Bounds widened by a day at each end, per the spanner note above; the extra files get
 resolved by reading their timestamps, not by trusting the filter:
@@ -83,6 +93,15 @@ sections is neither one-to-one nor stable. Resolve it before extracting:
 Run `cc-log-extract.py` once per project, that project's sessions in chronological
 order, `--timestamps`, default `--tools summary`. Subagent transcripts live at
 `<session-uuid>/subagents/agent-*.jsonl`; include or skip them deliberately.
+
+The script lives in the **substrate-independent** repo, not in this one:
+
+```
+~/Documents/koodit/substrate-independent/scripts/cc-log-extract.py
+```
+
+So a fix to it lands there — pulling `~/.claude` does not bring it. The `cc-log-extract`
+skill has the options and the model-stamp semantics.
 
 ### 3. Verify the releases against git
 
