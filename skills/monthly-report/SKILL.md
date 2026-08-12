@@ -32,7 +32,7 @@ bound is the last session before today; for a back-fill or a re-draft of an olde
 month, it is the following report's start, and the windows must abut without gap or
 overlap.
 
-Three things make the window ragged, and each needs a deliberate call:
+Four things make the window ragged, and each needs a deliberate call:
 
 - **Boundary spanners.** A file's mtime is its *last* turn, so an mtime filter selects
   sessions by where they **ended**. Two consequences, both one-directional:
@@ -64,6 +64,22 @@ Three things make the window ragged, and each needs a deliberate call:
   file**. A reader who assumes one file belongs to one month will either double-count
   its early turns or drop them. Name any work that was mid-flight at the cut, too, so
   the next report knows it is picking up a thread rather than starting one.
+- **Work that lands after its own digest was extracted.** Extraction and drafting are not
+  simultaneous: a digest set produced in the morning, a report written that evening, and
+  a day's work in between that no digest contains. The gap widens when the two happen on
+  different machines, since the other one keeps working after it has handed its digests
+  over.
+
+  The window is set by what the report *covers*, not by what the digests happen to hold,
+  so bring that work in from git and the changelog — commit subjects and a changelog
+  entry carry a day's work well enough for a report, even where a digest would have given
+  the reasoning behind it. Two things to write down when you do:
+  - **Mark the provenance in place** ("drawn from git and the changelog"), so a reader
+    knows the narrative detail is thinner there by cause rather than by accident.
+  - **Warn the next report.** Those turns are still in the log and *will* appear in the
+    next extraction, having already been reported here. This is the double-count hazard
+    of the running-session case arriving by a different route, and the coverage line is
+    where it gets stopped.
 
 Bounds widened by a day at each end, per the spanner note above; the extra files get
 resolved by reading their timestamps, not by trusting the filter:
