@@ -153,12 +153,19 @@ Write them to `<report-dir>/YYYY-MM/<project>.md`, beside the report. The report
 asserts what was built; the digests are the backing detail, and next month's report
 often needs to look back at them.
 
-**Always suffix the digest with the machine it came from** — `raven-$(hostname).md`,
-unconditionally, even for a period that only ever ran on one machine. The machine
-doing the extraction cannot know whether the other one also touched that project, so
-a conditional rule is undecidable precisely when it matters: the two folders have to
-merge without collisions, and a plain `raven.md` from each machine silently loses one.
-The attribution survives in the archive as a free side effect.
+**Suffix everything written into `YYYY-MM/` with the machine it came from** —
+`raven-$(hostname).md`, unconditionally, even for a period that only ever ran on one
+machine. The machine doing the extraction cannot know whether the other one also touched
+that project, so a conditional rule is undecidable precisely when it matters: the two
+folders have to merge without collisions, and a plain `raven.md` from each machine
+silently loses one. The attribution survives in the archive as a free side effect.
+
+**The rule is about the folder, not about digests**, so it covers any note left beside
+them — a `README` recording which machine's set this is and where synthesis happens is
+exactly the kind of file that collides, and it is worth writing precisely when there
+*are* two sets to keep straight. `README-$(hostname).md`. The reflex to think "the
+suffix is for the digests" is the failure: a generic name is a generic name whatever is
+inside it.
 
 ### 6. Export for email (on request)
 
