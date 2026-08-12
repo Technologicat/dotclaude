@@ -1,5 +1,40 @@
 # Deferred TODOs
 
+## An `unpythonic` skill, scoped to what the fleet actually uses
+
+`unpythonic` has a large surface — it comes with the kitchen sink — so skillifying it whole is a large
+review job that would compete with feature work. **Cut the scope instead** (Juha, 2026-08-12): start with
+the parts already in active use across Raven, plus their adjacents, on the grounds that a reader who is
+about to use one of those is the reader the skill exists for.
+
+The starting set, from Raven's `CLAUDE.md`: `env`, `Timer`, `@call`, `box` / `unbox`, `sym`, `dyn`. Note the
+same file rules the macro layer out (`unpythonic.syntax`, and anything that primarily serves as a macro
+backend, e.g. `let`), so the skill's scope and Raven's usage policy already agree on where the line is —
+worth saying in the skill, since the obvious question on reading the library's docs is "why not the macros".
+
+**The trigger, and it is what the skill would have prevented.** A Raven session lost real time to
+`unpythonic.flatten` returning a **lazy generator**: four GUI button gates asked one flattened list whether
+a node was a greeting, the first question consumed the generator, and the remaining three were answered from
+the leftovers — i.e. "no". Compounded by `memoize` caching the *generator object* rather than its contents,
+so the emptiness persisted across calls. The rule that would have caught it at write time is one line: **the
+iterable utilities are lazy wherever they can be** (Juha). Nothing in the call site looks wrong, and the
+failure is silent and plausible — a button that is merely disabled.
+
+**The shape: a short per-module tour, plus the contracts that are invisible at a call site** (Juha,
+2026-08-12). Walk the modules and say what each one holds at overview depth — "`unpythonic.it` is more
+batteries for `itertools`, and they are lazy where possible" — rather than enumerating signatures. An
+overview, not around-the-world-in-eighty-days. The value is that a reader knows a thing *exists* and knows
+the one property about it that would otherwise bite; looking up the signature is what `help()` is for.
+
+The invisible contracts are the part that has to be right, since they are what the call site cannot show:
+laziness in the iterable utilities, what `memoize` keys on and stores, and whatever else has that shape.
+The scoped module list above is where to start; the tour can widen from there once it is earning its keep.
+
+**Judge it on that before expanding.** Whether it is worth doing now depends on how large a power multiplier
+it is, and the honest test is whether a second instance of the same class of bug shows up.
+
+Raised 2026-08-12, after the greeting-gate bug in Raven.
+
 ## Add `~/.spacemacs.d` to the fleet, after the personal machine's reinstall
 
 `Technologicat/spacemacs.d` is checked out at `~/.spacemacs.d` on both machines and
