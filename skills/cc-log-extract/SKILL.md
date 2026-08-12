@@ -50,7 +50,9 @@ Key options:
 - `--tools summary` (default) one-liner per tool call · `edits` show Edit/Write
   content, omit Reads (light code-review mode) · `full` truncated tool input ·
   `none` prose only
-- `--timestamps` — date+time on every turn
+- `--timestamps` — date+time on every turn, as local time with the UTC offset
+  (`2026-06-06 01:22:11 +03:00`). The log itself records UTC; the offset is what
+  lets a digest still be read in another zone, or months later
 - `--per-turn` — tag each CC turn inline with its model (`*(opus-4-7)*`)
 
 Multiple session files concatenate into one document — pass a whole project's
