@@ -82,7 +82,18 @@ ibus restart
 
 Then open IBus Preferences → Input Methods, add "LaTeX" (under ibus-table) and "Japanese - Mozc". Switch between input methods with the configured hotkey (check IBus Preferences → General).
 
-No environment variable setup needed on Mint/Cinnamon (GTK_IM_MODULE etc. are not required).
+### Do not set the IM environment variables by hand
+
+No environment variable setup is needed on Mint/Cinnamon, and doing it anyway **silently disables IBus autostart**. Keep `GTK_IM_MODULE`, `QT_IM_MODULE` and `XMODIFIERS` out of `~/.profile`, `~/.bashrc`, `~/.xprofile` and everything else in the login path. This matters because exporting exactly these three is the standard internet advice for "my input method isn't working", so it is the first thing one reaches for — and here it is the cause.
+
+The mechanism: `/etc/X11/Xsession.d/70im-config_launch` skips its phase 1 when any of those variables is already set, on the reasoning that the user configured the IM by hand and it should keep out of the way. Skipping phase 1 leaves `IM_CONFIG_PHASE` unset, so `im-launch` also skips phase 2 — and phase 2 is what runs `ibus-daemon --daemonize --xim`. The session comes up with no daemon at all: no tray icon, no switcher hotkey, no input methods. LightDM sources `~/.profile` before Xsession runs, so the variables are already in the environment by the time the hook looks.
+
+Tell-tales, when the input methods are missing:
+
+- `pgrep ibus` returns nothing, while `env | grep IM_MODULE` looks perfectly correct. Nothing errors and nothing is logged, which is what makes this hard to spot.
+- `CLUTTER_IM_MODULE` is absent. im-config sets all four variables, so having exactly the three that a hand-written `export` block sets is the fingerprint that phase 1 never ran.
+
+Starting `ibus-daemon --daemonize --xim` by hand confirms the diagnosis and fixes the running session; removing the exports fixes it permanently, from the next login on. Applications only connect to IBus at startup, so anything launched before the daemon needs restarting.
 
 ### Keybindings
 
