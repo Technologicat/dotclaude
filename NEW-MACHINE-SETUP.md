@@ -95,6 +95,14 @@ Tell-tales, when the input methods are missing:
 
 Starting `ibus-daemon --daemonize --xim` by hand confirms the diagnosis and fixes the running session; removing the exports fixes it permanently, from the next login on. Applications only connect to IBus at startup, so anything launched before the daemon needs restarting.
 
+### Cinnamon's own input-source switching is not used
+
+Cinnamon has a native input-source mechanism — the list in `org.cinnamon.desktop.input-sources`, surfaced by the `keyboard@cinnamon.org` applet. Getting it working proved difficult enough to abandon (April 2026), so the setup above uses IBus's own machinery end to end: the tray icon is IBus's panel `ibus-ui-gtk3`, which Cinnamon merely embeds as a status icon (see the `'ibus-ui-gtk': 'input-method'` mapping in its `statusIconDispatcher.js`), and the switcher hotkey is IBus's own, in `org.freedesktop.ibus.general.hotkey`.
+
+So `org.cinnamon.desktop.input-sources sources` holding an empty list is the expected state here, not a fault to repair. It looks like an obvious culprit when the input methods are missing, which makes populating it an attractive wrong turn — check whether `ibus-daemon` is running before touching it. IBus keeps its own engine list in `org.freedesktop.ibus.general preload-engines`, and that is the one that matters.
+
+Worth re-testing after a major OS upgrade. This arrangement was settled against one particular Mint/Cinnamon/IBus combination, and a newer Cinnamon may well make the native route work — in which case the machines can converge on it rather than each keeping its own workaround.
+
 ### Keybindings
 
 - IBus Preferences → General: set "Next input method" to Ctrl+Shift+Space.
