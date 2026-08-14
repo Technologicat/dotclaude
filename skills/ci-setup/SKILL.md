@@ -568,6 +568,18 @@ So without the step, the wheel builds against MinGW's `libgomp`/`libgcc_s_seh`, 
 fails at import — inside cibuildwheel's own test phase — with the same "DLL load failed"
 error described above.
 
+**The trigger is OpenMP, so a green Windows job does not mean the step is unnecessary.**
+A MinGW build of plain C kernels links nothing beyond the UCRT and `python3XX.dll`, imports
+fine, and passes every test — which is why pylu and pydgq ran for months without the step
+while wlsqm needed it from the start (verified 2026-08-14: all three built with
+`C:\Strawberry\c\bin` gcc 15.2.0; only wlsqm compiles OpenMP). The diagnostic is
+`delvewheel`'s line in the repair phase — cibuildwheel runs it by default on Windows:
+`no external dependencies are needed` means the current sources happen not to need MinGW's
+runtime, **not** that the toolchain is right. Add the step anyway. Otherwise the day someone
+compiles a `prange`, Windows breaks with a bare "DLL load failed" naming neither the missing
+library nor the commit that caused it — and the workflow, untouched for months, is nobody's
+first suspect.
+
 MSVC-built `.pyd` files link only against the universal CRT
 (`api-ms-win-crt-*.dll`, always present on Windows 10+) and `vcomp140.dll`
 (MSVC's OpenMP runtime, shipped with every Python-for-Windows install),
