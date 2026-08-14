@@ -85,6 +85,25 @@ their modernization — and is now recorded in the `ci-setup` skill so nobody "f
 
 Discovered during the `~/.claude` cloudification (2026-07-14).
 
+## Python 3.15 support pass across the fleet
+
+CPython 3.15 reached rc1 by 2026-08, and cibuildwheel 4.2.0 now builds `cp315-*` wheels by
+default. The three Cython projects are insulated for the moment — pylu, pydgq and
+python-wlsqm all pin `build = "cp311-* cp312-* cp313-* cp314-*"`, so nothing changed under
+them when the bump landed — but that pin is also what has to be edited to opt in, in each
+of the three plus the CI matrices everywhere else.
+
+Not a one-line edit, which is why it is here rather than done: adding a version means
+testing on it, and `unpythonic` and `mcpyrate` track CPython's AST and bytecode closely
+enough that a new minor is real work rather than a matrix entry. Expect those two to set
+the pace for the rest.
+
+Do it as one pass, and fold in "Coverage jobs are running stale Python versions" above —
+that item is the same edit in the same files, and doing them separately means touching
+every `ci.yml` and `coverage.yml` twice.
+
+Raised while merging the cibuildwheel 4.2.0 Dependabot PRs (2026-08-14).
+
 ## Evaluate pyan's extra ruff rules for the rest of the fleet
 
 pyan selects `E, W, F, I, B, C4, UP, ARG, SIM`; raven, unpythonic, mcpyrate and chandra
