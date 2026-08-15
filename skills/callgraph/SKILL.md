@@ -10,9 +10,13 @@ defines / calls / uses what), or with `--module-level` a module dependency
 graph. Useful for understanding code structure, visual/structural testing, and
 exploration.
 
-## Choose the output format by the question, not by the reader
+## Choose the output format by the question and the reader
 
-Both forms are readable by both audiences. What differs is the kind of question each one answers.
+Both forms are readable by both audiences, so neither is ever ruled out. Two things vary:
+the kind of question each form answers, and who is going to look at the result. A human
+gets more out of a picture, especially one they can zoom and search; the agent gets more
+out of `--text`, which is greppable and quotable — except when the question is about
+*shape*, where an image wins for either reader.
 
 - **You have a specific question** — does F call G? what calls F? how does F reach G?
   — use `--text`. It's an adjacency list: precise, greppable, and it answers the
@@ -59,9 +63,20 @@ Both forms are readable by both audiences. What differs is the kind of question 
   The `raven-xdot-viewer` shell function activates Raven's venv on its own, so there's
   nothing to set up first. **Must background** (`&`).
 
+  **Scope the graph before handing it over.** The viewer is a DPG app in pure Python, so
+  it does not tolerate very large graphs — give it a full analysis of Raven at once and
+  the GUI grinds to a halt. Cut the graph down first with `--depth`, `-x`, or
+  `--namespace`, and hand over a region rather than a fleet.
+
   You cannot drive the viewer yourself — it's a GUI app. Rasterize a PNG for your own
   eyes (graphviz does both layout *and* rasterization there); launch the viewer for
   theirs.
+
+The two are usually one workflow rather than a choice. A coarse pass — `--module-level`
+or `--depth 0`, in either format — is often what tells you which question is worth
+asking; then drill into that region with `--function`, `--direction up`, or
+`--paths-from`/`--paths-to`. Reaching for full detail on the first pass gives you a graph
+too big to read and no question to read it for.
 
 Report the **pyan3** command you ran, and any warnings it emitted — for either output
 format. (The graph is only as good as what pyan could resolve statically; the warnings
@@ -106,5 +121,3 @@ So an import that's never used shows up in `--module-level` and not in `--depth 
 
 - `--root ROOT` — package root. Inferred by default, but inference **cannot** detect a PEP 420 namespace package (no `__init__.py` at the package directory), and will silently produce wrong module names. If the top-level package is a namespace package, pass `--root` explicitly.
 - `--namespace-constructor FQN` — register a constructor whose kwargs become attribute bindings, so `config.attr` resolves through it. Built in: `unpythonic.env.env`, `types.SimpleNamespace`, `argparse.Namespace`. Add your own (repeatable, or comma-separated) when a project passes config objects around and the graph comes out missing those edges.
-
-Pick `--text` vs `--dot` by who's going to read the result.
