@@ -1,40 +1,5 @@
 # Deferred TODOs
 
-## An `unpythonic` skill, scoped to what the fleet actually uses
-
-`unpythonic` has a large surface — it comes with the kitchen sink — so skillifying it whole is a large
-review job that would compete with feature work. **Cut the scope instead** (Juha, 2026-08-12): start with
-the parts already in active use across Raven, plus their adjacents, on the grounds that a reader who is
-about to use one of those is the reader the skill exists for.
-
-The starting set, from Raven's `CLAUDE.md`: `env`, `Timer`, `@call`, `box` / `unbox`, `sym`, `dyn`. Note the
-same file rules the macro layer out (`unpythonic.syntax`, and anything that primarily serves as a macro
-backend, e.g. `let`), so the skill's scope and Raven's usage policy already agree on where the line is —
-worth saying in the skill, since the obvious question on reading the library's docs is "why not the macros".
-
-**The trigger, and it is what the skill would have prevented.** A Raven session lost real time to
-`unpythonic.flatten` returning a **lazy generator**: four GUI button gates asked one flattened list whether
-a node was a greeting, the first question consumed the generator, and the remaining three were answered from
-the leftovers — i.e. "no". Compounded by `memoize` caching the *generator object* rather than its contents,
-so the emptiness persisted across calls. The rule that would have caught it at write time is one line: **the
-iterable utilities are lazy wherever they can be** (Juha). Nothing in the call site looks wrong, and the
-failure is silent and plausible — a button that is merely disabled.
-
-**The shape: a short per-module tour, plus the contracts that are invisible at a call site** (Juha,
-2026-08-12). Walk the modules and say what each one holds at overview depth — "`unpythonic.it` is more
-batteries for `itertools`, and they are lazy where possible" — rather than enumerating signatures. An
-overview, not around-the-world-in-eighty-days. The value is that a reader knows a thing *exists* and knows
-the one property about it that would otherwise bite; looking up the signature is what `help()` is for.
-
-The invisible contracts are the part that has to be right, since they are what the call site cannot show:
-laziness in the iterable utilities, what `memoize` keys on and stores, and whatever else has that shape.
-The scoped module list above is where to start; the tour can widen from there once it is earning its keep.
-
-**Judge it on that before expanding.** Whether it is worth doing now depends on how large a power multiplier
-it is, and the honest test is whether a second instance of the same class of bug shows up.
-
-Raised 2026-08-12, after the greeting-gate bug in Raven.
-
 ## Add `~/.spacemacs.d` to the fleet, after the personal machine's reinstall
 
 `Technologicat/spacemacs.d` is checked out at `~/.spacemacs.d` on both machines and
@@ -125,6 +90,18 @@ working code shouldn't be rewritten to satisfy one: **does it maintain the house
 fight it?** `I` in particular could go either way — it might codify the existing import
 discipline, or it might flatten deliberate thematic grouping. Look at what the autofix
 actually does to a few real files before deciding.
+
+**A concrete candidate outside that set, 2026-08-16.** `raven/common/nlptools.py` declared `__all__`
+as a **set** literal — almost certainly a slip, `{` and `[` being adjacent on a Nordic keyboard with
+Emacs auto-closing the delimiter. It survived because Raven selects `E, W, F, SIM`, and the rule that
+catches it, `PLE0605` ("Invalid format for `__all__`, must be `tuple` or `list`"), lives in `PL`.
+Verified with `ruff check --select ALL` on a synthetic file. A set still works for `import *`, so the
+failure is silent: it loses the house convention that `__all__` order mirrors the file, and nothing
+complains.
+
+`PLE` is the pylint *error* subset — small, and about things that are wrong rather than things that
+are unfashionable, so it fits the house line on linters better than the broader `PL`. Worth pricing
+across the fleet as part of this evaluation.
 
 Discovered during the `~/.claude` cloudification (2026-07-14).
 
@@ -288,3 +265,48 @@ rationale that was fluent and wrong — are claims that drifted from the world, 
 linter checks a claim against reality. Machine checks buy the easy half.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
+
+## CI for `~/.claude` itself
+
+There is enough software in here now that "it is only config" has stopped being true:
+`scripts/fleet-pull.sh`, `scripts/api-inventory` (Python), `scripts/build-webchat.py`,
+`scripts/em`, `scripts/run-on-internal-gpu.sh`. Raised by Juha, 2026-08-16.
+
+**The precedent already exists and is not wired to anything.** `scripts/fleet-pull-selftest.sh`
+builds a fixture fleet of throwaway repos in `/tmp`, asserts against it, prints one line per
+assertion and exits nonzero on failure. Nothing runs it — `grep -rn selftest` over the scripts and
+the Markdown finds no caller — so it only ever runs when someone remembers it exists. That is the
+gap CI closes, and it argues for wiring up what is here before adding a second testing style.
+
+**The decision to make first: one testing idiom or two.** `api-inventory` is Python and its static
+`__all__` resolver has real branches worth pinning (name alias, concatenation, splat, module-level
+`extend`/`append`/`+=`, and the unresolvable case that must report rather than under-report). The
+natural invariant is that static and `--import` modes agree on a package where both work — with
+`unpythonic` as the fixture, since it exercises the alias case. pytest fits that; a bash
+assertion script matches what is already here. Picking pytest means this repo grows a
+`pyproject.toml` and a dev-dependency group, which is a bigger change than it first looks.
+
+What a workflow would run once that is settled: `ruff check` over the Python scripts, `shellcheck`
+over the bash ones, and the selftests. Note `fleet-pull-selftest.sh` builds its fixtures from
+scratch rather than cloning from the network, so it should run in CI unchanged — worth confirming
+rather than assuming.
+
+## A skill for the macro layer (`mcpyrate`, `unpythonic.syntax`)
+
+The `unpythonic` skill deliberately stops at the runtime layer, matching Raven's usage policy
+(`raven/CLAUDE.md:409`). A separate skill could cover the macro layer for when it is next needed.
+Raised by Juha, 2026-08-16.
+
+**Filed rather than built, because the demand is not there yet.** The only use site so far is
+`unpythonic`'s own unit tests, and those already serve as the documentation — especially for edge
+cases. The expander itself is documented in `mcpyrate`'s `doc/`, its docstrings, and its unit tests,
+the last being where the nitty-gritty lives. A skill would be summarizing material that is already
+well covered, for a reader who does not currently exist.
+
+The trigger to build it: a fleet project starting to actually use macros, or a session where the
+existing docs turn out to be the wrong shape for the question being asked.
+
+The adjacent `unpythonic-macro-testing` skill is the contrast worth keeping in view. It covers
+*testing* macro-enabled code, and it exists because that job comes up for real — it is needed
+whenever `unpythonic` itself is extended. A macro-*writing* skill has no equivalent standing
+demand yet, which is the whole reason this item is filed rather than done.

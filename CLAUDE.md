@@ -216,6 +216,41 @@ The promotion bar: *would a future regression in this area be caught by this tes
 
 The flip side: *bisect scripts* (`loghunt1.py`, `loghunt2.py`, ...) and "find the culprit" tooling discover an answer; they don't assert one. Those stay in `/tmp` (or get deleted) once the answer is in hand — there's no invariant to preserve. The distinction is *test* (assert this holds) vs *probe* (find out what's true).
 
+## The codebase is bigger than what you have read
+
+Both halves of this are about *distance*. Something in the module you are already reading gets found for
+free, as a side effect of reading it. The chance of finding it falls off the further away it lives —
+another subpackage, the shared utility layer, another app in the same constellation — and that is exactly
+where general-purpose things get put. Raven is ~110k lines, ~60k of them active code; nobody, human or
+agent, holds that in view at once.
+
+**Orienting: start with the shape, then grep.** Arriving cold at an unfamiliar area — a fresh session, a
+compacted one, a subsystem you have not touched — a coarse module-level graph is the cheaper first move.
+Use the `callgraph` skill: `pyan3 --module-level <paths> --text`, or `--depth 0` for the call graph rather
+than the imports. It answers "what is here and what talks to what", which is what tells you the question
+worth grepping for. Note this will not fire on its own — a session opens with "let's continue with the
+FileDialog work", never with "explore the codebase", so the trigger has to live here.
+
+**Before writing a helper, check whether one exists.** The visible trigger is *the function I am about to
+write is general-purpose* — string munging, number or size formatting, path handling, sorting/filtering/
+dedup, unit conversion, retry/backoff. Check in order of distance: the current package, then the project's
+shared layer (`raven.common`), then `unpythonic`, then the stdlib.
+
+Grep is the wrong instrument for this and will keep failing at it, because it needs you to guess the
+*name* — which is the one thing you do not have. Read the list of names instead:
+
+```
+api-inventory raven/raven/common/          # every __all__ entry, with signature and summary
+api-inventory --names-only raven/raven/    # whole project, names only
+api-inventory --import unpythonic          # import and introspect, for a computed __all__
+```
+
+**The failure this prevents:** re-implementing a smart-casing search fragmentizer for `FileDialog` when
+`raven.common.utils.search_string_to_fragments` already existed — noticed only because Juha remarked the
+new one might belong in `raven.common`, and it turned out one was already there. Same class of miss
+recurs with `unpythonic.si_prefix` for SI/IEC number formatting. Neither was findable by grepping the
+words we were thinking in.
+
 ## Durable rules go in version control, not only in memory
 
 I work from two development machines. File-based memory (`~/.claude/projects/.../memory/`) is **machine-local** — it does not sync between them. So saving a durable rule *only* as a memory means it silently fails to apply the moment I open the project on the other machine. The instinct to reach for memory is strong (especially on Opus 4.7); the discipline is to route deliberately.
@@ -330,6 +365,7 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `changelog` — house style for `CHANGELOG.md` entries.
 - `cc-log-extract` — distilling Claude Code session logs into readable Markdown.
 - `monthly-report` — the cross-project monthly activity report, built from those logs.
+- `unpythonic` — what the library holds, and the contracts that are invisible at a call site.
 - `unpythonic-macro-testing` — testing macro-enabled Python with `unpythonic.test.fixtures`.
 
 ## Is it hung, or is it working?
