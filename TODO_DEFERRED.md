@@ -67,6 +67,15 @@ Do it as one pass, and fold in "Coverage jobs are running stale Python versions"
 that item is the same edit in the same files, and doing them separately means touching
 every `ci.yml` and `coverage.yml` twice.
 
+**The cap is already declared, and it now binds something, 2026-08-16.** `unpythonic` 2.3.0 on PyPI
+declares `requires-python = "<3.15,>=3.10"`, so it does not merely lag 3.15 — it actively excludes it.
+Anything depending on it inherits that ceiling. This repo's own `pyproject.toml` had to be capped to
+`>=3.10,<3.15` for the resolver to pick 2.3.0 at all: an unbounded `>=3.10` makes the resolver seek a
+version valid for *every* future Python, and it silently fell back to unpythonic 0.14.2.1, which declares
+no `requires-python` and does not run on 3.14. So this pass has to raise the cap in `unpythonic` first,
+then in everything that declares one — including here. Worth checking which other fleet projects declare
+an unbounded floor, since that is the shape that fails quietly rather than loudly.
+
 Raised while merging the cibuildwheel 4.2.0 Dependabot PRs (2026-08-14).
 
 ## Evaluate pyan's extra ruff rules for the rest of the fleet
@@ -266,45 +275,36 @@ linter checks a claim against reality. Machine checks buy the easy half.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
 
-## CI for `~/.claude` itself
-
-There is enough software in here now that "it is only config" has stopped being true:
-`scripts/fleet-pull.sh`, `scripts/api-inventory` (Python), `scripts/build-webchat.py`,
-`scripts/em`, `scripts/run-on-internal-gpu.sh`. Raised by Juha, 2026-08-16.
-
-**The precedent already exists and is not wired to anything.** `scripts/fleet-pull-selftest.sh`
-builds a fixture fleet of throwaway repos in `/tmp`, asserts against it, prints one line per
-assertion and exits nonzero on failure. Nothing runs it — `grep -rn selftest` over the scripts and
-the Markdown finds no caller — so it only ever runs when someone remembers it exists. That is the
-gap CI closes, and it argues for wiring up what is here before adding a second testing style.
-
-**The decision to make first: one testing idiom or two.** `api-inventory` is Python and its static
-`__all__` resolver has real branches worth pinning (name alias, concatenation, splat, module-level
-`extend`/`append`/`+=`, and the unresolvable case that must report rather than under-report). The
-natural invariant is that static and `--import` modes agree on a package where both work — with
-`unpythonic` as the fixture, since it exercises the alias case. pytest fits that; a bash
-assertion script matches what is already here. Picking pytest means this repo grows a
-`pyproject.toml` and a dev-dependency group, which is a bigger change than it first looks.
-
-What a workflow would run once that is settled: `ruff check` over the Python scripts, `shellcheck`
-over the bash ones, and the selftests. Note `fleet-pull-selftest.sh` builds its fixtures from
-scratch rather than cloning from the network, so it should run in CI unchanged — worth confirming
-rather than assuming.
-
 ## A skill for the macro layer (`mcpyrate`, `unpythonic.syntax`)
 
 The `unpythonic` skill deliberately stops at the runtime layer, matching Raven's usage policy
 (`raven/CLAUDE.md:409`). A separate skill could cover the macro layer for when it is next needed.
 Raised by Juha, 2026-08-16.
 
-**Filed rather than built, because the demand is not there yet.** The only use site so far is
-`unpythonic`'s own unit tests, and those already serve as the documentation — especially for edge
-cases. The expander itself is documented in `mcpyrate`'s `doc/`, its docstrings, and its unit tests,
-the last being where the nitty-gritty lives. A skill would be summarizing material that is already
-well covered, for a reader who does not currently exist.
+**The reader exists already, which is the argument for building it** (Juha, 2026-08-16). The obvious
+framing — "needed once a project adopts macros" — is wrong: knowing the macro layer is required by
+anything that *touches* macro-using code, adoption or not. Two of tonight's three hazards were hit by
+tooling that had no interest in macros whatsoever:
 
-The trigger to build it: a fleet project starting to actually use macros, or a session where the
-existing docs turn out to be the wrong shape for the question being asked.
+- Importing a macro-using module under regular Python raises, *and* leaves an unexpanded `.pyc` that
+  makes the next `macropython` run fail identically. Walked into by `api-inventory --import` over
+  `unpythonic`; repaired with `macropython -C`. Now written up in `~/.claude/CLAUDE.md` under "Never
+  import macro-using code under regular Python", and guarded in the script.
+- `from unpythonic import x` versus `import unpythonic.somemod` is a macro-layer constraint, not a
+  style preference — the dotted form is invisible to the expander, so it breaks later if the caller
+  is ever macro-enabled. Recorded in the `unpythonic` skill.
+
+The written-up pieces cover what has actually bitten. What a skill would add is the part nobody has
+needed yet and therefore nobody has written down: how to *read* an expansion, what the quasiquote
+operators mean, and where the expander's own error messages point.
+
+Note where the documentation already is, since a skill should point rather than restate: `mcpyrate`'s
+`doc/` (including `troubleshooting.md`, which has the authoritative account of the ImportError above),
+its docstrings, and its unit tests — the tests being where the nitty-gritty edge cases live. Likewise
+`unpythonic`'s own unit tests document its macro layer, which is currently that layer's only use site.
+
+The trigger to build it: a fleet project starting to actually use macros, or a third hazard of the
+tooling kind — two is a coincidence, three is a pattern that wants one page rather than three.
 
 The adjacent `unpythonic-macro-testing` skill is the contrast worth keeping in view. It covers
 *testing* macro-enabled code, and it exists because that job comes up for real — it is needed
