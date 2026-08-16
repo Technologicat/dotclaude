@@ -1,6 +1,6 @@
 ---
 name: unpythonic
-description: What is in the `unpythonic` library and which of its contracts are invisible at a call site. Use before writing a general-purpose helper in a fleet project — SI/IEC number formatting, human-readable durations, ETA estimation, iterable utilities (windowing, chunking, uniqifying, flattening), immutable or functionally-updated containers, boxes, dynamic variables, symbols, memoization — since `unpythonic` very likely already has one. Also use when debugging a `memoize`, `curry`, or lazy-iterable surprise, or when deciding whether a construct belongs to the runtime layer or the (fleet-excluded) macro layer.
+description: What is in the `unpythonic` library and which of its contracts are invisible at a call site. Use before writing a general-purpose helper in a fleet project — SI/IEC number formatting, human-readable durations, ETA estimation, iterable utilities (windowing, chunking, uniqifying, flattening), immutable or functionally-updated containers, boxes, dynamic variables, symbols, memoization — since `unpythonic` very likely already has one. Also use when debugging a `memoize`, `curry`, or lazy-iterable surprise, or when deciding whether a construct belongs to the runtime layer or the macro layer.
 ---
 
 # unpythonic: what is in it, and what bites
@@ -14,9 +14,15 @@ otherwise bite. Signatures are what `help()` is for; run `api-inventory` (below)
 which exist mainly as a code-generation target for the macros. They *are* usable by hand (the
 machinery runs on `env`, so a binding is just `env.x`), but clumsily: the body has to be a callable
 taking an `env` parameter, which is exactly the noise the macro surface syntax removes.
-`unpythonic.dialects` is out for the same reason. That is the fleet policy, and it is also where this
-tour stops. The obvious question on reading the library's own docs is "why not the macros"; that is
-the answer.
+`unpythonic.dialects` is out for the same reason. That is where this tour stops. The obvious question
+on reading the library's own docs is "why not the macros"; that is the answer.
+
+**It is Raven's rule, not fleet policy, and not a verdict on the macros.** It reflects an open
+judgement about which abstractions are worth deploying in production application code — a call Juha
+has not settled, rather than a conclusion he has reached. Read it as scoped to the project whose
+`CLAUDE.md` states it, and check each project's own rules instead of assuming the same answer.
+Treating it as settled policy is what stops anyone from revisiting it, which is the opposite of what
+an open question deserves.
 
 ## Contracts that are invisible at the call site
 

@@ -59,9 +59,15 @@ them when the bump landed — but that pin is also what has to be edited to opt 
 of the three plus the CI matrices everywhere else.
 
 Not a one-line edit, which is why it is here rather than done: adding a version means
-testing on it, and `unpythonic` and `mcpyrate` track CPython's AST and bytecode closely
-enough that a new minor is real work rather than a matrix entry. Expect those two to set
-the pace for the rest.
+testing on it, and the three AST users — `unpythonic`, `mcpyrate` and `pyan` — track
+CPython's AST and bytecode closely enough that a new minor is real work rather than a
+matrix entry. Expect those three to set the pace for the rest.
+
+**Surveyed 2026-08-16; a brief now exists in each of the three repos** (`briefs/python-3.15-support.md`),
+carrying the verified AST delta and per-project work items. Headline: `pyan` is the one that
+actually crashes on 3.15 (`analyze_comprehension` visits `DictComp.value`, now `None` for the
+`{**d for ...}` form) and it declares no upper `requires-python` bound, so it installs on the
+version that breaks it. The macro layer has no known crash and is cap-protected.
 
 Do it as one pass, and fold in "Coverage jobs are running stale Python versions" above —
 that item is the same edit in the same files, and doing them separately means touching

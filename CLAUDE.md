@@ -303,6 +303,18 @@ Active projects (✓ = has a CLAUDE.md config):
 **Harness (not code):**
 - **dotclaude** — the Claude Code configuration itself: this `CLAUDE.md`, the skills, the scripts: `~/.claude`. The one project that lives outside the `koodit` directory.
 
+## The AST users: mcpyrate, unpythonic, pyan
+
+Three projects consume the Python AST directly, and they are the ones a new CPython minor version can break. The rest of the fleet only *runs* on Python; these three take its syntax tree as an input format, so a changed node field is a changed API for them.
+
+- **mcpyrate** — the macro expander. Constructs, walks and unparses AST for arbitrary user code, so it must handle every node type the language has.
+- **unpythonic** — `unpythonic.syntax`, the macro library built on mcpyrate. Its walkers inherit mcpyrate's, but individual macros dereference node fields directly.
+- **pyan** — the static call graph generator. It is the easy one to forget, because it is filed under tooling and has no macro layer, but its analyzer visits nearly every node type in the grammar. It reads AST just as directly as the other two.
+
+**So a Python version bump is a code change for these three, not a matrix entry.** When a new minor is released, diff `Parser/Python.asdl` between the two versions — that is the authoritative delta, and it is short. `Grammar/python.gram` then says which node a new surface syntax actually builds, and `Lib/_ast_unparse.py` shows CPython's own handling of it. The What's New page scatters this across four sections and describes none of it precisely; do not rely on it alone.
+
+The corresponding follow-on is that anything reading AST fields needs an audit per bump, and the failure is not always loud: a field that becomes optional turns a crash into a wrong answer in code that merely *reads* it, and into a crash only where it is dereferenced.
+
 # Development conventions
 
 - **Setting up a new project or modernizing a build system:** use the `project-setup` skill (pure-Python PDM flow, Cython/meson-python editable-install setup, PEP 639 license metadata, canonical lint/style config). For CI and coverage specifics, the `ci-setup` skill.
