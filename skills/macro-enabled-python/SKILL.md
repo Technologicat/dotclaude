@@ -181,8 +181,9 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
     `unpythonic/syntax/`. So inside a macro block they are ordinary function calls and receive none
     of the transformations `do[]` gets. Being a function, `begin` also has its arguments evaluated
     before it runs, which is why `lazy_begin` / `lazy_begin0` exist taking thunks. The names are
-    close enough to reach for by mistake, the failure is silent, and `doc/macros.md` does not warn
-    about it — so this one is on the reader.
+    close enough to reach for by mistake and the failure is silent, so it is worth knowing before
+    you need it — `begin`, `begin0`, `lazy_begin` and `lazy_begin0` each carry a `CAUTION` in their
+    docstring saying exactly this.
   - `let_syntax` and `abbrev` — syntactic local bindings, in the tradition of Scheme's `let-syntax`.
 
   The `d` and `b` prefixes are worth spelling out, because the letters do not say much on their own:
