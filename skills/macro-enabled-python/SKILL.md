@@ -174,6 +174,15 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
     Scheme's `begin0`. What makes `do` more than `begin` is local variables: `local[name := value]`
     declares one and `delete[name]` removes it, each taking effect from the *next* item onward.
     Deletion is deliberately a `do` feature only; the `let` constructs do not support it.
+
+    **In macro-using code, use `do`/`do0` and never `begin`/`begin0`.** `unpythonic` publishes
+    `begin` and `begin0` too, as pure-Python functions in `unpythonic.seq` — and **the macro layer
+    does not know about them**: there is not one reference to either anywhere in
+    `unpythonic/syntax/`. So inside a macro block they are ordinary function calls and receive none
+    of the transformations `do[]` gets. Being a function, `begin` also has its arguments evaluated
+    before it runs, which is why `lazy_begin` / `lazy_begin0` exist taking thunks. The names are
+    close enough to reach for by mistake, the failure is silent, and `doc/macros.md` does not warn
+    about it — so this one is on the reader.
   - `let_syntax` and `abbrev` — syntactic local bindings, in the tradition of Scheme's `let-syntax`.
 
   The `d` and `b` prefixes are worth spelling out, because the letters do not say much on their own:

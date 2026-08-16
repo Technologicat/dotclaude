@@ -110,7 +110,8 @@ on it (`@looped`, `@looped_over`). `ec` is escape continuations (`call_ec`, `cat
 `restarts`, `invoke` — resumable error handling, where a handler can tell the signaling code how to
 continue instead of unwinding. `excutil` makes exception machinery expression-friendly (`raisef`,
 `tryf`, `reraise`) and includes `async_raise`. `seq` is sequencing and piping (`begin`, `do`,
-`pipe`/`piped`). `amb` is nondeterministic evaluation (`forall`, `choice`, `insist`/`deny`), and is **not for
+`pipe`/`piped`) — note that `begin`/`begin0` are invisible to the macro layer, so code that is ever
+macro-enabled must use the `do[]`/`do0[]` macros instead; see the `macro-enabled-python` skill. `amb` is nondeterministic evaluation (`forall`, `choice`, `insist`/`deny`), and is **not for
 production code** — the library's own `doc/design-notes.md` calls `unpythonic.amb.forall` "overly
 complicated, to avoid macros" and names the macro version, `unpythonic.syntax.forall`, as the clean
 design of the same feature. Reach for the pure-Python one only where the macro layer is off limits,
