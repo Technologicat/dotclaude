@@ -150,7 +150,7 @@ The recurring reinventions, with the fleet-relevant contract stated:
 | "3h 25m elapsed" | `format_human_time`, `seconds_to_human` | |
 | a progress ETA | `ETAEstimator(total, keep_last=None)` | |
 | a mutable cell captured by a closure | `box` / `unbox`, `ThreadLocalBox` | |
-| a "don't mutate this" dict constant | `frozendict` | enforces it, unlike the convention. Predates the native `frozendict` arriving in 3.15, and runs on older Pythons |
+| a "don't mutate this" dict constant | `frozendict` | enforces it, unlike the convention. Predates the builtin `frozendict` that [PEP 814](https://peps.python.org/pep-0814/) adds to `builtins` in 3.15, and runs on older Pythons. The two agree in shape where it matters — neither subclasses `dict`, both inherit straight from `object`, and both are hashable when their contents are |
 | a copy-then-modify of a tuple or dict | `fupdate`, or `fup(seq)[i] << v` | |
 | `dict.fromkeys` dedup, sliding windows, batching | `uniqify`, `window`, `chunked` | lazy — see the contracts above |
 | a float comparison with a hand-rolled epsilon | `almosteq`, `ulp` | |
