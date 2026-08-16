@@ -64,10 +64,21 @@ CPython's AST and bytecode closely enough that a new minor is real work rather t
 matrix entry. Expect those three to set the pace for the rest.
 
 **Surveyed 2026-08-16; a brief now exists in each of the three repos** (`briefs/python-3.15-support.md`),
-carrying the verified AST delta and per-project work items. Headline: `pyan` is the one that
-actually crashes on 3.15 (`analyze_comprehension` visits `DictComp.value`, now `None` for the
-`{**d for ...}` form) and it declares no upper `requires-python` bound, so it installs on the
-version that breaks it. The macro layer has no known crash and is cap-protected.
+carrying the verified AST delta and per-project work items. Two headline findings, both measured on
+3.15.0rc1 rather than predicted:
+
+- **`mcpyrate` does not import on 3.15 at all.** Its `source_to_xcode` override has the wrong
+  signature for the new `importlib` `source_to_code` protocol, which gained a positional `fullname`.
+  This blocks everything else in the macro layer, and it is not an AST change — the ASDL diff cannot
+  see it. Importing the package under the new interpreter is the cheap check that finds this class of
+  break, and it should come first, before any grammar analysis.
+- **`pyan` crashes on `{**d for ...}`**, because `analyze_comprehension` visits `DictComp.value`,
+  which is now `None` for the unpacking form.
+
+Cap status, related: of the three AST users only `unpythonic` declares an upper `requires-python`
+bound. `mcpyrate` and `pyan` are both bare `>=3.10`, so both advertise support for the version that
+breaks them. Both need the cap; land it with each project's fix rather than ahead of it, since a cap
+only reaches users through a release and blocks creating the 3.15 venv the work needs.
 
 Do it as one pass, and fold in "Coverage jobs are running stale Python versions" above —
 that item is the same edit in the same files, and doing them separately means touching

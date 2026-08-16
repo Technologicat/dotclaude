@@ -313,6 +313,8 @@ Three projects consume the Python AST directly, and they are the ones a new CPyt
 
 **So a Python version bump is a code change for these three, not a matrix entry.** When a new minor is released, diff `Parser/Python.asdl` between the two versions — that is the authoritative delta, and it is short. `Grammar/python.gram` then says which node a new surface syntax actually builds, and `Lib/_ast_unparse.py` shows CPython's own handling of it. The What's New page scatters this across four sections and describes none of it precisely; do not rely on it alone.
 
+**Before any of that, though, just import the package under the new interpreter.** It costs one command and it catches the breakages the grammar cannot describe — the import machinery, the bytecode format, a stdlib protocol. On 3.15 that check fails instantly for `mcpyrate`: its `source_to_code` override does not match importlib's new signature, so the expander does not load at all. A thorough ASDL survey will not mention it, and a green test suite on the *previous* version says nothing about it.
+
 The corresponding follow-on is that anything reading AST fields needs an audit per bump, and the failure is not always loud: a field that becomes optional turns a crash into a wrong answer in code that merely *reads* it, and into a crash only where it is dereferenced.
 
 # Development conventions
