@@ -172,8 +172,15 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
     `call_cc`, `get_cc`, `iscontinuation`. **`multishot` builds on it**: a function becomes a
     multi-shot (rewindable) generator, meaningful only inside a `with continuations:` block, its
     yield spelled `myield` — which expands to `call_cc[get_cc()]`.
-  - `monadic_do`, and `forall` for nondeterministic evaluation — the clean macro-based design, which
-    the library's own `doc/design-notes.md` contrasts against the pure-Python `unpythonic.amb`.
+  - `monadic_do` — Haskell's
+    [do-notation](https://en.wikipedia.org/wiki/Monad_(functional_programming)#do-notation), over any
+    monad in `unpythonic.monads` or anything implementing `__rshift__` as monadic bind. Written
+    `with monadic_do[M] as result:` over a single list literal, one item per do-block line:
+    `name := mexpr` binds, a bare `mexpr` is sequencing-only (Haskell's `do { mx; ... }`, which is
+    how `guard`-style filter lines are written), and the last item is the final monadic expression.
+  - `forall` — the same idea specialized to the List monad, which is what makes it nondeterministic
+    evaluation. Its docstring says so outright, and `doc/design-notes.md` contrasts it against the
+    pure-Python `unpythonic.amb` as the clean design of that feature.
   - `prefix` — prefix call syntax, with its own `q`/`u`/`kw` markers (unrelated to the quasiquote
     operators of the same letters). A component of the Listhell dialect; not intended for production
     code.
