@@ -159,8 +159,22 @@ multi-phase compilation, per phase: the run time of phase `k+1` is the expansion
 
 At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
 
-- **Bindings and sequencing** — `let`, `letseq`, `letrec`, `where`, `local`, `delete`, `do`, `do0`.
-  Also `let_syntax` and `abbrev`, syntactic local bindings in the tradition of Scheme's `let-syntax`.
+- **Bindings and sequencing.**
+  - `let` — the basic form. `letseq` — sequential, so later bindings see earlier ones and shadow
+    them on a repeated name; Scheme's `let*`, and it expands to nested `let`s. `letrec` — the
+    bindings can see each other, so this is the one for locally defined mutually recursive
+    functions; Scheme's `letrec`. Names within one `letrec` must be unique, and definitions are
+    processed left to right: a definition may refer to any *earlier* one, and a callable value may
+    refer to any of them, later ones included — which is what makes the mutual recursion work.
+  - `where` — alternative syntax putting the bindings at the end, Haskell-style:
+    `let[body, where[k0 := v0, ...]]`. Available for every expression-form let construct (`let`,
+    `letseq`, `letrec`, `let_syntax`, `abbrev`). **Macro layer only** — the pure-Python `let` has no
+    counterpart.
+  - `do` — sequencing, Scheme's `begin`; `do0` returns the *first* value instead of the last,
+    Scheme's `begin0`. What makes `do` more than `begin` is local variables: `local[name := value]`
+    declares one and `delete[name]` removes it, each taking effect from the *next* item onward.
+    Deletion is deliberately a `do` feature only; the `let` constructs do not support it.
+  - `let_syntax` and `abbrev` — syntactic local bindings, in the tradition of Scheme's `let-syntax`.
 
   The `d` and `b` prefixes are worth spelling out, because the letters do not say much on their own:
 
