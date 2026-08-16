@@ -18,7 +18,6 @@
       "Bash(du:*)",
       "Bash(df:*)",
       "Bash(which:*)",
-
       "Bash(basename:*)",
       "Bash(dirname:*)",
       "Bash(realpath:*)",
@@ -33,7 +32,6 @@
       "Bash(cmp:*)",
       "Bash(md5sum:*)",
       "Bash(sha256sum:*)",
-
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git status:*)",
@@ -60,5 +58,41 @@
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: No GitHub org — every fleet repo is owned by the personal account `Technologicat`. Personal ownership does not mean hobby output: the fleet is work and hobby superposed. The user is a researcher at JAMK University of Applied Sciences, and individually-owned GitHub accounts are standard practice in research groups. Treat all of it as professional work product carrying his name.",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: ALL PUBLIC — verified via gh across all 11 fleet repos (pylu, pydgq, python-wlsqm, pyan, mcpyrate, unpythonic, raven, chandra, arxiv-api-search, substrate-independent, dotclaude); none is a fork. Every push is publishing, in every repo, with no exceptions.",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: No secret manager. Machine-local secrets live in gitignored files, kept out of git entirely; PyPI publishing uses OIDC trusted publishing, so no API tokens exist to leak.",
+      "**Default / protected branches**: the default branch differs by project age — `master` on pylu, pydgq, python-wlsqm, pyan, mcpyrate, unpythonic; `main` on raven, chandra, arxiv-api-search, substrate-independent, dotclaude. A rule that names only `main` protects fewer than half of them. No branch protection and no rulesets exist on any repo (verified via gh), so nothing server-side catches a destructive push.",
+      "**CI/CD deploy targets**: PyPI, via trusted publishing (OIDC). The `publish` job lives INSIDE each project's `.github/workflows/ci.yml` — not in a separate publish workflow, so a filename scan misses it — environment `pypi`. The tag gate is NOT uniform: unpythonic, pyan and pylu use `if: startsWith(github.ref, 'refs/tags/v')`, but mcpyrate and chandra use `refs/tags/` with `tags: [\"*\"]`, so on those two ANY tag push publishes — including a tag pushed for some unrelated purpose. Consequence: pushing a tag can publish to PyPI, and PyPI does not allow re-uploading a version. This is the least reversible action available in the fleet. (raven matches `v*` but has no publish job; it is an application, not a PyPI package.)",
+      "**Network posture**: None configured",
+      "**Source control**: github.com/Technologicat only — the 11 repos listed above, each via its own `origin` remote. Repo names do not always match directory names (`~/Documents/koodit/wlsqm` is `Technologicat/python-wlsqm`); read `git remote -v` rather than guessing.",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured — PyPI is the publication target",
+      "**Sensitive data locations & audiences**: `SECRET-SAUCE.md` (gitignored private CLAUDE.md fragment), `HARDWARE-NOTES.md` (gitignored machine-specific hardware/benchmark data), `.credentials.json` pattern (gitignored). Never commit or push these; share only with the user. In tracked files name machines by role ('the work machine'), never by hostname.",
+      "**Off-limits data sources**: shell history is not to be read, on any machine. On the personal machine it mixes personal non-coding activity with development, and a session cannot assume which machine it is running on. Do not scan it for tooling inventory, command frequency, environment discovery, or any other purpose, including when a setup or configuration task would otherwise find it convenient.",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: the `pypi` GitHub Actions environment; otherwise fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development across an open-source fleet of scientific-Python and language-tooling projects (numerics in Cython, macro expanders and macro libraries, local-first NLP/scientific applications), plus maintaining this Claude Code configuration repo itself. Work and hobby are the same fleet. His duties are research, not teaching — the code exists for research. The thorough documentation is a personal standard, which also keeps the projects ready to teach from should someone ask.",
+      "**Trusted repos**: all 11 Technologicat repos listed above, each worked on from its own directory under `~/Documents/koodit/` (except dotclaude, which is `~/.claude`). Since all are public, only a given repo's own work is safe to push to it, and gitignored private files must never be committed regardless.",
+      "**Org-specific CLIs**: `api-inventory` (code exploration), `macropython` (mcpyrate: run macro-enabled code, clean bytecode caches), `em` (personal Emacs wrapper), `pdm` (package manager), `pyan3` (call graphs), `raven-xdot-viewer` (interactive graph viewing), `xviewer`/`inkscape`/`pix` (sending images to the user)",
+      "Reading and editing under a fleet repo's own tree — source, skills, scripts, CLAUDE.md, briefs, deferred-TODO files — is routine development activity"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push*) that pushes ANY tag in a fleet repo that has a `publish` job — CI publishes to PyPI on tag push and a published version can never be replaced or re-uploaded. Do not narrow this to `v*`: mcpyrate and chandra gate on `refs/tags/` and publish on any tag whatsoever.",
+      "Bash(git push --force*), Bash(git push -f*), and `--force-with-lease` variants against any fleet repo — no branch protection or rulesets exist anywhere, so there is no server-side safety net; note the default branch is `master`, not `main`, on the six older projects",
+      "Bash(twine upload*) — publishing is CI-driven via trusted publishing; a manual upload bypasses the release flow (leftover `uploaddist.sh` scripts in some repos predate that flow)",
+      "Bash(gh pr create*), Bash(gh pr comment*), Bash(gh issue comment*), Bash(gh issue create*), Bash(gh release create*) — outward-facing publication under the user's name on public repos"
+    ]
+  }
 }

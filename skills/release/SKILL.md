@@ -9,6 +9,10 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 **Publishing is CI-driven.** GitHub Actions publishes to PyPI on tag push, via trusted publishing (OIDC — no API tokens). There is no manual `twine upload` step. Tag, push, create the GitHub release.
 
+**The `publish` job lives inside `.github/workflows/ci.yml`, not in a workflow of its own.** It is a job named `publish`, gated on an `if:` over `github.ref` and taking the built dist from `build-dist` as an artifact. Listing workflow *filenames* therefore suggests the fleet has no publishing at all — a wrong conclusion that is easy to reach and alarming when reached. Grep for `publish:` or `id-token` instead.
+
+**How wide the tag gate is varies by project, in step with the tag format.** `v*`-tagging projects gate on `refs/tags/v` (unpythonic, pyan, pylu); bare-`X.Y.Z` projects gate on `refs/tags/` and therefore **publish on any tag at all** (mcpyrate, chandra). On those two, a tag pushed for some unrelated purpose is a release. Raven matches `v*` but has no `publish` job — it is an application, not a PyPI package.
+
 ## Pre-release
 
 **Tag only once CI is green on the exact commit you intend to tag.** Push the release commit, wait for the run to pass, *then* tag and push the tag. Never tag and push in one motion on the strength of a local test run.

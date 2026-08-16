@@ -28,6 +28,7 @@ sudo apt install python3.11 python3.11-venv python3.11-dev
 sudo apt install python3.12 python3.12-venv python3.12-dev
 sudo apt install python3.13 python3.13-venv python3.13-dev
 sudo apt install python3.14 python3.14-venv python3.14-dev
+sudo apt install python3.15 python3.15-venv python3.15-dev
 
 # SSH
 sudo apt install openssh-server

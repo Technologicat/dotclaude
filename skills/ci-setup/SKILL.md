@@ -644,6 +644,31 @@ vcomp140.dll                       (only for OpenMP-using modules)
 
 Remove the diagnostic step once the fix is confirmed.
 
+## Workflow filter globs are a hybrid syntax, and `*` is the glob one
+
+`branches:`, `tags:` and `paths:` filters look like shell globs but are not quite, and the mixture is
+the trap. From GitHub's [filter pattern cheat sheet](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#filter-pattern-cheat-sheet):
+
+- `*` — zero or more of **any** character, except `/`. A glob star: it does not attach to whatever
+  precedes it.
+- `?` — zero or one of the **preceding** character.
+- `+` — one or more of the **preceding** character.
+- `[]` — one alphanumeric character from the listed set or range, ranges limited to `a-z`, `A-Z`,
+  `0-9`. `[1-2]00` matches `100` and `200`.
+- `!` — negates earlier positive patterns, but only as the first character.
+
+So `?` and `+` are Kleene operators on one character while `*` is not, which is why `[0-9]*` reads
+correctly as "a digit, then anything" and `v1.*` matches `v1.0` rather than only `v1.` repeated.
+
+**YAML quoting is load-bearing here.** A pattern starting with `*`, `[` or `!`, or containing `[`/`]`
+inside a flow sequence, must be quoted — unquoted it is a YAML parse error and the workflow does not
+run at all.
+
+Why it matters beyond pedantry: a tag filter is what stands between an ordinary tag and a PyPI
+release, and getting it wrong fails in whichever direction is worse. Too loose and a scratch tag
+publishes; too tight and a real release tag never fires, which is the case the `release` skill warns
+costs either a force-moved public tag or a burnt version number.
+
 ## What varies per project — check, don't assume
 
 Nothing in this fleet is uniform. Every item below differs between projects, and each one
