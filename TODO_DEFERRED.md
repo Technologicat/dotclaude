@@ -290,9 +290,13 @@ tooling that had no interest in macros whatsoever:
   makes the next `macropython` run fail identically. Walked into by `api-inventory --import` over
   `unpythonic`; repaired with `macropython -C`. Now written up in `~/.claude/CLAUDE.md` under "Never
   import macro-using code under regular Python", and guarded in the script.
-- `from unpythonic import x` versus `import unpythonic.somemod` is a macro-layer constraint, not a
-  style preference — the dotted form is invisible to the expander, so it breaks later if the caller
-  is ever macro-enabled. Recorded in the `unpythonic` skill.
+- `from unpythonic import x` versus `import unpythonic.somemod` is a macro-layer concern rather than
+  a style preference — though not for the reason it first appears. Checking the source: the matcher
+  `isx` accepts attribute access by default, so the paths that detect imported callables (`jump`,
+  `trampolined`, `curry`) do see the dotted form. The margin is thinner than "invisible to the
+  expander" — one documented case (`syntax/util.py`'s escape-continuation check says so in a
+  CAUTION) plus the cost of a missed rewrite, which is a crash or silently wrong behaviour rather
+  than a warning. Recorded accurately in the `unpythonic` skill.
 
 The written-up pieces cover what has actually bitten. What a skill would add is the part nobody has
 needed yet and therefore nobody has written down: how to *read* an expansion, what the quasiquote
