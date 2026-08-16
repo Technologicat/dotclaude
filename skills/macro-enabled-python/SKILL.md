@@ -159,9 +159,19 @@ multi-phase compilation, per phase: the run time of phase `k+1` is the expansion
 
 At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
 
-- **Bindings and sequencing** — `let`, `letseq`, `letrec` and their `d`/`b` (decorator, block)
-  variants, `where`, `local`, `delete`, `do`, `do0`. Also `let_syntax` and `abbrev`, syntactic local
-  bindings in the tradition of Scheme's `let-syntax`.
+- **Bindings and sequencing** — `let`, `letseq`, `letrec`, `where`, `local`, `delete`, `do`, `do0`.
+  Also `let_syntax` and `abbrev`, syntactic local bindings in the tradition of Scheme's `let-syntax`.
+
+  The `d` and `b` prefixes are worth spelling out, because the letters do not say much on their own:
+
+  - **`@dlet` is *let over def*** — and it does what a Lisper would expect from that phrase, by
+    analogy with *let over lambda*. The bindings live in a closure around the function, so they
+    persist across calls, which makes it the natural spelling for a function with private state:
+    `@dlet(count=0)` over a `def counter()` that increments `env.count` returns 1, 2, 3, …
+  - **`@blet` is a relative of `@call`**, and gives block-local bindings by using a function as a
+    scope boundary. It chains `@dlet` and `@call`: the block runs immediately, and the name that
+    held the function is overwritten by the return value — exactly `@call`'s trick, with bindings
+    added. So `@blet(x=9001)` over `def result(*, env): return env.x` leaves `result == 9001`.
 - **Lambdas** — `multilambda` (multi-expression bodies), `namedlambda` (auto-naming, so tracebacks
   stop saying `<lambda>`), `fn` and `quicklambda` (underscore notation), `envify`.
 - **Language features, the heavy end.**

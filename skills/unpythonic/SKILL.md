@@ -11,9 +11,12 @@ otherwise bite. Signatures are what `help()` is for; run `api-inventory` (below)
 
 **Scope: the runtime layer only.** Raven's `CLAUDE.md:409` rules out the macro layer
 (`unpythonic.syntax`) and anything that primarily serves as a macro backend — `let` / `lispylet`,
-whose bindings are readable only through the macro surface syntax. `unpythonic.dialects` is out for
-the same reason. That is the fleet policy, and it is also where this tour stops. The obvious question
-on reading the library's own docs is "why not the macros"; that is the answer.
+which exist mainly as a code-generation target for the macros. They *are* usable by hand (the
+machinery runs on `env`, so a binding is just `env.x`), but clumsily: the body has to be a callable
+taking an `env` parameter, which is exactly the noise the macro surface syntax removes.
+`unpythonic.dialects` is out for the same reason. That is the fleet policy, and it is also where this
+tour stops. The obvious question on reading the library's own docs is "why not the macros"; that is
+the answer.
 
 ## Contracts that are invisible at the call site
 
