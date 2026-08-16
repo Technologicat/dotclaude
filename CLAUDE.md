@@ -357,6 +357,18 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
   - **Docs-only pushes don't need the CI watch at all.** Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python and nothing else. No Markdown linting, no link checking, no docs build. A commit that touches only Markdown therefore cannot fail it on its own content, so waiting ~3 min to watch it go green tells you nothing. Push and carry on.
   - **"Docs-only" means exactly that: no `.py`, no `.pyx`/`.pxd`, no workflow YAML, no `pyproject.toml`, no lockfile.** A docstring lives in a `.py` file and *is* linted; a workflow edit changes CI itself. Either of those is a code push — watch it.
 
+**Every fleet repo blocks force-push and branch deletion on its default branch, and the block applies to you.** All 11 carry a `protect-default-branch` ruleset (rules `deletion` and `non_fast_forward`, targeting `~DEFAULT_BRANCH`, so it follows `master` on the six older projects and `main` on the five newer ones) with an **empty bypass-actor list**. Added 2026-08-16.
+
+The empty bypass list is deliberate and is the part worth understanding before it surprises someone. An agent works through Juha's own GitHub account, so any bypass granted to the repo owner is a bypass granted to every agent acting as him — which is precisely the case the ruleset exists to catch. Bypass-by-admin would therefore protect nothing.
+
+So a legitimate history rewrite is a deliberate act, not a flag:
+
+1. Repo → Settings → Rules → Rulesets → `protect-default-branch` → set Enforcement to **Disabled**.
+2. Push.
+3. Set it back to **Active**.
+
+An ordinary push is unaffected; only force-push and branch deletion are blocked. If a push is rejected with `GH013` or a protected-branch/ruleset error, that is this, and the fix is never to reach for `--force` harder — stop and tell Juha, because a rewrite of published history on a public repo is his call. Tags are deliberately *not* covered: blocking tag deletion would turn a red release run into a burnt version number, which is worse than the risk it removes.
+
 ## Skills
 
 Fleet-wide skills in `~/.claude/skills/` carry the reference material that used to sit in this file. They load on demand when the task matches, so their content doesn't dilute attention here:
