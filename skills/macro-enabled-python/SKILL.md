@@ -180,7 +180,9 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
     how `guard`-style filter lines are written), and the last item is the final monadic expression.
   - `forall` — the same idea specialized to the List monad, which is what makes it nondeterministic
     evaluation. Its docstring says so outright, and `doc/design-notes.md` contrasts it against the
-    pure-Python `unpythonic.amb` as the clean design of that feature.
+    pure-Python `unpythonic.amb` as the clean design of that feature. It predates `monadic_do`
+    (added in v2.1.0) and is kept for compatibility, so **reach for `monadic_do` in new code** —
+    `forall` is the one you will meet when reading, not the one to write.
   - `prefix` — prefix call syntax, with its own `q`/`u`/`kw` markers (unrelated to the quasiquote
     operators of the same letters). A component of the Listhell dialect; not intended for production
     code.
