@@ -1,0 +1,93 @@
+[project]
+name = "dotclaude"
+version = "0.1.0"
+description = "The Claude Code configuration itself: CLAUDE.md, the skills, the scripts."
+# Bounded above on purpose. An unbounded `>=3.10` forces the resolver to pick versions valid for
+# *every* future Python, so a dep that caps itself (unpythonic declares `<3.15,>=3.10`) gets skipped
+# in favour of something ancient enough to declare no constraint — here, unpythonic 0.14.2.1, which
+# does not run on 3.14 at all. Raise the cap when the fleet moves past 3.14.
+requires-python = ">=3.10,<3.15"
+dependencies = []
+
+[tool.pdm]
+distribution = false        # nothing here is packaged or published; this file exists for the dev env and the lint/test config
+
+[dependency-groups]
+dev = [
+    # Test
+    "pytest>=8.0",
+    "pip",                     # ensures `python -m pip` works in the venv
+
+    # Test fixtures for api-inventory. `unpythonic` is what the static/--import agreement test
+    # runs against: it exercises the hard cases — an aliased `__all__` in `llist`, and modules
+    # that import only under the macro expander, which is what `mcpyrate` is here for.
+    "unpythonic>=2.3.0",
+    "mcpyrate",
+
+    # Linters (for local checks — CI also installs them separately)
+    "ruff>=0.14.0",
+    "flake8",                  # Emacs flycheck
+    "autopep8",                # autoformat on save (Emacs)
+
+    # Editor tooling (jedi-based IDE features in Emacs)
+    "jedi>=0.19.2",
+    "epc",                     # Emacs ↔ Python RPC
+    "importmagic",             # auto-import suggestions
+
+    # CI-workflow tooling
+    "pyyaml>=6.0.3",           # validate .github/workflows/*.yml from the dev venv without a separate pip install
+
+    # Diagnostics
+    "py-spy",                  # sampling profiler; attaches to a *running* process, no instrumentation
+]
+# The fleet dev baseline minus `build` and `coverage`: nothing here is packaged, and there is
+# no coverage job — the scripts are small enough that the test suite's own pass/fail is the
+# signal. `shellcheck` is a system package rather than a Python one, so CI installs it with apt.
+#
+# `pdm add` rewrites this table and drops every comment in it. Edit by hand, or check
+# `git diff pyproject.toml` afterwards and restore what went missing.
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    "00_stuff",                # local non-tracked scratch area
+    "00_old",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "SIM"]
+ignore = [
+    # pycodestyle
+    "E203",   # whitespace before ':' — needed for slice alignment
+    "E265",   # block comment should start with '# ' — commented-out code, markers
+    "E301",   # expected 1 blank line — blank lines are semantic paragraph breaks
+    "E302",   # expected 2 blank lines before def — same
+    "E305",   # expected 2 blank lines after end — same
+    "E306",   # expected blank line before nested def — same
+    "E402",   # module level import not at top — conditional/deferred imports
+    "E501",   # line too long — advisory, not enforced
+    "E731",   # lambda assignment — closures are idiomatic in this codebase
+    # flake8-simplify
+    "SIM102",  # collapsible if — nested ifs often represent distinct semantic guards
+    # Note: SIM103 (return condition directly) is intentionally NOT ignored here.
+    # It is enabled as an advisory — CI runs it in a non-failing second pass.
+    "SIM105",  # contextlib.suppress — try/except/pass is more flexible and explicit
+    "SIM108",  # ternary instead of if/else — often less readable, no real gain
+    "SIM114",  # combine if branches — match-casing style; autofix would damage semantics
+    "SIM117",  # combine with statements — nesting shows parent/child relationships
+    "SIM118",  # in-dict-keys — explicit .keys() marks the variable as a dictlike
+    "SIM300",  # yoda conditions — natural reading order preferred
+    "SIM910",  # dict.get with None default — explicit None documents programmer intent
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]  # re-exports via star-import
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

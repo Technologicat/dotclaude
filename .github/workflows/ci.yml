@@ -1,0 +1,52 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: pip install pdm
+
+      - name: Install dependencies
+        run: pdm install
+
+      - name: Lint Python with ruff
+        run: pdm run ruff check . --ignore SIM103
+
+      - name: Lint advisories (non-blocking)
+        run: pdm run ruff check . --select SIM103 || true
+
+      - name: Run tests
+        run: pdm run pytest -v
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # ShellCheck is preinstalled on the ubuntu runner images.
+      # `scripts/em` has no extension, so list scripts explicitly rather than globbing *.sh —
+      # a glob would silently skip it, which is the one most likely to be edited by hand.
+      - name: Lint shell scripts
+        run: shellcheck scripts/*.sh scripts/em statusline.sh

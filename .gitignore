@@ -24,6 +24,16 @@
 !scripts
 !skills
 !briefs
+!pyproject.toml
+!pdm.lock
+!tests
+!.github
+
+# Re-ignore build/test debris inside the whitelisted directories: `!scripts` and `!tests`
+# un-ignore everything under them, `__pycache__` included.
+__pycache__/
+.pytest_cache/
+.ruff_cache/
 
 # Defense-in-depth: never track these even if the pattern logic above ever slips.
 .credentials.json
