@@ -105,11 +105,11 @@ Auto-capture would have reported `response["status"]`, i.e. `"failed"` — true,
 
 The anti-pattern that bites hardest is wrapping the *whole* assertion: `test[the["X" in out]]` captures the boolean result, so the failure message tells you the assertion was false and never shows `out`. Write `test["X" in the[out]]` instead.
 
-Two others are in the same family: wrapping an entire `==`, and under-capturing a chained comparison. All three hide a value you would want on failure, which is what makes them bugs rather than style. They're listed under **"Common `the[]` mistakes"** in the canonical reference (`unpythonic/CLAUDE.md`) — read that section and pattern-match your draft against it before committing.
+Two others are in the same family: wrapping an entire `==`, and under-capturing a chained comparison. All three hide a value you would want on failure, which is what makes them bugs rather than style. The canonical account is **`the[]`'s own docstring** (`help(the)`, or `unpythonic/syntax/testingtools.py`) — read it and pattern-match your draft against it before committing. It is canonical rather than `unpythonic/CLAUDE.md` because it is the copy library users can see, and because keeping the same guidance in two files is what let them drift apart once already.
 
 **Marking an auto-captured LHS is not one of them.** `test[the[x] == 42]` is redundant mechanically and allowed deliberately: the mark tells a *reader* which value the test is about, which is sometimes worth the characters even though it changes nothing at runtime. So the choice is style, not correctness — a draft carrying one is not broken, and "remove it" is advice rather than a fix.
 
-Decide by whether a reader would otherwise be unsure which value the failure message will show. In a short assertion with one obvious subject, the mark is noise even when the LHS is a chain of calls — `test[env(x=42).finalize().x == 42]` reads better without it. Keep the mark when several terms compete for the reader's attention and the reported one isn't obvious.
+Decide by whether a reader would otherwise be unsure which value the failure message will show. In a short assertion with one obvious subject, the mark is noise even when the LHS is a chain of calls — `test[env(x=42).finalize().x == 42]` reads better without it, helped by `.x` sitting right before the `==`, so the compared value is where the eye already is. Keep the mark when several terms compete for attention and the reported one isn't obvious.
 
 `the[]` is not supported inside `test_raises`, `test_signals`, `fail`, `error`, or `warn`.
 
