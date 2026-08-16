@@ -35,17 +35,27 @@ This is the part that has to be right, because it is what reading the calling co
   These two compound: `memoize` over something from `unpythonic.it` is the shape of the bug. Both
   halves look correct in isolation.
 
-- **Several submodules share a name with a symbol, and which one you get is not guessable.** Where
-  `__init__.py` star-imports the submodule, the symbol overwrites the module attribute, so
-  `from unpythonic import llist` gives the **function** — likewise `let`, `fix`, `fup`, `gtco`,
-  `assignonce`. Where it does not, the module wins: **`from unpythonic import env` gives you the
-  module**, and `env(x=1)` then fails with "module is not callable". The class is
-  `from unpythonic.env import env`, which is what working code does
-  (`raven/common/bgtask.py:43`).
+- **Import from the package, not through a submodule path.** The house style is
+  `from unpythonic import x`, trusting the star-imports in `__init__.py` to have re-exported it.
+  Do **not** write `import unpythonic.somemod` and then call `unpythonic.somemod.func(...)`: the
+  macro layer cannot see a call written that way, so if the calling code is ever upgraded to use
+  macros, the call silently stops being transformed. That consequence is invisible at the call
+  site and arrives long after the import was written, which is why the rule holds even in code
+  with no macros in it today.
 
-  So for a colliding name, import it explicitly from its submodule rather than from the package.
-  The same shadowing is why enumeration must go through `sys.modules` rather than testing package
-  attributes for module-ness — see `mcpyrate`'s `doc/troubleshooting.md`.
+  Note this *inverts* the dotted-import preference that applies to a project's own modules
+  (`raven/CLAUDE.md:414`). The reason is specific to `unpythonic`, and does not generalize.
+
+- **The one exception, and it is forced: `from unpythonic.env import env`.** Several submodules
+  share a name with a symbol, and which one you get depends on whether `__init__.py` star-imports
+  that submodule. Where it does, the symbol overwrites the module attribute, so
+  `from unpythonic import llist` gives the **function** — likewise `let`, `fix`, `fup`, `gtco`,
+  `assignonce`. `.env` is never star-imported, so there the module wins:
+  `from unpythonic import env` hands you a module, and `env(x=1)` fails with "module is not
+  callable". Working code spells it `from unpythonic.env import env` (`raven/common/bgtask.py:43`).
+
+  The same shadowing is why any tool enumerating the package must go through `sys.modules` rather
+  than testing package attributes for module-ness — see `mcpyrate`'s `doc/troubleshooting.md`.
 
 - **`memoize` also caches exceptions** — a repeat call with the same arguments re-raises *the same
   exception instance* — requires all arguments to be hashable, and requires `f` to be pure. It is

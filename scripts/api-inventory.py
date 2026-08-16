@@ -26,6 +26,18 @@ Two modes, because the fleet contains cases that defeat each one:
 
 Static mode is the default because it always works; the report names any module
 whose `__all__` it could not resolve, so you know when to re-run with --import.
+
+**Macro-using packages make --import actively dangerous, hence a guard.** A module
+carrying an mcpyrate `from ... import macros, ...` cannot be imported under regular
+Python — the name does not exist, so it raises ImportError. The damage is that CPython
+writes the `.pyc` when it *compiles*, before the failing import body ever runs, so the
+cache is left holding unexpanded bytecode with an mtime that says it is current. The
+next `macropython` run then trusts that cache, skips expansion, and fails with the very
+same ImportError — now under the tool that was supposed to fix it, which is what makes
+it baffling rather than merely annoying. So
+--import refuses when it finds such a module, and --macros enables the expander first
+(`import mcpyrate.activate`) for the case where you do want to introspect one. To
+repair a tree this already happened to: `macropython -C <dir>`.
 """
 
 import argparse
@@ -39,7 +51,8 @@ import types
 
 from typing import List, Optional, Tuple
 
-SKIP_DIRS = {"__pycache__", ".git", ".venv", "venv", "build", "dist", ".tox", ".eggs"}
+SKIP_DIRS = {"__pycache__", ".git", ".venv", "venv", "build", "dist", ".tox", ".eggs",
+             "00_stuff", "00_old"}  # fleet scratch areas — a copy in there is not the package's API
 TEST_DIRS = {"test", "tests"}
 
 # One entry of the report: the symbol, how to call it, and what it is for.
@@ -269,7 +282,43 @@ def import_package(target: str):
     return importlib.import_module(target)
 
 
-def submodules_of(package) -> List[str]:
+def uses_macros(tree: ast.Module) -> bool:
+    """Whether a module needs the mcpyrate expander to import at all.
+
+    Two markers, both of the form `from module import <marker>, name, ...`:
+    `macros` binds macros for this module, and `dialects` enables the whole-module
+    transformer. Each is a *marker* the expander consumes rather than a real name, so
+    under regular Python both raise `ImportError: cannot import name ...`.
+    """
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if any(alias.name in ("macros", "dialects") for alias in node.names):
+                return True
+    return False
+
+
+def find_macro_modules(target: str, include_tests: bool) -> List[str]:
+    """Source files under `target` that import macros. Parses only; imports nothing."""
+    found = []
+    if not os.path.exists(target):
+        return found
+    for path in walk_sources(target, include_tests):
+        with open(path, "r", encoding="utf-8") as f:
+            try:
+                tree = ast.parse(f.read(), filename=path)
+            except SyntaxError:
+                continue
+        if uses_macros(tree):
+            found.append(path)
+    return found
+
+
+def is_test_module(name: str) -> bool:
+    """Whether a dotted module name has a test package anywhere in its path."""
+    return any(part in TEST_DIRS for part in name.split("."))
+
+
+def submodules_of(package, include_tests: bool) -> List[str]:
     """Every importable submodule name under `package`, imported so it is introspectable.
 
     An empty `__init__.py` (`raven.common` has one) means nothing lands in
@@ -278,6 +327,8 @@ def submodules_of(package) -> List[str]:
     prefix = package.__name__ + "."
     if hasattr(package, "__path__"):
         for info in pkgutil.walk_packages(package.__path__, prefix):
+            if not include_tests and is_test_module(info.name):
+                continue
             try:
                 importlib.import_module(info.name)
             except Exception as exc:  # a broken optional dep should not sink the report
@@ -286,8 +337,11 @@ def submodules_of(package) -> List[str]:
     # module-ness: an object imported from a submodule can share the submodule's name
     # and shadow it in the parent namespace, which would drop it from the list.
     # (mcpyrate's doc/troubleshooting.md, "How to list the whole public API".)
+    # Filter on the way out too: an unrelated import may already have pulled a test
+    # module into sys.modules, where the walk above would never have seen it.
     return sorted(name for name in sys.modules
-                  if name == package.__name__ or name.startswith(prefix))
+                  if (name == package.__name__ or name.startswith(prefix))
+                  and (include_tests or not is_test_module(name)))
 
 
 def introspect(module) -> Optional[List[Entry]]:
@@ -344,6 +398,9 @@ def main() -> int:
     parser.add_argument("--import", dest="do_import", action="store_true",
                         help="import and introspect instead of parsing source; "
                              "needed for a computed __all__")
+    parser.add_argument("--macros", action="store_true",
+                        help="with --import: enable mcpyrate before importing, so macro-using "
+                             "modules can be imported at all (and without corrupting their bytecode cache)")
     parser.add_argument("--names-only", action="store_true",
                         help="omit docstring summaries")
     parser.add_argument("--include-tests", action="store_true",
@@ -354,14 +411,39 @@ def main() -> int:
 
     unresolved, private = [], 0
 
+    if args.do_import and args.macros:
+        # Must precede any import of the target: the expander works through an import hook,
+        # so a module already imported without it stays unexpanded (and has a bad .pyc).
+        try:
+            import mcpyrate.activate  # noqa: F401 -- imported for its import-hook side effect
+        except ImportError:
+            print("api-inventory: --macros needs mcpyrate, which is not importable here. "
+                  "Run from a venv that has it.", file=sys.stderr)
+            return 1
+
     for target in args.targets:
         if args.do_import:
+            # Importing a macro-using module under regular Python fails with
+            # "cannot import name 'macros'" *and* writes an unexpanded .pyc whose mtime
+            # says it is current — so the next macropython run silently uses the bad
+            # bytecode. Refuse rather than cause that; static mode never has the problem.
+            if not args.macros:
+                macro_modules = find_macro_modules(target, args.include_tests)
+                if macro_modules:
+                    listed = "\n  ".join(macro_modules[:5])
+                    more = f"\n  ... and {len(macro_modules) - 5} more" if len(macro_modules) > 5 else ""
+                    print(f"api-inventory: {target} contains macro-using modules:\n  {listed}{more}\n"
+                          f"Importing those under regular Python corrupts their bytecode cache. "
+                          f"Re-run with --macros, or drop --import to read the source instead. "
+                          f"If a run already happened, clear the caches with `macropython -C {target}`.",
+                          file=sys.stderr)
+                    return 1
             try:
                 package = import_package(target)
             except Exception as exc:
                 print(f"api-inventory: cannot import {target}: {exc}", file=sys.stderr)
                 return 1
-            for name in submodules_of(package):
+            for name in submodules_of(package, args.include_tests):
                 maybe_entries = introspect(sys.modules[name])
                 if maybe_entries is None:
                     private += 1

@@ -475,6 +475,28 @@ If it's somehow missing, the global pipx installs are version-suffixed — `ls ~
 
 **Do not** use `find -name __pycache__ -exec rm -rf {} +` for this — `rm -rf` is destructive, and a typo in the find expression can nuke the wrong tree. `macropython -C` is the safe routine-maintenance form.
 
+### Never import macro-using code under regular Python
+
+A module carrying an mcpyrate `from ... import macros, ...` (or `from ... import dialects, ...`, which
+enables the whole-module transformer) cannot be imported without the expander: those names are markers
+the expander consumes, not real names, so plain Python raises `ImportError: cannot import name 'macros'`.
+
+**The damage is the bytecode, not the error.** CPython writes the `.pyc` when it *compiles* the module,
+before the failing body ever runs — so the cache is left holding unexpanded bytecode with an mtime saying
+it is current. The next `macropython` run trusts that cache, skips expansion, and fails with the very same
+ImportError, now under the tool that was supposed to fix it. Repair with `macropython -C <dir>`.
+
+This is a hazard for *tooling*, which is what makes it easy to walk into: anything that imports a package
+to introspect it — an inventory script, `pydoc`, autodoc, a REPL probe, plain `pytest` collection — does
+this without anyone intending to import macro code. Prefer reading the source (`api-inventory` parses by
+default and imports nothing). Where an import is genuinely needed, enable the expander first with
+`import mcpyrate.activate`, before the target package is imported.
+
+`api-inventory` encodes both halves: `--import` alone scans the target for the markers first and **refuses**
+if it finds any, naming the offending modules; adding `--macros` activates the expander and proceeds.
+
+Live case: an `api-inventory --import` run over `unpythonic` on 2026-08-16, cleaned with `macropython -C`.
+
 ## Don't reach for a meta-command to tidy up output
 
 `xargs`, `sh -c`, `bash -c`, `find -exec`, `env`, `timeout`, `nohup`, `watch`, `nice`, `parallel` and
