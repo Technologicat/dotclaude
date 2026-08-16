@@ -15,12 +15,15 @@ This is a map, not a manual: the authoritative documentation is `mcpyrate`'s `do
 reading of it disagree, the tests settle it.
 
 For the pure-Python side of `unpythonic`, which the fleet uses far more, see the `unpythonic` skill.
-For writing tests in this style, see `testing-macro-enabled-python`.
+For writing tests for macro-enabled code, see `testing-macro-enabled-python` — and note that this is
+not a matter of preference: **pytest cannot run macro-enabled test modules at all**, because its
+assertion-rewriting import hook cannot coexist with the expander's. That is why a separate test
+framework exists rather than a pytest plugin.
 
 ## Recognizing it, and the hazard that follows
 
 A module is macro-enabled if it carries either marker, both of the form
-`from module import <marker>, names...`:
+`from module import <marker>, name0, ...`:
 
 - **`macros`** — binds macros for this module.
 - **`dialects`** — enables a whole-module transformer (see `doc/dialects.md`).
@@ -123,18 +126,18 @@ Quasiquotation is the Lisp idea of writing code as data with holes in it
 |---|---|
 | `q[...]` | quasiquote — the code becomes an AST |
 | `u[...]` | unquote a simple run-time **value** |
-| `n[...]` | name-unquote — a string becomes an identifier |
+| `n[...]` | name-unquote — parses a string of Python source and splices the AST. Designed for computed *name-like* things: identifiers, attributes, subscripts, nested in any syntactically legal combination (`n[f"kitties[{j}].paws[{k}].claws"]`) |
 | `a[...]` | ast-unquote — splice in an AST value |
 | `s[...]`, `t[...]` | ast-list / ast-tuple unquote |
 | `h[...]` | **hygienic** unquote — capture a value (or macro) from the *definition* site |
 
-**Two unrelated things are called `q` and `u`**, which is worth knowing before you read code that
-uses either. `mcpyrate.quotes` has quasiquote/unquote, above. `unpythonic.syntax.prefix` has its own
-`q`, `u` and `kw`, which are *prefix-mode* markers — inside a `with prefix` block, `q` turns off the
-tuple-means-call transformation and `u` turns it back on. Same letters, same words ("quote",
-"unquote"), unrelated semantics. Both are macro-imported by name, so in a module that used both they
-would collide, and one would have to be aliased at the import. Neither project's docs cross-reference
-the other on this.
+**Two unrelated things are called `q` and `u`.** The `mcpyrate.quotes` pair above is the one that
+appears in real code. `unpythonic.syntax.prefix` has its own `q`, `u` and `kw`, which are
+*prefix-mode* markers — inside a `with prefix` block, `q` turns off the tuple-means-call
+transformation and `u` turns it back on. Same letters, same vocabulary, unrelated semantics. `prefix`
+is a component of the Listhell dialect (`with prefix, autocurry:`) and is not intended for production
+code, so treat this as a reading aid: if `q` and `u` appear in a file, check which pair is imported
+before assuming what they do. Neither project's docs cross-reference the other on this.
 
 `h[]` is the one that carries the weight: it is how expanded code refers to something at the macro's
 definition site without depending on the use site having imported it — the mechanism behind
@@ -161,16 +164,21 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
   bindings in the tradition of Scheme's `let-syntax`.
 - **Lambdas** — `multilambda` (multi-expression bodies), `namedlambda` (auto-naming, so tracebacks
   stop saying `<lambda>`), `fn` and `quicklambda` (underscore notation), `envify`.
-- **Language features, the heavy end** — `autocurry`; `lazify` (call-by-need); `tco` (automatic tail
-  call optimization); `continuations`, which is `call/cc` for Python
-  ([call/cc](https://en.wikipedia.org/wiki/Call-with-current-continuation) as in Scheme), with
-  `call_cc`, `get_cc`, `iscontinuation`; `prefix` (prefix call syntax, with the `q`/`u`/`kw` markers —
-  these are *prefix-mode* markers, unrelated to the quasiquote operators of the same letters; not
-  intended for production code);
-  `autoreturn`; `monadic_do`; `forall` (nondeterministic evaluation — the clean macro-based design,
-  which the library's own `doc/design-notes.md` contrasts against the pure-Python `unpythonic.amb`).
+- **Language features, the heavy end.**
+  - `autocurry`; `lazify` (call-by-need); `tco` (automatic tail call optimization); `autoreturn`
+    (implicit `return` in tail position).
+  - `continuations` — `call/cc` for Python
+    ([call/cc](https://en.wikipedia.org/wiki/Call-with-current-continuation) as in Scheme), with
+    `call_cc`, `get_cc`, `iscontinuation`. **`multishot` builds on it**: a function becomes a
+    multi-shot (rewindable) generator, meaningful only inside a `with continuations:` block, its
+    yield spelled `myield` — which expands to `call_cc[get_cc()]`.
+  - `monadic_do`, and `forall` for nondeterministic evaluation — the clean macro-based design, which
+    the library's own `doc/design-notes.md` contrasts against the pure-Python `unpythonic.amb`.
+  - `prefix` — prefix call syntax, with its own `q`/`u`/`kw` markers (unrelated to the quasiquote
+    operators of the same letters). A component of the Listhell dialect; not intended for production
+    code.
 - **Conditionals** — `aif` with its anaphoric `it`, and `cond`.
-- **Debugging and notebooks** — `dbg` (prints expression source alongside value), `nb`, `multishot`.
+- **Debugging and notebooks** — `dbg` (prints expression source alongside value) and `nb`.
 - **Testing** — `test`, `test_raises`, `test_signals`, `the`, `fail`, `error`, `warn`. Covered by the
   `testing-macro-enabled-python` skill; that layer is why `unpythonic` needs a macro-aware test framework
   at all.
