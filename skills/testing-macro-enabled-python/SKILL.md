@@ -1,5 +1,5 @@
 ---
-name: unpythonic-macro-testing
+name: testing-macro-enabled-python
 description: Reference for writing tests for macro-enabled Python code using the test framework unpythonic provides — `unpythonic.test.fixtures` (the assertion macros) and `unpythonic.test.runner` (reusable test discovery and running, for any project, not just unpythonic). Covers the `session` / `testset` / `runtests()` structure, a downstream project's `runtests.py` via `discover_testmodules` / `run`, version-suffix gating of test modules, the `test[]`, `test_raises[]`, `test_signals[]`, `warn[]` and `the[]` macros, the load-bearing Pass/Fail/Error distinction, and why test code under a macro expander needs different fixtures than ordinary pytest code. Use when writing or debugging tests for code that uses mcpyrate macros or unpythonic macros, when setting up a test runner for a macro-using project, when reading a Fail/Error report from this framework, or when scaffolding a test module.
 ---
 

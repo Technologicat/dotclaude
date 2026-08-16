@@ -1,9 +1,49 @@
 ---
-name: callgraph
-description: Generate a static call graph or module-level dependency graph for Python source with pyan3. Use when mapping how functions or modules connect, understanding the structure/wiring of an unfamiliar codebase, exploring a Python source tree's shape, doing visual or structural testing, answering "what calls this function?" or "how does F end up calling G?" (via `--function --direction up` and `--paths-from`/`--paths-to`), or when you (the agent) need an adjacency list of who-calls-what to reason about code. Produces `--text` for direct agent reading, or a `--dot` graph for visual viewing.
+name: code-exploration
+description: Find out what is in an unfamiliar Python codebase and how it fits together, using `api-inventory` (every public name with its signature and summary) and `pyan3` (call graphs and module dependency graphs). Use when orienting in a subsystem you have not read, before writing a helper that may already exist, when answering "what calls this function?" or "how does F end up calling G?", when you need an adjacency list of who-calls-what to reason about code, or when a picture of a source tree's shape would answer faster than a dozen greps.
 ---
 
-# Call graphs with pyan3
+# Exploring a codebase
+
+Two tools, answering different halves of "what is going on in here". Pick by the question:
+
+| The question | The tool |
+|---|---|
+| What exists here? Does a helper for this already exist? | `api-inventory` — public names, signatures, summaries |
+| How does it connect? What depends on what? | `pyan3 --module-level` or `--depth 0` |
+| What calls this function? | `pyan3 --function F --direction up` |
+| How does F end up calling G? | `pyan3 --paths-from F --paths-to G` |
+| I don't know what to ask yet | Render the graph and look at it |
+
+**Start coarse.** A module-level pass is usually what tells you which question is worth asking; then
+drill in. Reaching for full detail first gives you a graph too big to read and no question to read
+it for.
+
+# What exists: `api-inventory`
+
+Prints every `__all__` entry of a package — name, signature, first line of the docstring — grouped
+by module. It answers the question grep cannot: grep needs the *name*, which is the one thing you do
+not have when you are looking for a helper someone else named.
+
+```
+api-inventory raven/raven/common/          # a package, with summaries
+api-inventory --names-only raven/raven/    # a whole project, names only
+api-inventory --width 78 pkg/mod.py        # one file, narrower summaries
+```
+
+**It parses source by default and imports nothing**, which is what makes it safe on packages with
+heavy or side-effecting imports. Two flags change that:
+
+- `--import` — import and introspect instead. Needed when `__all__` is computed in a way a static
+  read cannot follow; the report says which modules those are, rather than under-reporting silently.
+- `--macros` — with `--import`, enable `mcpyrate` first. **`--import` refuses outright** on a
+  package containing macro-using modules, because importing those under regular Python corrupts
+  their bytecode cache. See the `macro-enabled-python` skill; repair is `macropython -C <dir>`.
+
+Test directories and the `00_stuff` / `00_old` scratch areas are skipped (`--include-tests` keeps
+tests). Both modes agree on the same package, which the test suite checks.
+
+# How it connects: call graphs with `pyan3`
 
 `pyan3` statically analyzes Python source and emits a call graph (who
 defines / calls / uses what), or with `--module-level` a module dependency

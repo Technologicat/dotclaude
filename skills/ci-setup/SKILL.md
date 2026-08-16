@@ -201,7 +201,7 @@ drive their tests through a top-level `runtests.py`, but for different reasons a
 different styles:
 
 - **unpythonic** uses `unpythonic.test.fixtures`, its own macro-aware test framework (see
-  the `unpythonic-macro-testing` skill).
+  the `testing-macro-enabled-python` skill).
 - **mcpyrate** uses bare `assert`, and could not do otherwise. `unpythonic.test.fixtures`
   needs two things mcpyrate cannot supply: a *working macro expander* — which is precisely
   what mcpyrate is, and therefore what's under test, so the tests would presuppose their own

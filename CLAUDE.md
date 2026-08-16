@@ -226,7 +226,7 @@ agent, holds that in view at once.
 
 **Orienting: start with the shape, then grep.** Arriving cold at an unfamiliar area — a fresh session, a
 compacted one, a subsystem you have not touched — a coarse module-level graph is the cheaper first move.
-Use the `callgraph` skill: `pyan3 --module-level <paths> --text`, or `--depth 0` for the call graph rather
+Use the `code-exploration` skill: `pyan3 --module-level <paths> --text`, or `--depth 0` for the call graph rather
 than the imports. It answers "what is here and what talks to what", which is what tells you the question
 worth grepping for. Note this will not fire on its own — a session opens with "let's continue with the
 FileDialog work", never with "explore the codebase", so the trigger has to live here.
@@ -242,8 +242,11 @@ Grep is the wrong instrument for this and will keep failing at it, because it ne
 ```
 api-inventory raven/raven/common/          # every __all__ entry, with signature and summary
 api-inventory --names-only raven/raven/    # whole project, names only
-api-inventory --import unpythonic          # import and introspect, for a computed __all__
+api-inventory --import somepkg             # import and introspect, for a computed __all__
+api-inventory --import --macros unpythonic # ...and for a macro-using package, which --import alone refuses
 ```
+
+Details, and the call-graph half of the same job, are in the `code-exploration` skill.
 
 **The failure this prevents:** re-implementing a smart-casing search fragmentizer for `FileDialog` when
 `raven.common.utils.search_string_to_fragments` already existed — noticed only because Juha remarked the
@@ -358,7 +361,7 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 
 Fleet-wide skills in `~/.claude/skills/` carry the reference material that used to sit in this file. They load on demand when the task matches, so their content doesn't dilute attention here:
 
-- `callgraph` — static call graphs and module-level dependency graphs with pyan3.
+- `code-exploration` — what exists in a codebase (`api-inventory`) and how it connects (pyan3).
 - `ci-setup` — GitHub Actions, coverage/Codecov, cibuildwheel, supply-chain hardening, PyPI trusted publishing.
 - `project-setup` — pyproject/PDM flow, meson-python, lockfile policy, canonical lint config.
 - `release` — tagging, publishing, pre/post-release checklists, title themes.
@@ -366,7 +369,8 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `cc-log-extract` — distilling Claude Code session logs into readable Markdown.
 - `monthly-report` — the cross-project monthly activity report, built from those logs.
 - `unpythonic` — what the library holds, and the contracts that are invisible at a call site.
-- `unpythonic-macro-testing` — testing macro-enabled Python with `unpythonic.test.fixtures`.
+- `macro-enabled-python` — running, reading and debugging macro code: `mcpyrate` and `unpythonic.syntax`.
+- `testing-macro-enabled-python` — the macro-aware test framework in `unpythonic.test`, usable anywhere.
 
 ## Is it hung, or is it working?
 

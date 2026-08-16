@@ -65,11 +65,14 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 - [`project-setup`](skills/project-setup/SKILL.md) — `pyproject.toml` and the PDM flow, Cython/meson-python builds, lockfile policy, the canonical lint config.
 - [`release`](skills/release/SKILL.md) — tagging, CI-driven PyPI publishing, pre/post-release checklists, per-project release title themes.
 - [`changelog`](skills/changelog/SKILL.md) — house style for changelog entries. Separate from `release` because entries get written when the bug is fixed, not when the release is cut.
-- [`callgraph`](skills/callgraph/SKILL.md) — static call graphs and module dependency graphs via [pyan3](https://github.com/Technologicat/pyan).
+- [`code-exploration`](skills/code-exploration/SKILL.md) — what exists in an unfamiliar codebase (`api-inventory`, in `scripts/`) and how it connects (static call and module dependency graphs via [pyan3](https://github.com/Technologicat/pyan)).
 - [`cc-log-extract`](skills/cc-log-extract/SKILL.md) — distilling Claude Code session logs into readable Markdown.
-- [`unpythonic-macro-testing`](skills/unpythonic-macro-testing/SKILL.md) — testing macro-enabled Python with [unpythonic](https://github.com/Technologicat/unpythonic)'s test framework.
+- [`monthly-report`](skills/monthly-report/SKILL.md) — the cross-project monthly activity report, built from those logs.
+- [`unpythonic`](skills/unpythonic/SKILL.md) — what [unpythonic](https://github.com/Technologicat/unpythonic) holds, and the contracts that are invisible at a call site.
+- [`macro-enabled-python`](skills/macro-enabled-python/SKILL.md) — running, reading and debugging macro code: [mcpyrate](https://github.com/Technologicat/mcpyrate) and `unpythonic.syntax`.
+- [`testing-macro-enabled-python`](skills/testing-macro-enabled-python/SKILL.md) — the macro-aware test framework that ships in `unpythonic.test`, usable from any project.
 
-A skill's content lives wherever that content's natural home is. `ci-setup` and `project-setup` are personal sysadmin knowledge, so they're canonical here. `unpythonic-macro-testing` documents the public API of a published library, so it's a pointer — the real reference ships with the library, where it belongs. `cc-log-extract` splits the difference: the workflow recipe is canonical here, the tool it drives lives upstream.
+A skill's content lives wherever that content's natural home is. `ci-setup` and `project-setup` are personal sysadmin knowledge, so they're canonical here. `testing-macro-enabled-python` documents the public API of a published library, so it's a pointer — the real reference ships with the library, where it belongs. `cc-log-extract` splits the difference: the workflow recipe is canonical here, the tool it drives lives upstream.
 
 ## Runtime state, and the whitelist
 
