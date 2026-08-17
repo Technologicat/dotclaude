@@ -31,6 +31,40 @@ the build system, not a preference. Note the constraint underneath: PEP 735
 `[dependency-groups]` are invisible to raw `pip` — only PDM and uv implement them — so a
 pip-based job *must* list what it needs.
 
+### Never let PDM install its own interpreter in CI
+
+`setup-python` has already put the matrix's interpreter on PATH by the time the install step
+runs. Point PDM at that one:
+
+```yaml
+    - name: Create in-project virtualenv and install dependencies
+      run: |
+        pdm use -f "$(python -c 'import sys; print(sys.executable)')"
+        pdm install
+```
+
+Two details, each of which cost a red CI run to learn:
+
+- **`-f` (`--first`) is load-bearing**: it means "select the first matched interpreter — no
+  auto install". Without it PDM may go fetch one.
+- **Ask Python for its own path; do not use `which`.** These steps run under Git Bash on
+  Windows, where `which python` answers with an MSYS path like `/c/hostedtoolcache/...`, and
+  PDM is a native Windows program that cannot resolve it. `sys.executable` is a native path
+  everywhere. This breaks *only* the Windows jobs, so a Linux-only matrix will not reveal it.
+
+**What this replaces, and why it matters when adding a Python version.** The old form was
+`pdm python install <version>`, which downloads a second interpreter from PDM's own index.
+That index carries no prerelease builds, so the step fails for a version at rc — which is
+exactly the moment a new Python is added to the matrix, and the failure looks like "3.15 is
+broken" when in fact `setup-python` had installed 3.15 successfully in the same job.
+
+It also retires a related wart. Where a matrix includes PyPy, CI spells it `pypy-3.11` while
+PDM spells it `pypy@3.11`, so those workflows carried a step that rewrote the string through
+`tr - @` into an environment variable. With nothing being downloaded there is nothing to
+translate, and the step can go. (Fleet-wide as of 2026-08-17; `pyan` never had the pattern —
+plain `pdm install` picks up the ambient interpreter by itself, which works but leaves the
+choice implicit.)
+
 **The hand-picked subset is a last resort, and exactly one project needs it.** The reason is
 CI cost: Raven's full dependency tree is multi-gigabyte, and a matrix installs it *once per
 entry, on every push*. That is the whole argument — the install would dominate the run, over
