@@ -47,10 +47,31 @@ The same title goes on the GitHub release — in whatever shape that project use
 
 ### Release title themes
 
+**The name puns on what the release actually did.** That is the part to get right; the theme only
+says which well to draw the pun from. `mcpyrate` 4.2.0 "X marks the spot" was the release that added
+end-to-end source *locations*; 4.3.0 "Weigh anchor" was the one where the expander had been unable to
+import at all, so it never left port; `unpythonic` 0.15.0 "We say 'howdy' around these parts" was the
+release that introduced *dialects*. A name that fits the theme but not the content is the failure
+mode to avoid — it reads as decoration.
+
+**Link the reference from the title itself**, on the referenced words, where there is one to link.
+This is long-standing in `unpythonic` and is what makes the deep cuts land for a reader who does not
+recognize them: `*"Maybe a slice?"* [edition](.../Everybody%27s_Golf_4)`, `*["Super Syntactic
+Fortress MACROS"](.../Super_Dimension_Fortress_Macross) edition*`. Check the URL resolves before
+committing it.
+
 A titled release draws its name from the project's own well:
 
 - **mcpyrate** — ships and pirates
-- **unpythonic** — meta-commentary, discordian
+- **unpythonic** — cultural references and wordplay of any provenance, chosen to pun on the release.
+  The register is wide and the deep cuts are welcome: anime (*"Super Syntactic Fortress MACROS"*, for
+  the release that introduced `unpythonic.syntax`), Discordianism (*"Hail Eris"*), Carroll (*"Six
+  impossible things before breakfast"*, *"Through the looking glass"*), Hofstadter (*"Metamagical
+  engineering"*), film (*"The hunt for missing operators"*), rhythm games (*"573 combo!"*, Konami's
+  own number), the London Underground (*"Mind the gap"*), plain puns (*"Cat-hedral"*,
+  *"Listhonkell"*), and self-referential jokes about the versioning itself (*"0.10.0 is more than
+  0.9.∞"*). **A gag may run across consecutive releases** — 0.10.1 *"Just one more thing"* (Columbo)
+  became 0.10.2 *"Just a few more things"*, then deflated into 0.10.3 *"Small fixes"*.
 - **pyan3** — cartography
 - **chandra** — its decipherment/astronomy palette: *reading what's present but unseen*. (Hence `Earthshine` — Earth's reflected light revealing the moon's dark limb. The palette is described in chandra's own `CLAUDE.md` under "Voice and naming", and covers component names too: `rosetta`, `concordance`, `palimpsest`.)
 - **raven** — none. It's an evolving research prototype; releases are plain (`Raven 0.2.7`).
