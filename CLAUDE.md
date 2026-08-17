@@ -162,6 +162,8 @@ Two guards on "fix it now":
 
 **Exception: bugs surfaced by the tests you're writing.** When extending test coverage uncovers a latent bug in the code under test, the fix is part of the current task — fix it inline, not in a deferred item. Adding the test *is* the act of exercising a previously-untested branch, so this is the first-and-best moment to correct it. Only defer if the fix needs a major rewrite or crosses into unrelated subsystems.
 
+**A regression test written after the fix must be checked against the code without it.** `git stash push <the-fixed-file>`, run the test, confirm it fails *with the symptom that was reported*, then `git stash pop`. Thirty seconds, and it is the only thing separating a test that pins the bug from one that would have passed all along — which is worse than no test, because it will be trusted. The failure mode is quiet: a test written while the fix is in front of you tends to assert what the fixed code does, which is not the same as asserting what was wrong. (Live case: a file dialog offering a lone subfolder instead of the folder being browsed. The test looked right; only stashing the fix proved it reproduced `…/the_only_album` rather than the parent.)
+
 When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `changelog` skill, and it's fleet-wide.
 
 ### File format
