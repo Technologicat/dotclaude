@@ -370,6 +370,19 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 **Check CI after pushing.** If you've pushed any commit during the session, before signing off, run `gh run list -L 1 --branch <branch>` (or `gh run watch` if a run is in flight) to confirm CI is green. If red, investigate and fix in-session — don't leave a next-day surprise for the user. Lint failures, test failures, or platform-specific build breaks should be addressed before the session closes; if a fix isn't trivial, at minimum surface the failure to the user with the workflow URL so they can decide.
   - **Docs-only pushes don't need the CI watch at all.** Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python and nothing else. No Markdown linting, no link checking, no docs build. A commit that touches only Markdown therefore cannot fail it on its own content, so waiting ~3 min to watch it go green tells you nothing. Push and carry on.
   - **"Docs-only" means exactly that: no `.py`, no `.pyx`/`.pxd`, no workflow YAML, no `pyproject.toml`, no lockfile.** A docstring lives in a `.py` file and *is* linted; a workflow edit changes CI itself. Either of those is a code push — watch it.
+  - **Wait for CI in the background, always.** A foreground wait blocks the console for the entire run — several minutes in which Juha can neither ask anything nor redirect the work, for a result that arrives on its own anyway. Use `run_in_background: true`; the watcher re-invokes on completion. There is no case where blocking the console is the better trade.
+  - **"The newest run for this commit" is not "CI is green".** These repos have more than one workflow — `Tests` and `Coverage` at least, plus Dependabot's `Graph Update` runs, which are *separate runs on the same SHA*. So `gh run list -L 1` can hand back a green Dependabot run while the real one is still going, and a wait-loop that exits on "some run for this SHA finished" exits early because `Coverage` finishes well before `Tests`. **Select the run by workflow name, and check the jobs, not just the run:**
+
+    ```bash
+    # wait for the workflow that matters, by name — not for whatever ran last
+    until [ "$(gh run list -L 12 --repo OWNER/REPO --json headSha,status,name \
+                 --jq '[.[] | select(.headSha[0:7]=="'"$SHA"'" and .name=="Tests")][0].status')" = completed ]
+    do sleep 30; done
+    gh run view "$ID" --repo OWNER/REPO --json conclusion,jobs \
+      --jq '"RUN: \(.conclusion)", (.jobs[] | "  \(.conclusion)  \(.name)")'
+    ```
+
+    **The failure this prevents is expensive and one-directional.** On an ordinary push a false green costs nothing — the next command notices. Before *tagging a release* it costs either a force-moved public tag or a burnt version number, because a tag run that fails never publishes. Live case: during the pyan 2.7.0 release the first watcher reported success while the matrix was still running, because `Coverage` had finished. Tagging on that would have been a coin flip.
 
 **Every fleet repo blocks force-push and branch deletion on its default branch, and the block applies to you.** Each carries a `protect-default-branch` ruleset (rules `deletion` and `non_fast_forward`, targeting `~DEFAULT_BRANCH`, so it follows whichever of `master` or `main` that project uses — the older projects are on `master`) with an **empty bypass-actor list**. Added 2026-08-16.
 
