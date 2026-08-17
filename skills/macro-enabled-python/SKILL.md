@@ -203,7 +203,19 @@ At overview depth; `unpythonic`'s `doc/macros.md` walks each one properly.
     (implicit `return` in tail position).
   - `continuations` — `call/cc` for Python
     ([call/cc](https://en.wikipedia.org/wiki/Call-with-current-continuation) as in Scheme), with
-    `call_cc`, `get_cc`, `iscontinuation`. **`multishot` builds on it**: a function becomes a
+    `call_cc`, `get_cc`, `iscontinuation`. **Reach for `get_cc` first**: `x = call_cc[get_cc()]`
+    snapshots the control state into a local, which its docstring calls "what you want 99% of the
+    time when you need `call_cc`". It takes after Racket's `let/cc`. The bare
+    `call_cc[somefunc(...)]` form, invoking your own continuation-enabled function, is the general
+    case underneath. It goes a long way for a host language with no native
+    continuations, and what it asks in return is a set of documented usage restrictions. The one
+    that catches a first-time user: the target of a `call_cc[...]` must itself be
+    continuation-enabled, which in practice means defined *inside* the same `with continuations:`
+    block, since that is what gives it the implicit `cc` parameter. Calling out to an ordinary
+    function defined outside fails with `TypeError: f() got an unexpected keyword argument 'cc'`,
+    which reads like a bug in the macro and is not one. The full list is in `call_cc`'s own
+    docstring and in unpythonic's `doc/macros.md`; read one of them before concluding something
+    is broken. **`multishot` builds on it**: a function becomes a
     multi-shot (rewindable) generator, meaningful only inside a `with continuations:` block, its
     yield spelled `myield` — which expands to `call_cc[get_cc()]`.
   - `monadic_do` — Haskell's
