@@ -79,6 +79,16 @@ Cap status, related: of the three AST users only `unpythonic` declares an upper 
 bound. `mcpyrate` and `pyan` are both bare `>=3.10`, so both advertise support for the version that
 breaks them. Both need the cap; land it with each project's fix rather than ahead of it, since a cap
 only reaches users through a release and blocks creating the 3.15 venv the work needs.
+(`pyan` is done as of 2026-08-17: capped at `<3.16`, suite green on 3.15, CI covers it.)
+
+**Sweep the ruff excludes once ruff supports PEP 798.** ruff 0.15.10 cannot *parse* comprehension
+unpacking — it reports `invalid-syntax: Iterable unpacking cannot be used in a comprehension` — and
+a syntax error cannot be suppressed with `# noqa`. So every 3.15 test fixture needs its directory
+excluded in `[tool.ruff]`. `pyan` has `tests/test_code_315` excluded with a comment saying to retry
+dropping it; `mcpyrate` and `unpythonic` will need the same when their 3.15 fixtures land. The
+excludes hide real lint from those files while they exist, so they are worth actually removing
+rather than leaving forever — hence this note, since three inline comments in three repos will not
+prompt anyone to check whether ruff has caught up.
 
 Do it as one pass, and fold in "Coverage jobs are running stale Python versions" above —
 that item is the same edit in the same files, and doing them separately means touching
@@ -291,3 +301,31 @@ rationale that was fluent and wrong — are claims that drifted from the world, 
 linter checks a claim against reality. Machine checks buy the easy half.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
+
+## Clean up the NVIDIA PyIndex pip config on the work machine
+
+Done on the personal machine 2026-08-17; the work machine needs the same treatment, since this
+is machine-local config that no repo carries.
+
+`nvidia-pyindex` writes **two** identical files — `~/.config/pip/pip.conf` and
+`~/.pip/pip.conf` — and both set three things worth removing:
+
+- `extra-index-url = https://pypi.ngc.nvidia.com` and a matching `trusted-host`. The host no
+  longer resolves, so every `pip install` pays two DNS retries before falling through to PyPI.
+  CUDA builds of torch and friends are served from PyPI proper now.
+- `no-cache-dir = true`, which disables pip's download cache globally and forces re-downloads.
+
+What to leave: `index-url = https://pypi.org/simple`, the default anyway, which keeps the file
+self-documenting rather than empty.
+
+Two things found while doing it here, both worth checking there:
+
+- **`nvidia-pyindex` is still installed** (1.0.9 here). It rewrites the config only at install
+  time, so an idle copy is harmless — but reinstalling or upgrading it undoes this.
+- **Some installed packages genuinely came from that index and are not on PyPI**: here,
+  `nvidia-cublas-cu11 2022.4.8`, where PyPI carries `11.10.3.66` and `11.11.3.6` but no
+  `2022.4.8`. Not an argument against the cleanup — the index is unreachable, so those versions
+  are already unreinstallable — but it means such a reinstall fails either way, and the pip
+  config will not be the reason.
+
+Raised 2026-08-17, when the dead host's retries surfaced while building a Python 3.15 venv.
