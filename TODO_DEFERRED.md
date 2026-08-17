@@ -63,9 +63,18 @@ testing on it, and the three AST users — `unpythonic`, `mcpyrate` and `pyan` �
 CPython's AST and bytecode closely enough that a new minor is real work rather than a
 matrix entry. Expect those three to set the pace for the rest.
 
-**Surveyed 2026-08-16; a brief now exists in each of the three repos** (`briefs/python-3.15-support.md`),
-carrying the verified AST delta and per-project work items. Two headline findings, both measured on
-3.15.0rc1 rather than predicted:
+**Status, 2026-08-17.** Each of the three AST users has a brief at `briefs/python-3.15-support.md`
+carrying the verified AST delta and its own work items. Where the work stands:
+
+- **`pyan`: done and released** as 2.7.0 (*Triangulation*), on PyPI, capped `<3.16`, 3.15 in CI.
+- **`mcpyrate`: done, unreleased.** Import hook, unparser, lazy macro-import rejection, cap `<3.16`,
+  3.15 in CI — all pushed and green, accumulating in the `4.2.1` in-progress changelog section.
+- **`unpythonic`: not started.** It was blocked behind mcpyrate importing, and now is not.
+
+**mcpyrate and unpythonic release together**, once they are verified working against each other —
+see the `release` skill for why. So neither gets tagged until unpythonic's 3.15 work lands.
+
+Survey findings from 2026-08-16, both measured on 3.15.0rc1 rather than predicted:
 
 - **`mcpyrate` does not import on 3.15 at all.** Its `source_to_xcode` override has the wrong
   signature for the new `importlib` `source_to_code` protocol, which gained a positional `fullname`.

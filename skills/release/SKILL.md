@@ -75,6 +75,18 @@ Bump the version to `X.Y.Z-dev` in source, and add the next changelog stub — "
 
 Do this immediately after tagging, rather than at the start of the next release: it means the next bugfix already has somewhere to write its changelog entry, which is what keeps entries getting written while the context is fresh instead of reconstructed from `git log` months later.
 
+## Sister projects release together
+
+`mcpyrate` and `unpythonic` are coupled: `unpythonic.syntax` is built on the expander, and
+`unpythonic` declares a `mcpyrate` dependency. When a change touches both — a Python version
+bump being the usual case — hold both tags until the pair has been verified working *against
+each other*, then release them together.
+
+Releasing the dependency alone publishes a version its sibling has not been tested against, and
+whoever installs the new `mcpyrate` gets it paired with the old `unpythonic` by default. The
+verification that matters is running `unpythonic`'s suite against the `mcpyrate` about to ship,
+not each project's suite in isolation.
+
 ## Dropping a Python version: two releases, not one
 
 When a Python version reaches end of life, the floor rises in a *separate, later* release than
