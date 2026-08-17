@@ -63,16 +63,29 @@ testing on it, and the three AST users — `unpythonic`, `mcpyrate` and `pyan` �
 CPython's AST and bytecode closely enough that a new minor is real work rather than a
 matrix entry. Expect those three to set the pace for the rest.
 
-**Status, 2026-08-17.** Each of the three AST users has a brief at `briefs/python-3.15-support.md`
-carrying the verified AST delta and its own work items. Where the work stands:
+**Status, 2026-08-17: the three AST users are done and released.** All capped `<3.16`, with 3.15 in
+their CI matrices (which needs `allow-prereleases: true` while 3.15 is at rc).
 
-- **`pyan`: done and released** as 2.7.0 (*Triangulation*), on PyPI, capped `<3.16`, 3.15 in CI.
-- **`mcpyrate`: done, unreleased.** Import hook, unparser, lazy macro-import rejection, cap `<3.16`,
-  3.15 in CI — all pushed and green, accumulating in the `4.2.1` in-progress changelog section.
-- **`unpythonic`: not started.** It was blocked behind mcpyrate importing, and now is not.
+- **`pyan` 2.7.0** *"Triangulation"* — two bugs, not the one predicted: `DictComp.value` becoming
+  optional, and `symtable` renaming its anonymous scopes, which broke every module containing a
+  lambda.
+- **`mcpyrate` 4.3.0** *"Weigh anchor"* — it could not import at all on 3.15; the loader-protocol
+  override had the wrong signature. Also now forwards the optimization level and the module name it
+  had been dropping, and rejects lazy macro-imports.
+- **`unpythonic` 2.4.0** *"'Tis but a scratch"* — the macros needed no changes; the work was tests
+  that check the *properties* (`lazify` still lazy, `autocurry` still currying) rather than results.
 
-**mcpyrate and unpythonic release together**, once they are verified working against each other —
-see the `release` skill for why. So neither gets tagged until unpythonic's 3.15 work lands.
+Each brief is archived at `briefs/done/python-3.15-support.md` in its own repo. The sister pair was
+verified against each other by unpythonic's 3.15 CI job, which resolves `mcpyrate` from PyPI rather
+than a working tree.
+
+**What remains is the fleet follow-on**, and it is the next thing to pick up:
+
+- The `cp315-*` cibuildwheel pins in **pylu**, **pydgq** and **python-wlsqm**, each of which still
+  pins `build = "cp311-* cp312-* cp313-* cp314-*"`.
+- 3.15 in the CI matrices of the projects that do not have it yet — chandra, arxiv-api-search, and
+  the Cython three. Raven is capped `<3.13` and is not in scope.
+- The stale-coverage-Python item above, which touches the same files.
 
 Survey findings from 2026-08-16, both measured on 3.15.0rc1 rather than predicted:
 
