@@ -54,6 +54,17 @@ import at all, so it never left port; `unpythonic` 0.15.0 "We say 'howdy' around
 release that introduced *dialects*. A name that fits the theme but not the content is the failure
 mode to avoid — it reads as decoration.
 
+**Most of them are quoted lines**, not topical nods — a catchphrase the source is known for, which
+happens to pun on the release. *"Just one more thing"* is Columbo's; *"'Tis but a scratch"* is the
+Black Knight's; *"Maybe a slice?"* is what a caddie in *Everybody's Golf 4* says on practically every
+putt, which is the part that makes it land for anyone who played it. A line beats a topic word,
+because a reader who knows it hears the delivery.
+
+The exception worth recognizing is a phrase that has become part of the fleet's own vocabulary.
+*"Six impossible things before breakfast"* is the White Queen's line, but `CLAUDE.md` states it as
+the ambition level for the projects, so the 2.0.0 title is quoting the house standard rather than
+reaching for Carroll. Those work for a different reason and do not need the link.
+
 **Link the reference from the title itself**, on the referenced words, where there is one to link.
 This is long-standing in `unpythonic` and is what makes the deep cuts land for a reader who does not
 recognize them: `*"Maybe a slice?"* [edition](.../Everybody%27s_Golf_4)`, `*["Super Syntactic
