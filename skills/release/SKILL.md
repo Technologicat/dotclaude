@@ -7,6 +7,16 @@ description: How releases are cut in this fleet — git tag format (varies by pr
 
 **Check the tag format first.** It varies by project — some use `vX.Y.Z` (pylu), others bare `X.Y.Z` (mcpyrate). Run `git tag --list` and match what's already there. Guessing wrong creates a tag that CI won't fire on.
 
+**Make it an annotated tag**, with the GitHub release title as its message:
+
+```bash
+git tag -a v2.4.0 -m 'unpythonic 2.4.0 — "Tis but a scratch"'
+```
+
+Fleet-wide, and the reason is forward-looking rather than current: **only annotated tags can be GPG-signed**, so signing release tags — the natural next step after SHA-pinning actions and least-privilege workflow tokens — needs them. Retrofitting would mean replacing tags that are already published, which is the awkward case. Annotated tags also carry their own message, tagger and date, independent of the commit, so `git tag -n` lists the release names.
+
+Existing tags are mixed: the ones made by hand (command line, later Magit, which annotates by default) are annotated; some agent-made ones are lightweight. Do not go back and convert a published tag. Re-pushing it re-fires the tag workflow, PyPI rejects the duplicate version, and a cosmetic inconsistency becomes a red release run.
+
 **Publishing is CI-driven.** GitHub Actions publishes to PyPI on tag push, via trusted publishing (OIDC — no API tokens). There is no manual `twine upload` step. Tag, push, create the GitHub release.
 
 **The `publish` job lives inside `.github/workflows/ci.yml`, not in a workflow of its own.** It is a job named `publish`, gated on an `if:` over `github.ref` and taking the built dist from `build-dist` as an artifact. Listing workflow *filenames* therefore suggests the fleet has no publishing at all — a wrong conclusion that is easy to reach and alarming when reached. Grep for `publish:` or `id-token` instead.
