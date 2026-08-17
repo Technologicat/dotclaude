@@ -75,6 +75,21 @@ Bump the version to `X.Y.Z-dev` in source, and add the next changelog stub — "
 
 Do this immediately after tagging, rather than at the start of the next release: it means the next bugfix already has somewhere to write its changelog entry, which is what keeps entries getting written while the context is fresh instead of reconstructed from `git log` months later.
 
+## Dropping a Python version: two releases, not one
+
+When a Python version reaches end of life, the floor rises in a *separate, later* release than
+whatever else is in flight. Ship the current work with the old floor intact, then drop the floor on
+its own afterwards.
+
+The point is to give users a version they can upgrade to without also having to upgrade their
+interpreter. Bundling the two means anyone stuck on the old Python cannot take the fix at all, which
+is precisely the population most likely to be stuck on old infrastructure generally.
+
+Live case: **Python 3.10 reaches EOL on 2026-10-31.** The three AST users (`mcpyrate`, `unpythonic`,
+`pyan`) are getting Python 3.15 support now, and each keeps `>=3.10` through that release. The
+floor moves to 3.11 in a following release, after the EOL date. 3.15 final is expected around the
+same time, so expect the two to be adjacent — resist the temptation to merge them.
+
 ## Changelogs
 
 Entry wording, scope, and the "is this even user-visible?" test are in the `changelog` skill. The release-time touchpoints are the two above: retitle the in-progress section before tagging, open a fresh stub after.
