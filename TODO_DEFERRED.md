@@ -329,3 +329,41 @@ Two things found while doing it here, both worth checking there:
   config will not be the reason.
 
 Raised 2026-08-17, when the dead host's retries surfaced while building a Python 3.15 venv.
+
+## Test on PyPy wherever it is reasonably possible
+
+Only `mcpyrate` and `unpythonic` currently have a PyPy job. The aim is broader: any project
+that *can* run on PyPy should be tested on it, and on every PyPy-supported language version —
+which today means `pypy-3.11` alone, since stable PyPy 7.3.23 implements Python 3.11 only.
+(7.3.19 was the last to also ship 3.10; a 3.12 exists solely as a `nightly`, `stable=False`.)
+
+Adding PyPy is cheaper than it used to be. The workflows that carried a step rewriting
+`pypy-3.11` into PDM's `pypy@3.11` needed it only to name an interpreter for PDM to download;
+now that CI points PDM at the interpreter `setup-python` already provides, a PyPy entry is
+just another matrix row.
+
+**Candidates, in the order worth attempting:**
+
+- **`chandra`** — deps are `simpleeval`, `argcomplete`, `chardet`, `colorama`, all pure
+  Python, and `requires-python` is `>=3.11`, so PyPy 3.11 fits exactly. The cleanest case.
+- **`arxiv-api-search`** — deps `requests`, `feedparser`, `bibtexparser`, all pure Python.
+  Obsolete as a project, but it is the minimal reference for the current setup, so if PyPy
+  becomes fleet standard the reference should demonstrate it.
+- **`pyan`** — one dependency (`jinja2`), so it *looks* like the easiest, and is probably the
+  riskiest. **Check `symtable` on PyPy before anything else**: pyan builds its scope table
+  from `symtable.symtable()`, which on CPython is backed by the compiler's own symbol table.
+  PyPy has a different compiler, so both availability and exact behaviour want verifying, and
+  the anonymous-scope names are precisely the sort of thing that differs — CPython renamed
+  them between 3.14 and 3.15 (`lambda` → `<lambda>`), which is what broke pyan on 3.15. If
+  PyPy spells them differently again, `normalize_symtable_scope_name` in `pyan/anutils.py` is
+  the one place that needs to learn about it.
+
+**Not reasonably possible, and worth recording so nobody re-derives it:**
+
+- **`pylu`, `pydgq`, `python-wlsqm`** — Cython extensions built through meson-python with
+  `--no-build-isolation`, and wheels through cibuildwheel. PyPy would mean cpyext (slow by
+  construction), `pp*` wheel identifiers, and a numpy build for PyPy. That is a project in
+  itself, not a matrix row.
+- **`raven`** — torch, spaCy, DearPyGui, chromadb, scikit-learn. Categorically out.
+
+Raised 2026-08-17, after the fleet-wide CI change above made PyPy rows nearly free.
