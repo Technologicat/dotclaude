@@ -115,7 +115,7 @@ and its previous GitHub release, and match what's there. Two live examples:
 
 ```markdown
 **2.2.0** (12 May 2026) — *"Hail Eris"* edition:     unpythonic, mcpyrate
-## 0.2.0 — 2026-06-16                                chandra (ISO date, ## heading)
+## 0.3.0 — First light — 2026-08-18                  chandra (## heading, unquoted title, ISO date last)
 ```
 
 and on GitHub, `mcpyrate 4.2.0 — "X marks the spot"` (project name prefixed) versus

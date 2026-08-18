@@ -14,6 +14,16 @@ Dependabot, supply-chain hardening, and PyPI trusted-publisher setup. Lint
 *configuration* lives here because it's a dev-setup concern first and a CI
 concern second; `ci-setup` cross-references back.
 
+**The working reference is `chandra`.** For a new pure-Python project, read its
+`pyproject.toml`, `.github/workflows/` and `.gitignore` alongside this skill —
+it carries the whole shape, publishing and coverage included, in a form that has
+actually run. Prefer it over any frozen example, including a previous one of
+ours: a project nobody changes has nothing forcing its config to stay current,
+and `arxiv-api-search` had drifted (a stale badge, a missing `build-dist` job)
+while still being cited here as the reference. What this skill is for is the
+*why* behind chandra's choices, and the cases chandra does not cover — Cython
+and meson-python most of all, where `pylu` is the smallest live example.
+
 ---
 
 ## Pure Python (PDM)
@@ -336,7 +346,7 @@ system it uses:
   and uv-based legacy setups typically gitignore `uv.lock` too — remove both
   lines when converting).
 
-**Dual-use (library + CLI)** projects — pyan3, arxiv-api-search — count as
+**Dual-use (library + CLI)** projects — pyan3, chandra — count as
 apps for lockfile purposes. The library-consumer case is unaffected by the
 presence of a committed lockfile: consumers never see it, their resolver
 works from the `pyproject.toml` declared deps. The CLI/contributor side

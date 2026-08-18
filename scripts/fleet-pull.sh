@@ -68,7 +68,6 @@ PROJECTS=(
     "unpythonic             unpythonic"
     "raven                  raven"
     "chandra                chandra"
-    "arxiv-api-search       arxiv-api-search"
     "substrate-independent  substrate-independent"
 )
 

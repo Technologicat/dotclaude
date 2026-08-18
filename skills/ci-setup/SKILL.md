@@ -9,6 +9,16 @@ Reference for CI/coverage setup across projects.
 
 Sibling skill: `project-setup` covers the build system and linter config.
 
+**Copy from `chandra` for pure Python, `pylu` for Cython/meson-python.** Both are
+live, so their workflows are exercised on every change; chandra's `ci.yml` and
+`coverage.yml` carry the full shape including the tag-gated `publish` job and the
+Codecov upload. Read the real file next to this skill rather than reconstructing
+one from the snippets here — the snippets explain *why*, and go stale faster than
+the workflows do. (Don't reach for a deprecated project as the example: a frozen
+one has nothing forcing it to stay current. `arxiv-api-search` filled this role
+until 2026-08-18 and had drifted — stale badge, no `build-dist` job — while still
+being cited for it.)
+
 ## How does CI install dependencies?
 
 There are three patterns in the fleet, and picking the right one is the first decision.
