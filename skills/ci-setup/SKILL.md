@@ -128,6 +128,7 @@ plus a drift test parked behind some *other* module's `importorskip`.
 ### GitHub Actions — Test matrix (`.github/workflows/ci.yml`)
 
 - **Trigger:** push + PR to the repo's **default branch**, and workflow_dispatch. That branch is not the same across the fleet — see "Default branch: `master` or `main`" below
+- **`name: CI`**, in the file `ci.yml`, and the coverage workflow is `name: Coverage` in `coverage.yml`. Fleet-wide, no exceptions — the name is what `gh run list --json name` selects on, and CLAUDE.md requires selecting the run *by workflow name* before tagging a release. Every inaccuracy in a name is therefore a trip hazard on the check that keeps a red run from burning a version number. Do not name it after a subset of what it does: these workflows lint, test, build and publish, so `Tests` is wrong, and `Python package` (the GitHub starter-workflow default) says nothing at all. Both were live in the fleet until 2026-08-18. Note the *badges* key on the filename, not the name — `img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml` — so renaming `name:` is free, while renaming the file needs the README updated with it
 - **Matrix:** all supported Python versions, `fail-fast: false`
 - **Steps:** checkout → setup-python → install deps → ruff lint → pytest
 - Use `actions/checkout` and `actions/setup-python` — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
