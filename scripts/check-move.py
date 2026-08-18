@@ -90,7 +90,8 @@ def main() -> int:
     if before.returncode:
         print(f"cannot read {args.file} at {args.rev}: {before.stderr.strip()}", file=sys.stderr)
         return 2
-    after = open(args.file, encoding="utf-8").read()
+    with open(args.file, encoding="utf-8") as f:
+        after = f.read()
 
     self_names = set(filter(None, args.renamed_to_self.split(","))) or set(args.functions)
 
