@@ -29,6 +29,23 @@ General rules that apply across all my projects, on top of the Zen of Python.
 - **Declare public APIs with `__all__`.** Every module that exposes public symbols should have an `__all__` list (PEP 8). When adding a new public function or class, add it to `__all__`; when creating a new module, include `__all__` from the start. Corollary: `from submodule import *` (with `# noqa: F403`) is the standard way to re-export a submodule's public API in `__init__.py`.
   - **`__all__` ordering mirrors the file.** List names in roughly the same order the implementations appear in the source — the reader should know what ordering to expect. Minor helpers (e.g. `iscurried`) may be grouped under the concept they belong to (`curry`).
   - **Line breaks in `__all__` are load-bearing.** Use them to visually group related names — they signal thematic clusters to the reader.
+- **Attributes, properties, and the getters behind them.** Three contracts, and the first is the default:
+  - **No logic, read/write → a bare attribute.** Not a property, and certainly not a getter/setter pair.
+  - **Needs logic → a property.**
+  - **Read-only → a property with a getter only.**
+
+  **Pre-emptive getters and setters are an antipattern in Python**, because the language removes the reason
+  other languages have them: a bare attribute can be *upgraded* to a property the day it starts needing
+  logic, or is redesigned as read-only, without touching a single call site. Writing the accessor first buys
+  nothing and costs every reader the question of what it is hiding.
+
+  **When a property does exist, its getter is private** — `_get_x`, bound as `x = property(fget=_get_x, ...)`.
+  A public `get_x` beside a public `x` is two spellings of one idea, and the API should show only the one
+  callers are meant to use. A single leading underscore, not two: double invokes name mangling and breaks the
+  property's own reference to it.
+  - Private does not mean undocumented. The getter keeps its docstring — the explanation belongs where the
+    code is — while the `doc=` on the property is what a caller reads, and should stand on its own rather
+    than pointing at the getter.
 - **`maybe_` prefix for maybe-things.** Names of variables, function parameters, return values, classes, or functions whose semantics are "X-or-not-X" get a `maybe_` prefix — most commonly `Optional[T]` / `T | None` bindings (`maybe_regex`, `maybe_user`), but the same idea covers anything where the maybe-nature is part of the contract (a function that *maybe* returns a result, a class that *maybe* holds something). Reads naturally at every use site and warns a reader who hasn't checked the docstring or type hint. Python has no use-site enforcement of `Optional`, so the name is the warning. Don't apply mechanically to every `Optional`-typed parameter where the name already conveys the role; apply when the maybe-ness is the surprising or load-bearing part of the contract.
 - **Repurposing natural English syntax as program syntax.** The definite article does in code what it does in speech. Two applications of the trick — siblings, doing different jobs, so don't reason from one to the other:
   - **The `the` name prefix** names the *instance* when the bare noun names the *category*. In code that manipulates syntactic things generically — AST nodes, callables, bodies, expressions — `body` reads as *some* body, while `thebody` is *the one we are handling right here*. It also rescues names that are reserved words: `thelambda` exists because `lambda` cannot. Hence `thelambda`, `thecallable`, `thebody`, `thecall`, `theexpr`, `thelet` throughout `mcpyrate` and `unpythonic.syntax`. Use it where that instance-vs-category tension is real (macro and AST work, mostly); on ordinary variables it's just noise.
