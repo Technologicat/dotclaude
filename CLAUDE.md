@@ -41,8 +41,8 @@ General rules that apply across all my projects, on top of the Zen of Python.
 
   **When a property does exist, the accessors behind it are private** — `_get_x` and `_set_x`, bound as
   `x = property(fget=_get_x, fset=_set_x, doc=...)`. A public `get_x` beside a public `x` is two spellings of
-  one idea, and the API should show only the one callers are meant to use. A single leading underscore, not
-  two: double invokes name mangling and breaks the property's own reference to it.
+  one idea, and the API should show only the one callers are meant to use. One leading underscore, which is
+  the convention for "not part of the API"; two would additionally name-mangle, which buys nothing here.
   - Private does not mean undocumented. The accessors keep their docstrings — the explanation belongs where
     the code is — while the `doc=` on the property is what a caller reads, and should stand on its own rather
     than pointing at the getter.
@@ -194,6 +194,8 @@ Optional intro paragraph if the project wants one.
 
 ## Short section title for the item
 
+*Cluster: <theme or ?> · Cost: <S|M|L|mechanical|?> · Gate: <what blocks it, or none> · Filed: YYYY-MM-DD · See also: <optional>*
+
 Body paragraph(s) describing what was noticed and where.
 
 Optional final line: Discovered during X (YYYY-MM-DD).
@@ -202,6 +204,7 @@ Optional final line: Discovered during X (YYYY-MM-DD).
 Rules:
 - Title: `# Deferred TODOs`.
 - One `##` heading per item — short and descriptive. **No item codes** (`D1`, `D2`, ...) — git log is the history, item codes just rot.
+- **Every item carries the metadata line**, directly under its heading. Estimate from what you already know — `?` is a fine answer for any field, and going off to measure one defeats the point of deferring. It is what makes the backlog sortable instead of a pile: `Cluster` is what a dehydration pass groups by, `Cost` and `Gate` are what a release triage reads.
 - Items are **removed** when done; no "Done" archive section. Git is authoritative for completed work.
 - Blank line before each `##`.
 
