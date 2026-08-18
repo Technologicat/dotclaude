@@ -336,11 +336,14 @@ Both are optional: Claude Code ignores a missing `@import`, and nothing else rea
 
 Runtime state (`projects/`, `sessions/`, `memory/`, caches) is machine-local by design and is *not* synced — auto-memory accumulates per machine.
 
-Put `em` on PATH. The repo holds the only copy, so symlink it rather than copying — otherwise the two drift and you're editing the wrong one:
+Put `em` and `api-inventory` on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
 
 ```bash
 ln -s ~/.claude/scripts/em ~/.local/bin/em
+ln -s ~/.claude/scripts/api-inventory.py ~/.local/bin/api-inventory
 ```
+
+The symlink drops the extension because that is the name `CLAUDE.md` and the `code-exploration` skill invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
 
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
