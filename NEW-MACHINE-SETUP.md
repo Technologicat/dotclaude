@@ -15,7 +15,12 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # shellcheck: linter for the bash scripts in ~/.claude/scripts/. Bash fails quietly - an unquoted
 #          expansion or a typo'd variable produces a wrong result rather than an error - so a linter
 #          catches things a test run does not.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck
+# tesseract-ocr: reads text out of a screenshot, for live GUI testing. An agent checking one status
+#          line - "Will pick: /some/path" - can crop it and OCR it instead of reading the whole
+#          screenshot, which costs a couple of thousand tokens against about fifty. Treat it as a fast
+#          check rather than as ground truth: small text on a dark theme misreads often enough that a
+#          surprising answer is a reason to look at the image, not to believe the OCR.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr
 
 # Python tooling
 sudo apt install python3-pip pipx
