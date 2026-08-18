@@ -306,6 +306,19 @@ Copy `~/.spacemacs.d/dictionaries_enwiktionary/` from old machine (Matthias Buch
 
 Copy `~/.fonts/` from old machine. Run `fc-cache -fv` after.
 
+#### Microsoft core fonts
+
+For reading `.docx` and `.pptx` written by other people — Arial, Times New Roman, Courier New, Verdana, Georgia and the rest of the web core set:
+
+```bash
+sudo apt install ttf-mscorefonts-installer   # multiverse; downloads from SourceForge, EULA prompt
+fc-cache -fv
+```
+
+Interactive (the EULA is a debconf dialog), and it fetches the archives at install time rather than shipping them.
+
+Ubuntu ships metric-compatible substitutes by default — `fonts-liberation` (Times, Arial, Courier), `fonts-crosextra-carlito` (Calibri), `fonts-crosextra-caladea` (Cambria) — and fontconfig maps the MS names onto them automatically. Layout and line breaks therefore come out right without this package; the glyph shapes don't. Check with `fc-list | grep -i arial`: hits under `truetype/msttcorefonts/` mean the real thing is installed, no hits mean substitution is doing the work.
+
 ## Claude Code
 
 `~/.claude/` is a git repo (`Technologicat/dotclaude`), so the config comes down with a clone rather than a copy:
