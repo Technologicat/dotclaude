@@ -197,6 +197,12 @@ Two guards on "fix it now":
 
 **A regression test written after the fix must be checked against the code without it.** `git stash push <the-fixed-file>`, run the test, confirm it fails *with the symptom that was reported*, then `git stash pop`. Thirty seconds, and it is the only thing separating a test that pins the bug from one that would have passed all along — which is worse than no test, because it will be trusted. The failure mode is quiet: a test written while the fix is in front of you tends to assert what the fixed code does, which is not the same as asserting what was wrong. (Live case: a file dialog offering a lone subfolder instead of the folder being browsed. The test looked right; only stashing the fix proved it reproduced `…/the_only_album` rather than the parent.)
 
+**The same check applies to a test of behaviour that was never broken, and there the usual failure is the fixture.** Changing a rule and pinning the new one: revert the rule, run the test, and confirm it fails. When it passes under *both* rules, the fixture is too small for them to disagree — and the test is asserting nothing, while looking exactly like one that is.
+
+The shape is always a coincidence that collapses the difference. A listing with one row, where "move to row 1" is out of range and does nothing, so it agrees with "stay at row 0". A filtered set where "hold the old index, clamped" happens to land on the first match. A query matching only one of the two entries the rule is about. Each looked like a fair test and each passed against the code it was written to reject.
+
+So the first question about a fixture is not "does this exercise the feature" but **"could this fixture tell the two behaviours apart?"** — and the cheapest answer is to run it against the old one. (Three in one session, 2026-08-18, every one caught by that check and none by reading the test.)
+
 When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `changelog` skill, and it's fleet-wide.
 
 ### File format
