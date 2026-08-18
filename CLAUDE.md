@@ -144,6 +144,22 @@ means it needs a new one, not that it can ride in the transcript.
 The failure this prevents: a session that ends with a good verbal summary and no artifact, so the next
 session re-derives the same decisions — usually differently, and without knowing it is re-deriving them.
 
+**Which decisions are at risk is predictable, so check for them rather than trying to remember them.** A
+decision that produced a diff is largely self-recording: the commit message carries the reasoning, and
+writing that message is itself the prompt to think about it. A decision that produced *no* diff — a
+direction agreed and not yet built, an alternative considered and rejected, a constraint on work still to
+come — leaves nothing behind and nothing to remind you it exists.
+
+So the handover question is not "did I write everything down", which cannot be answered, but **"what did we
+settle today that left no diff?"** That list is short, and each item on it either belongs in a file or was
+never a decision. Rejected alternatives are the most valuable and the most often lost: without them the
+next session re-opens a settled question, and the record of *why not* is exactly what a commit message never
+gets to hold.
+
+Cheap way to check: grep the target document for a phrase from each decision. If it is not there, it is not
+recorded. (Live case 2026-08-18: three UX decisions were missing from a brief updated the same afternoon —
+the two that had produced commits were present, and the one that was pure conversation was not.)
+
 ### When to compact, and when to just keep going
 
 Remaining context is not by itself a reason to stop. Compact when one of two things is true:
