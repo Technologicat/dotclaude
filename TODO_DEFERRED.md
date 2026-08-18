@@ -23,31 +23,39 @@ paths and `~/.claude`).
 
 Noticed while adding dotclaude to the fleet (2026-08-03).
 
-## Python 3.15: three unreleased minors, and a cleanup once it goes final
+## Python 3.15: a cleanup pass once it goes final
 
-The support pass itself is **done as of 2026-08-18**, on every project that can take it. The AST
-users shipped it (`pyan` 2.7.0, `mcpyrate` 4.3.0, `unpythonic` 2.4.0, briefs archived in each
-repo); pylu, pydgq, chandra and arxiv-api-search followed with CI matrices, wheel targets,
-classifiers and coverage jobs. What is left is the tail.
+**The support pass is done and released, 2026-08-18.** Every project that can take 3.15 has it,
+and everything that ships to PyPI has shipped:
 
-**Three minors are staged but not cut.** pylu 1.1.0, pydgq 1.1.0 and chandra 0.3.0 each have an
-open in-progress changelog section whose only entry is 3.15 support, and a `.dev0` version to
-match. They can go out whenever — nothing is waiting on them, and nothing else is queued behind
-them. (Not patch releases: a newly supported language version is a feature. That rule now lives
-in the `release` skill.)
+| release | what it was |
+|---|---|
+| `pyan` 2.7.0 *Triangulation* | `DictComp.value` now optional; `symtable` renamed its anonymous scopes |
+| `mcpyrate` 4.3.0 *Weigh anchor* | could not import at all — loader-protocol signature |
+| `unpythonic` 2.4.0 *'Tis but a scratch* | macros unchanged; the work was property-checking tests |
+| `pylu` 1.1.0, `pydgq` 1.1.0 | CI matrix + `cp315-*` wheels, no source changes |
+| `chandra` 0.3.0 *First light* | CI matrix + coverage, no source changes |
 
-**python-wlsqm is blocked on SciPy**, which has no `cp315` wheel and is a *build* dependency there
-(`cimport scipy.linalg.cython_lapack`). Tracked in wlsqm's own `TODO_DEFERRED.md`, with the
-one-command check that will say when it clears; expect that some weeks after 3.15 final.
+arxiv-api-search got 3.15 in CI but is not released (retired; see `CLAUDE.md`). Briefs are archived
+at `briefs/done/python-3.15-support.md` in each of the three AST-user repos.
 
-**When 3.15 goes final, one cleanup pass across the fleet:**
+**python-wlsqm is the one project still without it**, blocked on SciPy, which has no `cp315` wheel
+and is a *build* dependency there (`cimport scipy.linalg.cython_lapack`). Tracked in wlsqm's own
+`TODO_DEFERRED.md`, with the one-command check that will say when it clears; expect that some weeks
+after 3.15 final.
+
+**What remains is a cleanup pass, gated on 3.15 going final:**
 
 - Drop `allow-prereleases: true` from every `setup-python` step that has it — it is a no-op by
   then, but it is also a lie about the version's status. Currently in pylu, pydgq, chandra,
-  arxiv-api-search, mcpyrate, unpythonic and pyan, in both `ci.yml`/`tests.yml` and `coverage.yml`.
+  arxiv-api-search, mcpyrate, unpythonic and pyan, in both `ci.yml` and `coverage.yml`.
 - Move the macOS/Windows `include:` entries from 3.14 to 3.15 (they deliberately track the newest
   *stable* version, so they lag while a version is at rc).
 - Do wlsqm, if SciPy has caught up by then.
+
+All three prerequisites are other people's release schedules — CPython 3.15 final, a ruff that can
+parse PEP 798 (the item below), and SciPy's `cp315` wheels. Nothing here is actionable before those
+land, so this is a wait rather than a queue.
 
 Two questions this pass raised, both since resolved, recorded so they are not re-asked:
 
