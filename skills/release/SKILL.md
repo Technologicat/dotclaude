@@ -39,6 +39,16 @@ Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI re
 
 becomes `2.2.1` if only fixes landed, `2.3.0` if features did, or `3.0.0` on a breaking change. Renumber the heading to match reality; don't inherit the guess.
 
+**Support for a new Python version is a feature — so it makes the release a minor one**, even
+when the diff is a CI matrix entry and a classifier. What the user gets is a version of the
+interpreter they can now run the project on, which is exactly the kind of thing they upgrade to
+get; the size of the diff says nothing about that. The mirror case is already covered below:
+*dropping* a version is a breaking change and gets a release of its own.
+
+The failure this prevents is a project quietly shipping 3.15 support as `1.0.2`, where nobody
+scanning the version history can see when it arrived — and where anyone pinning `~=1.0.1`
+silently never receives it.
+
 **Then close the section with version, date and — for a feature release — a title:**
 
 ```markdown

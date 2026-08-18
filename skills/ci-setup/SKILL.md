@@ -209,7 +209,7 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
 
 - **Trigger:** push to the default branch only (not PRs)
 - **Single Python version** — no matrix needed. **Use the newest the project supports**, i.e. the top of its CI matrix. That's the version most users will be on, and it's where new-syntax code paths actually run
-  - **It needs bumping when the matrix grows**, and nothing will remind you — Dependabot updates actions, not this. Left alone, a `coverage.yml` freezes at whatever was newest the day it was written, which is exactly what happened across the fleet: the coverage jobs currently sit at 3.10, 3.12, 3.13 and 3.14 with no rationale behind any of them. When you add a Python version to the CI matrix, bump the coverage job in the same commit
+  - **It needs bumping when the matrix grows**, and nothing will remind you — Dependabot updates actions, not this. Left alone, a `coverage.yml` freezes at whatever was newest the day it was written, which is exactly what happened across the fleet: before the 3.15 pass the coverage jobs sat at 3.10, 3.12, 3.13 and 3.14 with no rationale behind any of them. When you add a Python version to the CI matrix, bump the coverage job in the same commit — see the checklist below
   - **Version-gated code will look under-covered**, unavoidably. A single-version coverage run cannot exercise `if sys.version_info < (3, 12):` fallback branches. That's an artifact of the choice, not a defect to chase — running coverage across the whole matrix to fix it would cost far more than the signal is worth
 - Uses `codecov/codecov-action`, SHA-pinned like every action
 - Upload step:
@@ -219,6 +219,45 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
     with:
       token: ${{ secrets.CODECOV_TOKEN }}
   ```
+
+### Adding a Python version to the matrix — the whole checklist
+
+The matrix entry is the visible part, and on its own it is never the whole edit. Everything here
+belongs in the same commit; each item was missed at least once during the 3.15 pass.
+
+- **The matrix itself.** Add it to the Linux list. Leave the macOS/Windows `include:` entries on
+  the newest *stable* version while the new one is at rc — those are spot-checks, and pinning them
+  to a prerelease buys nothing. Say "newest stable" in the surrounding comment so the next reader
+  knows it is deliberate.
+- **`allow-prereleases: true`** on the `setup-python` step, for as long as the version is at
+  alpha/beta/rc. The manifest marks prereleases unstable, so a bare `"3.15"` resolves to *nothing*
+  without it — the job fails at setup, before any of your code runs. It is a no-op for versions
+  that have a stable release, so it can stay until the cleanup pass.
+- **The coverage job**, per the section above.
+- **cibuildwheel's build list** (`[tool.cibuildwheel] build`, or `CIBW_BUILD`), for projects that
+  publish wheels. Nothing adds a target implicitly — cibuildwheel builds what the selector names.
+  Its *prerelease* gate is a separate thing and lags a version behind: as of 4.2.0 only `cp316*`
+  needs `enable = ["cpython-prerelease"]`, so `cp315-*` is an ordinary target. Check
+  `selector.py` in the installed cibuildwheel rather than guessing which version the gate is on.
+- **The `Programming Language :: Python :: X.Y` classifier**, where the project lists them.
+- **The `requires-python` cap**, where the project declares one. A capped project actively excludes
+  the new version until the cap moves, and the exclusion propagates to everything depending on it.
+- **The changelog entry and the version number.** It is a feature, so the release is a *minor* one —
+  see "Settle the version number first" in the `release` skill for why the size of the diff is not
+  the measure.
+
+**Then check the third-party wheels before promising any of it.** A pure-Python project is
+usually fine, but anything with a compiled dependency is gated on that dependency shipping wheels
+for the new interpreter, and the two do not arrive together. One command settles it:
+
+```bash
+pip install --only-binary=:all: --dry-run scipy   # under the new interpreter
+```
+
+This is what blocked wlsqm on 3.15 while its two sibling Cython projects sailed through: it
+`cimport`s `scipy.linalg.cython_lapack`, making SciPy a *build* dependency, and SciPy had no
+`cp315` wheel. Note the asymmetry that makes this worth checking per project rather than per
+fleet — NumPy had shipped `cp315` on day one, so pylu and pydgq were never blocked at all.
 
 ### Cython projects have no coverage job, deliberately
 

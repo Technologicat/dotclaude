@@ -23,109 +23,57 @@ paths and `~/.claude`).
 
 Noticed while adding dotclaude to the fleet (2026-08-03).
 
-## Coverage jobs are running stale Python versions
+## Python 3.15: three unreleased minors, and a cleanup once it goes final
 
-Now that the `ci-setup` skill says the coverage job should run the *newest* Python the
-project supports, the fleet can be measured against it — and most of it is behind. Each
-`coverage.yml` froze at whatever was newest the day it was written, and nothing ever
-prompted a bump.
+The support pass itself is **done as of 2026-08-18**, on every project that can take it. The AST
+users shipped it (`pyan` 2.7.0, `mcpyrate` 4.3.0, `unpythonic` 2.4.0, briefs archived in each
+repo); pylu, pydgq, chandra and arxiv-api-search followed with CI matrices, wheel targets,
+classifiers and coverage jobs. What is left is the tail.
 
-Checked 2026-07-14:
+**Three minors are staged but not cut.** pylu 1.1.0, pydgq 1.1.0 and chandra 0.3.0 each have an
+open in-progress changelog section whose only entry is 3.15 support, and a `.dev0` version to
+match. They can go out whenever — nothing is waiting on them, and nothing else is queued behind
+them. (Not patch releases: a newly supported language version is a feature. That rule now lives
+in the `release` skill.)
 
-| project | coverage runs | CI matrix tops out at |
-|---|---|---|
-| mcpyrate | **3.10** | 3.14 |
-| unpythonic | **3.12** | 3.14 |
-| chandra | **3.13** | 3.14 |
-| pyan | 3.14 | 3.14 — correct |
-| raven | 3.12 | 3.12 — correct (its cap) |
+**python-wlsqm is blocked on SciPy**, which has no `cp315` wheel and is a *build* dependency there
+(`cimport scipy.linalg.cython_lapack`). Tracked in wlsqm's own `TODO_DEFERRED.md`, with the
+one-command check that will say when it clears; expect that some weeks after 3.15 final.
 
-Mechanical fix: bump the three, in one commit each. Worth doing not because the coverage
-number changes much, but because a coverage job on 3.10 never exercises the newest-syntax
-paths — which is where new code lives.
+**When 3.15 goes final, one cleanup pass across the fleet:**
 
-(pylu, pydgq and python-wlsqm have no coverage job at all. That is deliberate — Cython
-coverage needs a line-traced build and coverage.py's plugin, judged not worth it during
-their modernization — and is now recorded in the `ci-setup` skill so nobody "fixes" it.)
+- Drop `allow-prereleases: true` from every `setup-python` step that has it — it is a no-op by
+  then, but it is also a lie about the version's status. Currently in pylu, pydgq, chandra,
+  arxiv-api-search, mcpyrate, unpythonic and pyan, in both `ci.yml`/`tests.yml` and `coverage.yml`.
+- Move the macOS/Windows `include:` entries from 3.14 to 3.15 (they deliberately track the newest
+  *stable* version, so they lag while a version is at rc).
+- Do wlsqm, if SciPy has caught up by then.
 
-Discovered during the `~/.claude` cloudification (2026-07-14).
+Two questions this pass raised, both since resolved, recorded so they are not re-asked:
 
-## Python 3.15 support pass across the fleet
+- **Which fleet projects declare an unbounded `requires-python` floor?** pylu, pydgq, wlsqm,
+  chandra and arxiv-api-search. None of them can hit the resolver trap that made this worth
+  asking — that trap needs a *capped* dependency, and the only capped packages in the fleet are
+  mcpyrate and unpythonic, whose only fleet-internal dependents (unpythonic itself, and Raven at
+  `<3.13`) are capped already.
+- **Does cibuildwheel need `enable = ["cpython-prerelease"]` for cp315?** No. As of 4.2.0 its gate
+  matches `cp316*` — the gate tracks the *next* version, not the newest one.
 
-CPython 3.15 reached rc1 by 2026-08, and cibuildwheel 4.2.0 now builds `cp315-*` wheels by
-default. The three Cython projects are insulated for the moment — pylu, pydgq and
-python-wlsqm all pin `build = "cp311-* cp312-* cp313-* cp314-*"`, so nothing changed under
-them when the bump landed — but that pin is also what has to be edited to opt in, in each
-of the three plus the CI matrices everywhere else.
+Raised while merging the cibuildwheel 4.2.0 Dependabot PRs (2026-08-14).
 
-Not a one-line edit, which is why it is here rather than done: adding a version means
-testing on it, and the three AST users — `unpythonic`, `mcpyrate` and `pyan` — track
-CPython's AST and bytecode closely enough that a new minor is real work rather than a
-matrix entry. Expect those three to set the pace for the rest.
+## Sweep the ruff excludes once ruff supports PEP 798
 
-**Status, 2026-08-17: the three AST users are done and released.** All capped `<3.16`, with 3.15 in
-their CI matrices (which needs `allow-prereleases: true` while 3.15 is at rc).
+ruff 0.15.10 cannot *parse* comprehension unpacking — it reports `invalid-syntax: Iterable
+unpacking cannot be used in a comprehension` — and a syntax error cannot be suppressed with
+`# noqa`. So every 3.15 test fixture needs its directory excluded in `[tool.ruff]`. `pyan` has
+`tests/test_code_315` excluded with a comment saying to retry dropping it; `mcpyrate` and
+`unpythonic` will need the same when their 3.15 fixtures land.
 
-- **`pyan` 2.7.0** *"Triangulation"* — two bugs, not the one predicted: `DictComp.value` becoming
-  optional, and `symtable` renaming its anonymous scopes, which broke every module containing a
-  lambda.
-- **`mcpyrate` 4.3.0** *"Weigh anchor"* — it could not import at all on 3.15; the loader-protocol
-  override had the wrong signature. Also now forwards the optimization level and the module name it
-  had been dropping, and rejects lazy macro-imports.
-- **`unpythonic` 2.4.0** *"'Tis but a scratch"* — the macros needed no changes; the work was tests
-  that check the *properties* (`lazify` still lazy, `autocurry` still currying) rather than results.
-
-Each brief is archived at `briefs/done/python-3.15-support.md` in its own repo. The sister pair was
-verified against each other by unpythonic's 3.15 CI job, which resolves `mcpyrate` from PyPI rather
-than a working tree.
-
-**What remains is the fleet follow-on**, and it is the next thing to pick up:
-
-- The `cp315-*` cibuildwheel pins in **pylu**, **pydgq** and **python-wlsqm**, each of which still
-  pins `build = "cp311-* cp312-* cp313-* cp314-*"`.
-- 3.15 in the CI matrices of the projects that do not have it yet — chandra, arxiv-api-search, and
-  the Cython three. Raven is capped `<3.13` and is not in scope.
-- The stale-coverage-Python item above, which touches the same files.
-
-Survey findings from 2026-08-16, both measured on 3.15.0rc1 rather than predicted:
-
-- **`mcpyrate` does not import on 3.15 at all.** Its `source_to_xcode` override has the wrong
-  signature for the new `importlib` `source_to_code` protocol, which gained a positional `fullname`.
-  This blocks everything else in the macro layer, and it is not an AST change — the ASDL diff cannot
-  see it. Importing the package under the new interpreter is the cheap check that finds this class of
-  break, and it should come first, before any grammar analysis.
-- **`pyan` crashes on `{**d for ...}`**, because `analyze_comprehension` visits `DictComp.value`,
-  which is now `None` for the unpacking form.
-
-Cap status, related: of the three AST users only `unpythonic` declares an upper `requires-python`
-bound. `mcpyrate` and `pyan` are both bare `>=3.10`, so both advertise support for the version that
-breaks them. Both need the cap; land it with each project's fix rather than ahead of it, since a cap
-only reaches users through a release and blocks creating the 3.15 venv the work needs.
-(`pyan` is done as of 2026-08-17: capped at `<3.16`, suite green on 3.15, CI covers it.)
-
-**Sweep the ruff excludes once ruff supports PEP 798.** ruff 0.15.10 cannot *parse* comprehension
-unpacking — it reports `invalid-syntax: Iterable unpacking cannot be used in a comprehension` — and
-a syntax error cannot be suppressed with `# noqa`. So every 3.15 test fixture needs its directory
-excluded in `[tool.ruff]`. `pyan` has `tests/test_code_315` excluded with a comment saying to retry
-dropping it; `mcpyrate` and `unpythonic` will need the same when their 3.15 fixtures land. The
-excludes hide real lint from those files while they exist, so they are worth actually removing
+The excludes hide real lint from those files while they exist, so they are worth actually removing
 rather than leaving forever — hence this note, since three inline comments in three repos will not
 prompt anyone to check whether ruff has caught up.
 
-Do it as one pass, and fold in "Coverage jobs are running stale Python versions" above —
-that item is the same edit in the same files, and doing them separately means touching
-every `ci.yml` and `coverage.yml` twice.
-
-**The cap is already declared, and it now binds something, 2026-08-16.** `unpythonic` 2.3.0 on PyPI
-declares `requires-python = "<3.15,>=3.10"`, so it does not merely lag 3.15 — it actively excludes it.
-Anything depending on it inherits that ceiling. This repo's own `pyproject.toml` had to be capped to
-`>=3.10,<3.15` for the resolver to pick 2.3.0 at all: an unbounded `>=3.10` makes the resolver seek a
-version valid for *every* future Python, and it silently fell back to unpythonic 0.14.2.1, which declares
-no `requires-python` and does not run on 3.14. So this pass has to raise the cap in `unpythonic` first,
-then in everything that declares one — including here. Worth checking which other fleet projects declare
-an unbounded floor, since that is the shape that fails quietly rather than loudly.
-
-Raised while merging the cibuildwheel 4.2.0 Dependabot PRs (2026-08-14).
+Split out of the Python 3.15 pass, which is otherwise done (2026-08-18).
 
 ## Evaluate pyan's extra ruff rules for the rest of the fleet
 
