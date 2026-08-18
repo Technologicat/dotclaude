@@ -308,40 +308,33 @@ Two things found while doing it here, both worth checking there:
 
 Raised 2026-08-17, when the dead host's retries surfaced while building a Python 3.15 venv.
 
-## Test on PyPy wherever it is reasonably possible
+## PyPy: done, apart from a version that does not exist yet
 
-Only `mcpyrate` and `unpythonic` currently have a PyPy job. The aim is broader: any project
-that *can* run on PyPy should be tested on it, and on every PyPy-supported language version —
-which today means `pypy-3.11` alone, since stable PyPy 7.3.23 implements Python 3.11 only.
-(7.3.19 was the last to also ship 3.10; a 3.12 exists solely as a `nightly`, `stable=False`.)
+**Resolved 2026-08-18.** Every fleet project that can run on PyPy now has a `pypy-3.11` job:
+`mcpyrate` and `unpythonic` already did, and `chandra` was added (242 tests pass on PyPy
+7.3.23, none skipped — the SD Prompt Reader interop test included, since pillow ships `pp311`
+wheels). Nothing else is a candidate, and the reasons are settled rather than pending:
 
-Adding PyPy is cheaper than it used to be. The workflows that carried a step rewriting
-`pypy-3.11` into PDM's `pypy@3.11` needed it only to name an interpreter for PDM to download;
-now that CI points PDM at the interpreter `setup-python` already provides, a PyPy entry is
-just another matrix row.
-
-**Candidates, in the order worth attempting:**
-
-- **`chandra`** — deps are `simpleeval`, `argcomplete`, `chardet`, `colorama`, all pure
-  Python, and `requires-python` is `>=3.11`, so PyPy 3.11 fits exactly. The cleanest case.
-- **`arxiv-api-search`** — deps `requests`, `feedparser`, `bibtexparser`, all pure Python.
-  Obsolete as a project, but it is the minimal reference for the current setup, so if PyPy
-  becomes fleet standard the reference should demonstrate it.
-- **`pyan`** — one dependency (`jinja2`), so it *looks* like the easiest, and is probably the
-  riskiest. **Check `symtable` on PyPy before anything else**: pyan builds its scope table
-  from `symtable.symtable()`, which on CPython is backed by the compiler's own symbol table.
-  PyPy has a different compiler, so both availability and exact behaviour want verifying, and
-  the anonymous-scope names are precisely the sort of thing that differs — CPython renamed
-  them between 3.14 and 3.15 (`lambda` → `<lambda>`), which is what broke pyan on 3.15. If
-  PyPy spells them differently again, `normalize_symtable_scope_name` in `pyan/anutils.py` is
-  the one place that needs to learn about it.
-
-**Not reasonably possible, and worth recording so nobody re-derives it:**
-
-- **`pylu`, `pydgq`, `python-wlsqm`** — Cython extensions built through meson-python with
-  `--no-build-isolation`, and wheels through cibuildwheel. PyPy would mean cpyext (slow by
-  construction), `pp*` wheel identifiers, and a numpy build for PyPy. That is a project in
-  itself, not a matrix row.
+- **`pyan` cannot run on PyPy at all.** Not "the scope names differ" — **PyPy does not
+  implement `_symtable`**, so the stdlib `symtable` module raises `ModuleNotFoundError` on
+  import, and `import pyan` dies at `pyan/analyzer.py:9`. Verified directly on PyPy 7.3.23.
+  pyan's entire scope analysis is built on `symtable.symtable()`, so there is no small fix:
+  it would need its own scope resolution written against the AST. Do not re-open this on the
+  strength of "PyPy is quite compatible these days" — check `_symtable` first, in one command.
+- **`pylu`, `pydgq`, `python-wlsqm`** — Cython extensions through meson-python, wheels through
+  cibuildwheel. PyPy would mean cpyext (slow by construction), `pp*` wheel identifiers, and a
+  numpy build for PyPy. A project in itself, not a matrix row.
 - **`raven`** — torch, spaCy, DearPyGui, chromadb, scikit-learn. Categorically out.
+- **`arxiv-api-search`** — retired from the fleet (see `CLAUDE.md`). It was a candidate only
+  because it used to be the setup reference, and chandra holds that role now.
 
-Raised 2026-08-17, after the fleet-wide CI change above made PyPy rows nearly free.
+`pypy-3.11` is the whole matrix, not a lagging entry: stable PyPy 7.3.23 implements Python
+3.11 and nothing else (7.3.19 was the last to also ship 3.10; 3.12 exists solely as a
+`nightly`, `stable=False`). **The one thing left is to add a row when PyPy ships a newer
+language version** — at which point the aim stated originally applies again, that a project
+supporting PyPy should support every language version PyPy supports.
+
+Local PyPy for checking this by hand is in `NEW-MACHINE-SETUP.md`; there is no apt route,
+deadsnakes being CPython-only and Ubuntu universe carrying a 2022 build.
+
+Raised 2026-08-17; resolved 2026-08-18.
