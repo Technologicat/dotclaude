@@ -181,17 +181,31 @@ def test_ordinary_import_is_not_flagged(tmp_path):
     assert not api.uses_macros(ast.parse("from somewhere import thing\n"))
 
 
-def test_import_mode_refuses_a_macro_using_package(tmp_path):
+def test_marker_must_come_first_to_count(tmp_path):
+    """The expander only reads the marker in first position, so neither do we.
+
+    `from m import thing, macros` imports a name that happens to be spelled `macros`;
+    it needs no expander and must not be treated as macro-using.
+    """
+    assert not api.uses_macros(ast.parse("from somewhere import thing, macros\n"))
+
+
+def test_a_partial_inventory_does_not_report_success(tmp_path):
+    """A module that cannot be imported has to change the exit code.
+
+    Skipped modules leave stdout looking exactly like a complete run, so the status is
+    the only channel that can carry "there is more than this".
+    """
     package = tmp_path / "pkg"
     package.mkdir()
-    (package / "__init__.py").write_text("", encoding="utf-8")
-    (package / "m.py").write_text("from somewhere import macros, thing\n__all__ = []\n", encoding="utf-8")
+    (package / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
+    (package / "m.py").write_text("import nonexistent_dependency\n__all__ = []\n", encoding="utf-8")
 
     result = subprocess.run([sys.executable, str(SCRIPT), "--import", str(package)],
                             capture_output=True, text=True)
-    assert result.returncode == 1
-    assert "macro-using modules" in result.stderr
-    assert "macropython -C" in result.stderr
+    assert result.returncode == 2
+    assert "incomplete" in result.stderr
+    assert "pkg.m" in result.stderr
 
 
 # --------------------------------------------------------------------------------
@@ -232,6 +246,27 @@ def test_static_and_import_modes_agree():
         return pairs
 
     static = symbols(package, [])
-    imported = symbols("unpythonic", ["--import", "--macros"])
+    imported = symbols("unpythonic", ["--import"])
     assert static, "static mode found nothing — the fixture is wrong, not the tool"
     assert static == imported
+
+
+def test_import_mode_leaves_the_target_alone(tmp_path):
+    """Reading a package must not write into it.
+
+    Bytecode compiled for an introspection run goes to our own cache directory. The
+    failure this pins is not untidiness: a `.pyc` compiled without the expander makes
+    every macro-using module in the package fail to import afterwards, so a tool that
+    left one behind would break the very package it was asked to describe.
+    """
+    package = tmp_path / "pkg"
+    package.mkdir()
+    (package / "__init__.py").write_text("__all__ = ['x']\nx = 1\n", encoding="utf-8")
+    (package / "m.py").write_text("__all__ = ['y']\ny = 2\n", encoding="utf-8")
+
+    result = subprocess.run([sys.executable, str(SCRIPT), "--names-only", "--import", str(package)],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert "y" in result.stdout, "the fixture did not get imported at all"
+    # A fresh package has no bytecode yet, so anything appearing here was written by us.
+    assert not list(package.rglob("__pycache__")), "wrote bytecode into the target package"

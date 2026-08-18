@@ -27,22 +27,23 @@ Two modes, because the fleet contains cases that defeat each one:
 Static mode is the default because it always works; the report names any module
 whose `__all__` it could not resolve, so you know when to re-run with --import.
 
-**Macro-using packages make --import actively dangerous, hence a guard.** A module
-carrying an mcpyrate `from ... import macros, ...` cannot be imported under regular
-Python — the name does not exist, so it raises ImportError. The damage is that CPython
-writes the `.pyc` when it *compiles*, before the failing import body ever runs, so the
-cache is left holding unexpanded bytecode with an mtime that says it is current. The
-next `macropython` run then trusts that cache, skips expansion, and fails with the very
-same ImportError — now under the tool that was supposed to fix it, which is what makes
-it baffling rather than merely annoying. So
---import refuses when it finds such a module, and --macros enables the expander first
-(`import mcpyrate.activate`) for the case where you do want to introspect one. To
-repair a tree this already happened to: `macropython -C <dir>`.
+**Macro-using packages need no flag.** A module carrying an mcpyrate
+`from ... import macros, ...` (or `dialects`) cannot be imported under regular Python —
+the marker is consumed by the expander rather than being a real name — so --import
+reads the target's source first and enables the expander when it finds one.
+
+Bytecode for an introspected tree goes to a private cache directory instead of the
+package's own `__pycache__`. Two things follow, and both matter: the answer does not
+depend on what compiled that tree earlier, and introspecting a package never modifies
+it. A `.pyc` compiled without the expander holds unexpanded bytecode whose mtime says
+it is current, which is enough to make every macro-using module in the package fail to
+import — and reading a package is no reason to leave that behind in someone's tree.
 """
 
 import argparse
 import ast
 import importlib
+import importlib.util
 import inspect
 import os
 import pkgutil
@@ -289,18 +290,53 @@ def uses_macros(tree: ast.Module) -> bool:
     `macros` binds macros for this module, and `dialects` enables the whole-module
     transformer. Each is a *marker* the expander consumes rather than a real name, so
     under regular Python both raise `ImportError: cannot import name ...`.
+
+    The marker must be the *first* imported name for the expander to see it, which is
+    why this defers to `mcpyrate.coreutils.ismacroimport` when mcpyrate is available:
+    accepting the marker in any position would flag `from m import thing, macros` as
+    macro-using, when the expander does not treat it as such and the module imports
+    perfectly well under regular Python.
     """
+    try:
+        from mcpyrate.coreutils import ismacroimport
+    except ImportError:
+        def ismacroimport(statement, magicname="macros"):
+            return bool(statement.names) and statement.names[0].name == magicname
+
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
-            if any(alias.name in ("macros", "dialects") for alias in node.names):
+            if ismacroimport(node) or ismacroimport(node, magicname="dialects"):
                 return True
     return False
+
+
+def source_root_of(target: str) -> Optional[str]:
+    """Where `target`'s source lives, for a filesystem path or a dotted module name.
+
+    Returns None when a dotted name cannot be located, or resolves to something with no
+    source on disk (a namespace or extension package). Locating a name asks the finders
+    for its spec rather than importing it — the same route `macropython` takes — so the
+    module body never runs. A dotted name below the top level does import its parent,
+    which is unavoidable: only the parent knows where its children live.
+    """
+    if os.path.exists(target):
+        return target
+    try:
+        spec = importlib.util.find_spec(target)
+    except (ImportError, ValueError, AttributeError, TypeError):
+        return None
+    if spec is None:
+        return None
+    if spec.submodule_search_locations:
+        return next(iter(spec.submodule_search_locations), None)
+    return spec.origin if spec.origin and spec.origin.endswith(".py") else None
 
 
 def find_macro_modules(target: str, include_tests: bool) -> List[str]:
     """Source files under `target` that import macros. Parses only; imports nothing."""
     found = []
-    if not os.path.exists(target):
+    target = source_root_of(target)
+    if target is None:
         return found
     for path in walk_sources(target, include_tests):
         with open(path, "r", encoding="utf-8") as f:
@@ -318,11 +354,15 @@ def is_test_module(name: str) -> bool:
     return any(part in TEST_DIRS for part in name.split("."))
 
 
-def submodules_of(package, include_tests: bool) -> List[str]:
+def submodules_of(package, include_tests: bool, skipped: List[str]) -> List[str]:
     """Every importable submodule name under `package`, imported so it is introspectable.
 
     An empty `__init__.py` (`raven.common` has one) means nothing lands in
     `sys.modules` on import of the package alone, so walk and import first.
+
+    Names that could not be imported are appended to `skipped`, so the caller can tell
+    a complete inventory from a partial one. A skipped *package* takes its whole subtree
+    with it, so one entry here can account for many missing modules.
     """
     prefix = package.__name__ + "."
     if hasattr(package, "__path__"):
@@ -332,6 +372,7 @@ def submodules_of(package, include_tests: bool) -> List[str]:
             try:
                 importlib.import_module(info.name)
             except Exception as exc:  # a broken optional dep should not sink the report
+                skipped.append(info.name)
                 print(f"api-inventory: skipping {info.name}: {exc}", file=sys.stderr)
     # Enumerate from sys.modules rather than by testing `dir(package)` entries for
     # module-ness: an object imported from a submodule can share the submodule's name
@@ -398,9 +439,6 @@ def main() -> int:
     parser.add_argument("--import", dest="do_import", action="store_true",
                         help="import and introspect instead of parsing source; "
                              "needed for a computed __all__")
-    parser.add_argument("--macros", action="store_true",
-                        help="with --import: enable mcpyrate before importing, so macro-using "
-                             "modules can be imported at all (and without corrupting their bytecode cache)")
     parser.add_argument("--names-only", action="store_true",
                         help="omit docstring summaries")
     parser.add_argument("--include-tests", action="store_true",
@@ -409,41 +447,48 @@ def main() -> int:
                         help="truncate summaries to N characters (default: 100)")
     args = parser.parse_args()
 
-    unresolved, private = [], 0
+    unresolved, private, skipped = [], 0, []
 
-    if args.do_import and args.macros:
-        # Must precede any import of the target: the expander works through an import hook,
-        # so a module already imported without it stays unexpanded (and has a bad .pyc).
-        try:
-            import mcpyrate.activate  # noqa: F401 -- imported for its import-hook side effect
-        except ImportError:
-            print("api-inventory: --macros needs mcpyrate, which is not importable here. "
-                  "Run from a venv that has it.", file=sys.stderr)
-            return 1
+    if args.do_import:
+        # Read the bytecode we are about to produce, not whatever compiled this tree
+        # before us. A `.pyc` built without the expander makes every macro-using module
+        # in the package fail to import, and its mtime claims to be current, so the
+        # import machinery has no reason to look again. Redirecting the cache sidesteps
+        # both halves — the stale bytecode is not consulted, and ours is not written
+        # into someone else's package directory.
+        #
+        # The directory persists between runs because rebuilding it is not cheap: for
+        # `unpythonic`, a cold cache costs about nine seconds against under one warm.
+        sys.pycache_prefix = os.path.join(
+            os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache"),
+            "api-inventory")
+
+        # Must precede any import of the target: the expander works through an import
+        # hook, so a module already imported without it stays unexpanded.
+        #
+        # The source is what gets read, rather than the state of the target's
+        # `__pycache__`. Source answers the question actually being asked — does this
+        # need the expander — where the cache would only say what compiled the tree
+        # last time, which the redirect above has already made irrelevant. The cache
+        # also cannot answer it for a module that merely *lives* in a macro package
+        # without using macros itself.
+        if any(find_macro_modules(target, args.include_tests) for target in args.targets):
+            try:
+                import mcpyrate.activate  # noqa: F401 -- imported for its import-hook side effect
+            except ImportError:
+                print("api-inventory: this target has macro-using modules, which need mcpyrate "
+                      "to import. It is not importable here — run from a venv that has it, or "
+                      "drop --import to read the source instead.", file=sys.stderr)
+                return 1
 
     for target in args.targets:
         if args.do_import:
-            # Importing a macro-using module under regular Python fails with
-            # "cannot import name 'macros'" *and* writes an unexpanded .pyc whose mtime
-            # says it is current — so the next macropython run silently uses the bad
-            # bytecode. Refuse rather than cause that; static mode never has the problem.
-            if not args.macros:
-                macro_modules = find_macro_modules(target, args.include_tests)
-                if macro_modules:
-                    listed = "\n  ".join(macro_modules[:5])
-                    more = f"\n  ... and {len(macro_modules) - 5} more" if len(macro_modules) > 5 else ""
-                    print(f"api-inventory: {target} contains macro-using modules:\n  {listed}{more}\n"
-                          f"Importing those under regular Python corrupts their bytecode cache. "
-                          f"Re-run with --macros, or drop --import to read the source instead. "
-                          f"If a run already happened, clear the caches with `macropython -C {target}`.",
-                          file=sys.stderr)
-                    return 1
             try:
                 package = import_package(target)
             except Exception as exc:
                 print(f"api-inventory: cannot import {target}: {exc}", file=sys.stderr)
                 return 1
-            for name in submodules_of(package, args.include_tests):
+            for name in submodules_of(package, args.include_tests, skipped):
                 maybe_entries = introspect(sys.modules[name])
                 if maybe_entries is None:
                     private += 1
@@ -473,6 +518,16 @@ def main() -> int:
                      f"  Re-run with --import to include these.")
     if notes:
         print("\n" + "\n".join(f"note: {n}" for n in notes), file=sys.stderr)
+
+    # A partial inventory must not report success. The output of a run that skipped
+    # something is formatted exactly like a complete one, so a caller reading stdout
+    # cannot tell the difference — and a missing name reads as "this does not exist",
+    # which is the answer the tool exists to prevent.
+    if skipped:
+        listed = ", ".join(skipped)
+        print(f"api-inventory: inventory is incomplete — could not import: {listed}",
+              file=sys.stderr)
+        return 2
     return 0
 
 

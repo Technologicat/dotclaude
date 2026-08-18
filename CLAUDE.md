@@ -291,7 +291,7 @@ Grep is the wrong instrument for this and will keep failing at it, because it ne
 api-inventory raven/raven/common/          # every __all__ entry, with signature and summary
 api-inventory --names-only raven/raven/    # whole project, names only
 api-inventory --import somepkg             # import and introspect, for a computed __all__
-api-inventory --import --macros unpythonic # ...and for a macro-using package, which --import alone refuses
+api-inventory --import unpythonic          # ...macro-using packages too; the expander turns itself on
 ```
 
 Details, and the call-graph half of the same job, are in the `code-exploration` skill.
@@ -586,8 +586,10 @@ this without anyone intending to import macro code. Prefer reading the source (`
 default and imports nothing). Where an import is genuinely needed, enable the expander first with
 `import mcpyrate.activate`, before the target package is imported.
 
-`api-inventory` encodes both halves: `--import` alone scans the target for the markers first and **refuses**
-if it finds any, naming the offending modules; adding `--macros` activates the expander and proceeds.
+`api-inventory` handles both halves without being told to: `--import` reads the target's source for the
+markers and activates the expander when it finds any, and it compiles into its own cache directory rather
+than the target's `__pycache__` — so a tree someone else compiled without the expander neither changes the
+answer nor gets modified by the read.
 
 Live case: an `api-inventory --import` run over `unpythonic` on 2026-08-16, cleaned with `macropython -C`.
 

@@ -36,9 +36,13 @@ heavy or side-effecting imports. Two flags change that:
 
 - `--import` — import and introspect instead. Needed when `__all__` is computed in a way a static
   read cannot follow; the report says which modules those are, rather than under-reporting silently.
-- `--macros` — with `--import`, enable `mcpyrate` first. **`--import` refuses outright** on a
-  package containing macro-using modules, because importing those under regular Python corrupts
-  their bytecode cache. See the `macro-enabled-python` skill; repair is `macropython -C <dir>`.
+Macro-using packages need no flag and no preparation: `--import` reads the target's source first
+and enables `mcpyrate` when it finds a macro- or dialect-import. Bytecode for the run goes to its
+own cache directory, so the answer does not depend on what compiled the package earlier, and the
+package itself is never written to. See the `macro-enabled-python` skill for the expander.
+
+An inventory that could not import everything **exits 2** and names what it skipped. Check the
+status when scripting against it: the missing names look exactly like names that do not exist.
 
 Test directories and the `00_stuff` / `00_old` scratch areas are skipped (`--include-tests` keeps
 tests). Both modes agree on the same package, which the test suite checks.
