@@ -42,7 +42,9 @@ dev = [
 ]
 # The fleet dev baseline minus `build` and `coverage`: nothing here is packaged, and there is
 # no coverage job — the scripts are small enough that the test suite's own pass/fail is the
-# signal. `shellcheck` is a system package rather than a Python one, so CI installs it with apt.
+# signal. `shellcheck` is a system package rather than a Python one, so it is absent here: CI uses
+# the copy preinstalled on the runner image, and locally it comes from the apt line in
+# NEW-MACHINE-SETUP.md.
 #
 # `pdm add` rewrites this table and drops every comment in it. Edit by hand, or check
 # `git diff pyproject.toml` afterwards and restore what went missing.
