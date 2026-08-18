@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,12 +24,22 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
+          # 3.15 is at rc1, which the setup-python manifest marks unstable, so a bare
+          # "3.15" resolves to nothing without this. Versions that have a stable release
+          # are unaffected — a prerelease is only used when no stable one satisfies the
+          # request. Becomes a no-op once 3.15 final ships.
+          allow-prereleases: true
 
       - name: Install PDM
         run: pip install pdm
 
       - name: Install dependencies
-        run: pdm install
+        run: |
+          # Point PDM at the interpreter `setup-python` already installed, rather than
+          # letting it fetch a second one — its index has no prerelease build, so asking
+          # for a version like "3.15" fails while that very interpreter is on PATH.
+          pdm use -f "$(python -c 'import sys; print(sys.executable)')"
+          pdm install
 
       - name: Lint Python with ruff
         run: pdm run ruff check . --ignore SIM103

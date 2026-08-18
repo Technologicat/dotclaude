@@ -3,10 +3,10 @@ name = "dotclaude"
 version = "0.1.0"
 description = "The Claude Code configuration itself: CLAUDE.md, the skills, the scripts."
 # Bounded above on purpose. An unbounded `>=3.10` forces the resolver to pick versions valid for
-# *every* future Python, so a dep that caps itself (unpythonic declares `<3.15,>=3.10`) gets skipped
+# *every* future Python, so a dep that caps itself (unpythonic declares `<3.16,>=3.10`) gets skipped
 # in favour of something ancient enough to declare no constraint — here, unpythonic 0.14.2.1, which
-# does not run on 3.14 at all. Raise the cap when the fleet moves past 3.14.
-requires-python = ">=3.10,<3.15"
+# does not run on 3.14 at all. Mirror the cap of the deps; raise it when they raise theirs.
+requires-python = ">=3.10,<3.16"
 dependencies = []
 
 [tool.pdm]
