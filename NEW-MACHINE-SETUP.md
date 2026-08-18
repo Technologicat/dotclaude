@@ -35,6 +35,25 @@ sudo apt install python3.13 python3.13-venv python3.13-dev
 sudo apt install python3.14 python3.14-venv python3.14-dev
 sudo apt install python3.15 python3.15-venv python3.15-dev
 
+# PyPy — deadsnakes does NOT package it, and Ubuntu universe ships only 7.3.9 (Python 3.9),
+# which is four years stale. Use the official portable tarball. Current stable is 7.3.23,
+# which implements Python 3.11 and nothing else; 3.12 exists only as a nightly.
+# Pick the current URL from https://downloads.python.org/pypy/versions.json
+curl -LO https://downloads.python.org/pypy/pypy3.11-v7.3.23-linux64.tar.gz
+# Upstream publishes no checksum for this release — pypy.org/checksums.html has no 7.3.23
+# entry and there is no .sha256 sidecar — so the only assurance is HTTPS from the official
+# host. What we can do is make both machines agree; this is what the file hashed to here:
+#   sha256  2bcab031cef7a37fe1930b51f7091e78a191ae63f80eca00a265d3378c3a645b
+sha256sum pypy3.11-v7.3.23-linux64.tar.gz
+tar -xzf pypy3.11-v7.3.23-linux64.tar.gz -C ~/.local/bin/   # matches how 7.3.9 was installed
+~/.local/bin/pypy3.11-v7.3.23-linux64/bin/pypy3 -m ensurepip
+ln -sfn pypy3.11-v7.3.23-linux64/bin/pypy3.11 ~/.local/bin/pypy3.11
+ln -sfn pypy3.11-v7.3.23-linux64/bin/pypy3.11 ~/.local/bin/pypy   # bare `pypy` = current stable
+# `pypy -m venv <dir>` then works like any other interpreter. Needed for the PyPy CI jobs in
+# mcpyrate and unpythonic, and for checking whether a project can take PyPy at all — note that
+# PyPy has no `_symtable`, so anything importing the stdlib `symtable` cannot run on it (this
+# is what rules out pyan).
+
 # SSH
 sudo apt install openssh-server
 sudo systemctl enable --now ssh
