@@ -39,12 +39,12 @@ General rules that apply across all my projects, on top of the Zen of Python.
   logic, or is redesigned as read-only, without touching a single call site. Writing the accessor first buys
   nothing and costs every reader the question of what it is hiding.
 
-  **When a property does exist, its getter is private** — `_get_x`, bound as `x = property(fget=_get_x, ...)`.
-  A public `get_x` beside a public `x` is two spellings of one idea, and the API should show only the one
-  callers are meant to use. A single leading underscore, not two: double invokes name mangling and breaks the
-  property's own reference to it.
-  - Private does not mean undocumented. The getter keeps its docstring — the explanation belongs where the
-    code is — while the `doc=` on the property is what a caller reads, and should stand on its own rather
+  **When a property does exist, the accessors behind it are private** — `_get_x` and `_set_x`, bound as
+  `x = property(fget=_get_x, fset=_set_x, doc=...)`. A public `get_x` beside a public `x` is two spellings of
+  one idea, and the API should show only the one callers are meant to use. A single leading underscore, not
+  two: double invokes name mangling and breaks the property's own reference to it.
+  - Private does not mean undocumented. The accessors keep their docstrings — the explanation belongs where
+    the code is — while the `doc=` on the property is what a caller reads, and should stand on its own rather
     than pointing at the getter.
 - **`maybe_` prefix for maybe-things.** Names of variables, function parameters, return values, classes, or functions whose semantics are "X-or-not-X" get a `maybe_` prefix — most commonly `Optional[T]` / `T | None` bindings (`maybe_regex`, `maybe_user`), but the same idea covers anything where the maybe-nature is part of the contract (a function that *maybe* returns a result, a class that *maybe* holds something). Reads naturally at every use site and warns a reader who hasn't checked the docstring or type hint. Python has no use-site enforcement of `Optional`, so the name is the warning. Don't apply mechanically to every `Optional`-typed parameter where the name already conveys the role; apply when the maybe-ness is the surprising or load-bearing part of the contract.
 - **Repurposing natural English syntax as program syntax.** The definite article does in code what it does in speech. Two applications of the trick — siblings, doing different jobs, so don't reason from one to the other:
