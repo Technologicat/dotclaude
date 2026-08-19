@@ -1,5 +1,23 @@
 # Deferred TODOs
 
+## Survey `unpythonic.syntax`'s docstrings against the "what belongs in a docstring" list
+
+*Cluster: docstring-rules · Cost: S · Gate: none · Filed: 2026-08-19*
+
+The docstring rule in `CLAUDE.md` now says a docstring holds arguments, return value and which cases are
+handled, and that a second paragraph outside those three is a comment in the wrong place. That list was
+written from ordinary function docstrings.
+
+**`unpythonic`, and `unpythonic.syntax` especially, carries docstring material that plainly belongs to the
+caller and fits none of the three** (Juha, 2026-08-19). What that material *is* has not been characterized —
+naming it is the work here, and guessing at it in advance is how the list would acquire a category nobody
+needed.
+
+So: read those docstrings, name the categories actually present, and either widen the list or state why the
+macro layer is a genuine exception. Until then the three-item list should be read as provisional rather than
+as exhaustive, and a docstring that seems to need something else is evidence for this item rather than a
+violation.
+
 ## Add `~/.spacemacs.d` to the fleet, after the personal machine's reinstall
 
 `Technologicat/spacemacs.d` is checked out at `~/.spacemacs.d` on both machines and
