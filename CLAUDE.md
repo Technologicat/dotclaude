@@ -432,14 +432,28 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
   - **Wait for CI in the background, always.** A foreground wait blocks the console for the entire run — several minutes in which Juha can neither ask anything nor redirect the work, for a result that arrives on its own anyway. Use `run_in_background: true`; the watcher re-invokes on completion. There is no case where blocking the console is the better trade.
   - **"The newest run for this commit" is not "CI is green".** These repos have more than one workflow — `Tests` and `Coverage` at least, plus Dependabot's `Graph Update` runs, which are *separate runs on the same SHA*. So `gh run list -L 1` can hand back a green Dependabot run while the real one is still going, and a wait-loop that exits on "some run for this SHA finished" exits early because `Coverage` finishes well before `Tests`. **Select the run by workflow name, and check the jobs, not just the run:**
 
+    **The workflow is called `CI`** — normalized across the fleet on 2026-08-18, so anything you remember
+    calling it before that is stale. Check rather than trust this line: `gh run list -L 5 --json name`.
+
     ```bash
     # wait for the workflow that matters, by name — not for whatever ran last
+    WF=CI
+    # A name that matches nothing yields null forever and the loop never ends, which looks exactly like a
+    # slow CI run. Fail on it instead, before waiting on it.
+    gh run list -L 12 --repo OWNER/REPO --json name --jq '[.[].name]|unique' | grep -q "\"$WF\"" \
+      || { echo "no workflow named $WF; the names are:"; gh run list -L 12 --repo OWNER/REPO --json name --jq '[.[].name]|unique'; exit 1; }
     until [ "$(gh run list -L 12 --repo OWNER/REPO --json headSha,status,name \
-                 --jq '[.[] | select(.headSha[0:7]=="'"$SHA"'" and .name=="Tests")][0].status')" = completed ]
+                 --jq '[.[] | select(.headSha[0:7]=="'"$SHA"'" and .name=="'"$WF"'")][0].status')" = completed ]
     do sleep 30; done
     gh run view "$ID" --repo OWNER/REPO --json conclusion,jobs \
       --jq '"RUN: \(.conclusion)", (.jobs[] | "  \(.conclusion)  \(.name)")'
     ```
+
+    The guard is the part that was missing. Live case 2026-08-19: this recipe still said `Tests`, the run
+    was called `CI`, and the watcher polled a `null` status every thirty seconds until it was killed by
+    hand — while the run it was waiting for had gone green in the usual few minutes. Same shape as the
+    `pgrep -f` loop above: a condition that cannot become true is indistinguishable from one that has not
+    become true yet.
 
     **The failure this prevents is expensive and one-directional.** On an ordinary push a false green costs nothing — the next command notices. Before *tagging a release* it costs either a force-moved public tag or a burnt version number, because a tag run that fails never publishes. Live case: during the pyan 2.7.0 release the first watcher reported success while the matrix was still running, because `Coverage` had finished. Tagging on that would have been a coin flip.
 
