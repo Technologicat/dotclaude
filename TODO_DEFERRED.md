@@ -9,18 +9,26 @@ prose, two passes against 35 Wikipedia-derived patterns. Juha wants one matched 
 (2026-08-19). **Off the shelf it would fight the house style**: it flags em dashes, which `CLAUDE.md`
 mandates, and it targets "not X, it's Y", which the measurement below says is not this model's habit at all.
 
-What a fork should be tuned against, measured 2026-08-19 over whole trees, per 1000 words:
+What a fork should be tuned against, measured 2026-08-19, `rather than` per 1000 words:
 
-| marker | mcpyrate | unpythonic | raven/common/gui | raven .../fdialog.py |
-|---|---|---|---|---|
-| `rather than` | 0.04 | 0.03 | 2.05 | 3.78 |
-| `instead of` | 0.24 | 0.54 | 0.31 | 0.52 |
-| "not X, it's Y" | 0.07 | 0.05 | 0.00 | 0.06 |
+| hand-written | | agent era | |
+|---|---|---|---|
+| pylu | 0.00 | `raven/common/gui` | 1.50 |
+| wlsqm | 0.02 | `raven/.../fdialog.py` | 3.78 |
+| pydgq | 0.03 | | |
+| extrafeathers | 0.03 | | |
+| randomthought | 0.06 | | |
+| unpythonic | 0.08 | | |
+| mcpyrate | 0.11 | | |
 
-The first two columns are hand-written over years; the last two are agent-era. So `instead of` is ordinary
-English at an ordinary rate, "not X, it's Y" is a human's occasional construction here (Juha is not a GPT
-user, and Qwen's contributions to Raven are small and much rewritten since — see `AUTHORS.md`), and
-essentially the entire anomaly is **one phrase at sixty to a hundred times the hand-written rate**.
+Seven hand-written corpora, some 590k words across numerics, FEM, ML and macro tooling, land between 0.00
+and 0.11. Agent-written code sits fourteen to seventy-five times higher.
+
+Two markers that look like the same problem and are not. `instead of` runs at 0.12–0.54 on *both* sides, so
+it is ordinary English. "not X, it's Y" runs 0.05–0.07 hand-written and 0.00–0.06 agent-era — a human's
+occasional construction here, and Juha's read is that it belongs to GPT and Qwen (he uses neither for prose;
+Qwen's contributions to Raven are small and much rewritten since — see `AUTHORS.md`). So essentially the
+entire anomaly is **one phrase**, and a general list of AI tells would bury it among thirty-four others.
 
 `scripts/check-prose.py` already does the measuring half, and deliberately does not rewrite. The fork would
 be the rewriting half, and the same finding should discipline it: a general list of AI tells buries a

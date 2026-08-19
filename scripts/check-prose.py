@@ -16,16 +16,24 @@ Why a *density* and not a per-line verdict, which is what a linter would normall
 - **A density cannot be laundered one line at a time**, so there is nothing to suppress and no second-order
   problem of a suppression comment becoming reflexive.
 
-The baseline is Juha's own long-standing prose, measured 2026-08-19 (`--baseline` re-measures it):
+The baseline is Juha's own long-standing prose, measured 2026-08-19 over seven corpora and some 590k words
+of `.py` / `.pyx` / `.pxd` / `.md` (`--baseline` re-measures any of it):
 
-    mcpyrate    0.82 per 1000 words     hand-written over years
-    unpythonic  1.46 per 1000 words     hand-written over years
-    raven/common/gui            3.43    agent era
-    raven .../fdialog.py        5.68    agent era, mostly one day
+    pylu             0.00 per 1000 words     hand-written, Cython numerics
+    wlsqm            0.02
+    pydgq            0.03
+    extrafeathers    0.03                    hand-written, FEM
+    randomthought    0.06                    hand-written, ML
+    unpythonic       0.08                    hand-written, language tooling
+    mcpyrate         0.11
 
-Hence a target of 1.5, which is the looser of the two hand-written numbers. Over it, cut the weakest until
-it fits. Under it, nothing to do — a low density is not a licence to add one, it just means this diff is not
-where the problem is.
+    raven/common/gui        1.50             agent era
+    raven .../fdialog.py    3.78             agent era, mostly one day
+
+Seven corpora spanning numerics, FEM, ML and macro tooling land between 0.00 and 0.11; agent-written code
+sits fourteen to seventy-five times higher. Hence a target of 0.5 — an order of magnitude above the worst
+hand-written number, so an earned one costs nothing and the habit still shows. Over it, cut the weakest
+until it fits. Under it there is nothing to do; a low density is no licence to add one.
 
 Advisory by default: it exits 0 whatever it finds, because the count is an instrument and the judgement
 stays with the person reading. `--strict` exits 1 when over budget, for wiring into a hook.

@@ -348,6 +348,10 @@ Active projects (✓ = has a CLAUDE.md config):
 - **raven** ✓ — constellation of local-first NLP/scientific apps (DPG): `~/Documents/koodit/raven`
 - **chandra** ✓ — tools for working with ComfyUI metadata: `~/Documents/koodit/chandra`. Also the **reference project for the current pure-Python setup** — PDM flow, lint config, CI matrix, coverage + Codecov, and PyPI publishing via trusted publishing. Copy from here when starting a new pure-Python project. (A reference has to be one that is actually exercised: chandra is live, so its config cannot quietly rot the way a frozen example does.)
 
+**Dormant, and meant to be revived** — checked out so they can be read and measured, but not yet modernized, so they do not run on this machine as they stand. Not swept by `fleet-pull.sh`, and not to be treated as active work unless I say so:
+- **extrafeathers** — agility and ease-of-use batteries for the FEniCS FEM solver: `~/Documents/koodit/extrafeathers`
+- **randomthought** — an AI-based ROM accelerator for 2D PDEs: `~/Documents/koodit/randomthought`
+
 Retired: **arxiv-api-search** (arXiv boolean search → BibTeX export) was absorbed into Raven as `raven-arxiv-search`, which has since moved on independently. Its repository still exists but is no longer part of the maintained fleet — not in the project list above, not swept by `fleet-pull.sh`, and no longer the setup reference, a role chandra now holds and can keep current. Its README points readers at Raven's arXiv tools.
 
 **It is deliberately not archived on GitHub, and that is not an oversight to fix in passing.** Archiving this one alone would make it the odd repo out among several other dead ones that are equally unarchived, so the consistent version of that change is a fleet-wide sweep — a decision of its own, not a tidy-up to bundle into unrelated work. Same reasoning applies to any single dead repo that comes up: leave it, or propose the sweep.
