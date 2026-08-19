@@ -77,6 +77,32 @@ gh auth refresh -h github.com -s workflow  # needed to merge PRs that touch .git
 # TeX Live (full install, ~4 GB download, ~7.5 GB on disk)
 sudo apt install texlive-full
 
+# Zotero reference manager — not in Ubuntu repos. Get the current Linux tarball from
+# https://www.zotero.org/download/ (the direct link is a redirect:
+# https://www.zotero.org/download/client/dl?channel=release&platform=linux-x86_64).
+# Upstream publishes no checksum, so the only assurance is HTTPS from the official host;
+# what we can do is make both machines agree. Zotero 10.0 hashed to this here:
+#   sha256  fad10b2bee0b6178248a0ffb7b4add0bc2b1e71088f47d5549423e1cc80034b8
+tar -xJf ~/Downloads/Zotero-10.0_linux-x86_64.tar.xz -C ~/.local/bin/   # as with PyPy above
+ln -sfn Zotero_linux-x86_64/zotero ~/.local/bin/zotero
+# The extracted directory is named `Zotero_linux-x86_64` with no version in it, and Zotero
+# updates itself in place (it ships Mozilla's `updater`), so the symlink is written once and
+# never revised — a later tarball extracted the same way lands on top of the same directory.
+#
+# Desktop entry: set_launcher_icon rewrites Icon= in zotero.desktop to an absolute path.
+~/.local/bin/Zotero_linux-x86_64/set_launcher_icon
+ln -sfn ~/.local/bin/Zotero_linux-x86_64/zotero.desktop ~/.local/share/applications/zotero.desktop
+# Symlink rather than copy: the Exec= line finds the app directory from the desktop file's own
+# location (%k → realpath → dirname), so a copy would look for `zotero` beside the copy.
+# Upstream notes that some updates need set_launcher_icon re-run.
+# `desktop-file-validate` rejects that Exec= line (unescaped `$` inside quotes — a real spec
+# violation upstream). The launcher works anyway, so leave the file alone; the three errors
+# are not a symptom of anything.
+#
+# First run does the rest of the setup by prompting: it offers the LibreOffice integration
+# (accept), and opens a page for the browser connector (installed into Chromium here). The
+# account is connected afterwards from Settings → Account in the app.
+
 # OpenShot video editor — download from https://www.openshot.org/
 # (not in Ubuntu repos; symlink the AppImage to ~/.local/bin/openshot)
 
