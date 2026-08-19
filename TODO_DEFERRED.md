@@ -1,5 +1,31 @@
 # Deferred TODOs
 
+## Fork `humanizer` and tune it to this fleet's writing
+
+*Cluster: prose · Cost: M · Gate: none · Filed: 2026-08-19 · See also: `scripts/check-prose.py`*
+
+[`blader/humanizer`](https://github.com/blader/humanizer) is a Claude Code skill that rewrites AI-sounding
+prose, two passes against 35 Wikipedia-derived patterns. Juha wants one matched to his own style
+(2026-08-19). **Off the shelf it would fight the house style**: it flags em dashes, which `CLAUDE.md`
+mandates, and it targets "not X, it's Y", which the measurement below says is not this model's habit at all.
+
+What a fork should be tuned against, measured 2026-08-19 over whole trees, per 1000 words:
+
+| marker | mcpyrate | unpythonic | raven/common/gui | raven .../fdialog.py |
+|---|---|---|---|---|
+| `rather than` | 0.04 | 0.03 | 2.05 | 3.78 |
+| `instead of` | 0.24 | 0.54 | 0.31 | 0.52 |
+| "not X, it's Y" | 0.07 | 0.05 | 0.00 | 0.06 |
+
+The first two columns are hand-written over years; the last two are agent-era. So `instead of` is ordinary
+English at an ordinary rate, "not X, it's Y" is a human's occasional construction here (Juha is not a GPT
+user, and Qwen's contributions to Raven are small and much rewritten since — see `AUTHORS.md`), and
+essentially the entire anomaly is **one phrase at sixty to a hundred times the hand-written rate**.
+
+`scripts/check-prose.py` already does the measuring half, and deliberately does not rewrite. The fork would
+be the rewriting half, and the same finding should discipline it: a general list of AI tells buries a
+specific habit that a single number exposes.
+
 ## Survey `unpythonic.syntax`'s docstrings against the "what belongs in a docstring" list
 
 *Cluster: docstring-rules · Cost: S · Gate: none · Filed: 2026-08-19*
