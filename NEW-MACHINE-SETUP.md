@@ -80,11 +80,16 @@ sudo apt install texlive-full
 # OpenShot video editor — download from https://www.openshot.org/
 # (not in Ubuntu repos; symlink the AppImage to ~/.local/bin/openshot)
 
-# GIMP — image editor. Needed to open the art originals a project keeps beside what it
-# ships: Raven's `00_workfiles/` directories hold the .xcf files its icons and character
-# assets were exported from, and those are excluded from the wheel, so they are editable
-# only from a checkout.
-sudo apt install gimp
+# GIMP and Inkscape — image editors, and between them what opens the art originals a
+# project keeps beside what it ships: Raven's `00_workfiles/` directories hold the .xcf and
+# .svg files its icons and character assets were exported from, and those are excluded from
+# the wheel, so they are editable only from a checkout.
+sudo apt install gimp inkscape
+
+# pix — image viewer for a whole folder, side by side. (xviewer, for a single image, ships
+# with Mint Cinnamon and needs no install.) Both are named in ~/.claude/CLAUDE.md as the way
+# an agent hands an image back, so a machine without them cannot follow those instructions.
+sudo apt install pix
 
 # FFmpeg 7 (needed by Raven-server audio encoder; current for Ubuntu 22.04 and 24.04)
 sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
