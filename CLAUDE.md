@@ -436,17 +436,19 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 
     ```bash
     ci-watch                       # the CI run for HEAD, here; run it in the background
-    ci-watch --sha abc1234 --workflow Coverage --repo OWNER/REPO --timeout 3600
+    ci-watch --sha abc1234 --workflow Coverage --repo OWNER/REPO --timeout 1200
     ```
 
     It exits 0 on success, 1 on failure or timeout, 2 when the workflow name matches nothing — and in that
     last case prints the names that do exist. It reports every poll, so silence means it is not running.
 
-    **It is a script rather than a snippet because the snippet went stale and cost an afternoon.** It named
-    the workflow `Tests` for months after the fleet renamed them to `CI` (2026-08-18), and a `select(...)`
-    matching nothing returns null forever — so on 2026-08-19 a watcher polled a condition that could never
-    be satisfied, looking exactly like a slow run, while the real one went green in minutes. Same shape as
-    the `pgrep -f` loop above. A snippet cannot be fixed once; a script can, and gets `shellcheck` besides.
+    **It is a script rather than a snippet because a snippet is invisible to the sweep that would have
+    fixed it.** The workflows were renamed to `CI` on 2026-08-18; this block still said `Tests` the next
+    morning, because renaming workflows means editing `.github/workflows/`, and nothing about that touches
+    a fenced code block in a Markdown file. A `select(...)` matching nothing returns null forever, so the
+    watcher polled a condition that could never be satisfied — indistinguishable from a slow run, and
+    noticed only when Juha asked why it was taking so long. Same shape as the `pgrep -f` loop above. A
+    script has one copy, gets `shellcheck`, and can carry the guard that makes the stale case loud.
 
     **The failure this prevents is expensive and one-directional.** On an ordinary push a false green costs nothing — the next command notices. Before *tagging a release* it costs either a force-moved public tag or a burnt version number, because a tag run that fails never publishes. Live case: during the pyan 2.7.0 release the first watcher reported success while the matrix was still running, because `Coverage` had finished. Tagging on that would have been a coin flip.
 

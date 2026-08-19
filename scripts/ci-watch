@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Wait for a commit's CI run to finish, then report it job by job.
 #
-# Why this exists: the shell for it had grown to a guard, a poll loop and a report step, carried as a
-# snippet in CLAUDE.md and retyped per use. Retyping is how the snippet went stale — it named a workflow
-# `Tests` for months after the fleet renamed them to `CI`, and a `select(...)` that matches nothing returns
-# null forever, so the watcher polled a run that could never satisfy it while the real one went green in
-# minutes. A loop that cannot end is indistinguishable from one that has not ended yet, which is the same
-# hazard as `pgrep -f` matching its own shell.
+# Why this exists: the shell for it had grown to a guard, a poll loop and a report step, and lived as a
+# snippet in CLAUDE.md. The workflows were renamed to `CI` on 2026-08-18 and the snippet still said `Tests`
+# the next morning — renaming workflows means editing `.github/workflows/`, and no sweep over that comes
+# anywhere near a fenced block in a Markdown file. A `select(...)` that matches nothing returns null
+# forever, so the watcher polled a run that could never satisfy it, which is indistinguishable from a slow
+# one. The same hazard as `pgrep -f` matching its own shell.
 #
 # So the three things it guarantees, none of which a retyped snippet did:
 #
@@ -37,7 +37,13 @@ set -uo pipefail
 WORKFLOW=CI
 SHA=""
 REPO=""
-TIMEOUT=1800
+# Ten minutes. Measured 2026-08-19 over the last 20 completed runs in `raven`: `CI` takes 2–4 minutes and
+# `Coverage` 1–2, so this is about 2.5x the worst observed. The headroom is for the queue rather than the
+# run — the clock starts when this is invoked, which can be before a runner picks the job up.
+#
+# Erring long on purpose. Giving up exits 1, which any caller reads as a failed build, so a timeout that
+# trips on a merely slow run manufactures a red that is not there. Waiting too long only delays the news.
+TIMEOUT=600
 POLL=30
 
 while [ $# -gt 0 ]; do
