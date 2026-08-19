@@ -80,6 +80,12 @@ sudo apt install texlive-full
 # OpenShot video editor — download from https://www.openshot.org/
 # (not in Ubuntu repos; symlink the AppImage to ~/.local/bin/openshot)
 
+# GIMP — image editor. Needed to open the art originals a project keeps beside what it
+# ships: Raven's `00_workfiles/` directories hold the .xcf files its icons and character
+# assets were exported from, and those are excluded from the wheel, so they are editable
+# only from a checkout.
+sudo apt install gimp
+
 # FFmpeg 7 (needed by Raven-server audio encoder; current for Ubuntu 22.04 and 24.04)
 sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
 sudo apt update
