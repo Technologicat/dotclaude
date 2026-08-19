@@ -28,7 +28,7 @@ of `.py` / `.pyx` / `.pxd` / `.md` (`--baseline` re-measures any of it):
     mcpyrate         0.11
 
     raven/common/gui        1.50             agent era
-    raven .../fdialog.py    3.78             agent era, mostly one day
+    raven .../fdialog.py    3.78             agent era, about a week on one widget
 
 Seven corpora spanning numerics, FEM, ML and macro tooling land between 0.00 and 0.11; agent-written code
 sits fourteen to seventy-five times higher. Hence a target of 0.5 — an order of magnitude above the worst
