@@ -303,6 +303,8 @@ Discovered during the `~/.claude` cloudification (2026-07-13).
 
 ## Add an internal-reference check to fleet CI
 
+*Cluster: ci · Cost: M · Gate: the copy-vs-shared-checkout-vs-composite-action decision below · Filed: 2026-07-13 · See also: `pyan/tests/test_docs.py`*
+
 Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python only. Nothing checks that
 the *docs* still refer to things that exist. This session found several instances of
 exactly that rot: a docstring in Raven giving a module path that no longer imports
@@ -315,6 +317,21 @@ docs and docstrings exist. Offline and deterministic — no network, so it can b
 blocking without ever going red for reasons unrelated to the commit. That property is
 the whole point; an external link checker on push would fail on rate limits and 403s
 from CI runners, and a CI that cries wolf trains you to ignore it.
+
+**Part of this now exists in pyan, as a reference implementation** —
+`tests/test_docs.py`, added 2026-08-20. It checks the README's hand-maintained table
+of contents against the document's own headings (every heading listed, every entry
+resolving, and in document order), and that anchor links in the prose resolve too. It
+runs under `pytest`, so it needs no workflow change, and it is offline and
+deterministic as this item requires. It found two headings that had been missing from
+pyan's TOC since they were written, which is the failure mode exactly: adding a heading
+prompts nobody to update the list, so the drift is silent until a reader clicks.
+
+Two limits on reusing it as-is. It covers anchors only, not the relative-file-link and
+docstring-path half wanted above. And its heading and TOC parsing assume pyan's README
+format — Juha's note when it was written was that other projects would want this too,
+but that it depends on each README's format, so it is a starting point rather than a
+drop-in.
 
 Design question to settle first: nine repos need this, and nine copies of a script
 will drift. Options are a copy per repo (simple, drifts), a second SHA-pinned checkout
