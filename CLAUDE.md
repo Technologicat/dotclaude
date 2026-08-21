@@ -430,6 +430,18 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 
 **Lint before pushing.** Run what CI lints with (`ruff check .`, and `cython-lint` for a Cython project) before pushing code. It costs a second or two; skipping it costs a CI round-trip on a failure that was visible locally the whole time. A passing local test suite is not a substitute — CI lints as well as tests, and lint is the half that's easy to forget.
 
+**Push at each seam, not at the end of the session.** When a unit of work is finished — committed, tested, written up — push it and start the CI watch *before* opening the next one. Don't batch a day's units into one push while signing off.
+
+Sometimes it's right to hold: work still under review, or a change the next unit may force a rewrite of. But the default is that the previous unit is pushed before the next one starts.
+
+Three failures this prevents, and the first is the expensive one:
+
+- **A red CI arrives while the context that would fix it is gone.** Unit N's failure surfacing halfway through unit N+1 means paging N back in, and if several units are stacked, working out which one broke it. Pushing at the seam means the run finishes while its own context is still loaded.
+- **Two machines.** Juha works from a personal and a work machine. Unpushed commits do not exist on the other one, so a session that ends without pushing silently strands finished work on one box.
+- **The end-of-session push is the one that gets skipped**, because that is exactly when the session is being wound down and the remaining attention is going into the handover.
+
+Note this composes with the docs-only exemption below: push at the seam either way, but only *watch* when the push contains code.
+
 **Check CI after pushing.** If you've pushed any commit during the session, before signing off, run `gh run list -L 1 --branch <branch>` (or `gh run watch` if a run is in flight) to confirm CI is green. If red, investigate and fix in-session — don't leave a next-day surprise for the user. Lint failures, test failures, or platform-specific build breaks should be addressed before the session closes; if a fix isn't trivial, at minimum surface the failure to the user with the workflow URL so they can decide.
   - **Docs-only pushes don't need the CI watch at all.** Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python and nothing else. No Markdown linting, no link checking, no docs build. A commit that touches only Markdown therefore cannot fail it on its own content, so waiting ~3 min to watch it go green tells you nothing. Push and carry on.
   - **"Docs-only" means exactly that: no `.py`, no `.pyx`/`.pxd`, no workflow YAML, no `pyproject.toml`, no lockfile.** A docstring lives in a `.py` file and *is* linted; a workflow edit changes CI itself. Either of those is a code push — watch it.
