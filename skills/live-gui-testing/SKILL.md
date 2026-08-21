@@ -119,11 +119,16 @@ observed pseudo-key codes. That file stays authoritative for the *why*; this sec
 **Synthetic input needs real focus.** GLFW-backed apps ignore the `XSendEvent`-based
 `xdotool key --window <id>`, so driving one means actually activating the window.
 
-## Focus is not the caret
+## Focus is not the caret — DearPyGui lore, not a driving technique
 
-A window can be focused while no widget owns the caret. Met in the wild: `windowactivate --sync` succeeded,
-the window reported focused, and every keystroke went nowhere because the field was merely *focused*, not
-*active*. **Click the target field first, then type.**
+Kept here only because it *presents* as a driving failure. A window can be focused while no widget owns the
+caret: met in the wild with `windowactivate --sync` succeeding, the window reporting focused, and every
+keystroke going nowhere, because the field was merely *focused* and not *active*. **Click the target field
+first, then type.**
+
+Whether your toolkit draws that distinction is its own business — in Raven, `dpg-notes.md` → "Keyboard
+input" → "Focus is not the same as the caret: gate hotkeys on `is_item_active`" is authoritative, and this
+paragraph is only the consequence for someone holding an `xdotool`.
 
 ## Confirming it landed
 
