@@ -22,8 +22,21 @@ They divide by cost, and the cheap half is usually enough:
 | drive the app from inside its own process | **no**, beyond the window mapping | state machines, callbacks, anything below the X layer |
 | synthetic keys and clicks | **yes** | only what genuinely needs the real input path |
 
-**Reach for the top two first.** Most questions are answered without ever holding the keyboard, and the
-third is the only one that can put a stray keystroke into the human's work.
+**Reach for the top two first.** Most questions are answered without ever holding the keyboard.
+
+**And the risk runs the opposite way from the obvious one.** The worry that comes to mind is a synthetic
+keystroke escaping into the human's editor. The common failure is the reverse: **their typing lands in the
+app.** The window took focus when it mapped, they are watching their own words rather than the screen, and
+the rest of the sentence is delivered to whatever the app makes of it — a letter that means *cycle filter*,
+an Enter that sends something.
+
+That corrupts the *test* as surely as it interrupts them. The app is now in a state nobody chose and the log
+has events nobody sent, so **an unexplained state change during a driven run is a stray human keystroke
+until ruled out** — before it is investigated as a bug in the app, or blamed on your own injection. That
+misdiagnosis has happened, in both directions, on the same incident.
+
+It also means a window mapping is never free, even for a check that needs no focus of its own: launching is
+what hands the app the keyboard, and whoever is typing finds out afterwards.
 
 ## Finding the window
 
