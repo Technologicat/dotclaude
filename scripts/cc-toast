@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# cc-toast — put one desktop toast on the screen from Claude Code, replacing the previous one.
+#
+# For announcing that the agent is about to take the keyboard: a window that maps steals focus from
+# whatever the human is typing into, and the terminal message alone only reaches them if this session's
+# window is the one on screen. See "Live GUI testing on a shared desktop" in CLAUDE.md.
+#
+#   cc-toast "taking keyboard focus for a few seconds"
+#   cc-toast --clear      # take it off the screen again
+#
+# Measured on Cinnamon's notification server (GNOME spec 1.2), 2026-08-21, because every one of these is
+# the kind of thing a person would otherwise assume:
+#
+#   - **A critical toast never expires**, and `-t` does not change that — the spec says a critical
+#     notification waits to be seen, and the server obeys. That is the property we want (an announcement
+#     nobody saw is not an announcement) and the reason a dozen of them can pile up over a lunch break,
+#     which is what this script exists to prevent.
+#   - **Dropping to `-u normal` is not the fix**: it expires, but Cinnamon then files it in the systray
+#     notification widget, so the pile moves rather than going away — and the warning gets quieter at the
+#     same time.
+#   - **`-r <id>` replaces in place**, leaving exactly one toast on the screen however many are sent.
+#   - **`-r` with an id the human already dismissed is safe**: the server issues a *new* id and shows the
+#     toast. It cannot swallow the next warning, which is the failure that would matter here, since it
+#     would be silent.
+#
+set -uo pipefail
+
+STATE="${XDG_RUNTIME_DIR:-/tmp}/claude-code-toast.$(id -u).id"  # SC2155: split, so `id -u` can fail loudly
+readonly STATE
+readonly SUMMARY="Claude Code"
+
+close_previous() {
+    [ -s "$STATE" ] || return 0
+    gdbus call --session \
+          --dest org.freedesktop.Notifications \
+          --object-path /org/freedesktop/Notifications \
+          --method org.freedesktop.Notifications.CloseNotification "$(cat "$STATE")" >/dev/null 2>&1
+    rm -f "$STATE"
+}
+
+if ! command -v notify-send >/dev/null 2>&1; then
+    # Loudly, and non-zero: a silent failure here means the human was never warned, which is the whole job.
+    echo "cc-toast: notify-send not found — the desktop announcement did NOT happen." >&2
+    exit 1
+fi
+
+case "${1-}" in
+    --clear)
+        close_previous
+        exit 0
+        ;;
+    "")
+        echo "usage: cc-toast <message> | cc-toast --clear" >&2
+        exit 2
+        ;;
+esac
+
+previous=""
+[ -s "$STATE" ] && previous="$(cat "$STATE")"
+
+if [ -n "$previous" ]; then
+    id=$(notify-send -p -u critical -r "$previous" "$SUMMARY" "$*")
+else
+    id=$(notify-send -p -u critical "$SUMMARY" "$*")
+fi
+
+if [ -z "${id:-}" ]; then
+    echo "cc-toast: notify-send returned no notification id — the toast may not have appeared." >&2
+    exit 1
+fi
+printf '%s' "$id" >"$STATE"

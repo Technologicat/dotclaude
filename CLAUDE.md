@@ -407,6 +407,7 @@ GPU models, torch device ordering, and benchmarks: see `~/.claude/HARDWARE-NOTES
 | Image → viewer | `xviewer file.png &` | Raster images. **Must background** (`&`). Not great for SVG with a transparent background — use Inkscape for those. |
 | SVG diagram → editor/viewer | `inkscape file.svg &` | Right tool for SVGs, especially diagrams with a transparent background (xviewer's checkerboard makes those unreadable). **Must background** (`&`). |
 | Image folder | `pix /path/to/folder &` | Side-by-side comparison. **Must background** (`&`). |
+| Desktop toast → me | `cc-toast "message"` | For announcing that you are about to take the keyboard. Critical urgency, so it waits to be seen — and it *replaces* the previous toast, so a run of launches cannot leave a pile. `cc-toast --clear` takes it away. Mine, in `~/.claude/scripts/`, symlinked onto PATH; its header records what was measured about the notification server. |
 
 **Always use `em -r` (not bare `em`).** Bare `em` auto-starts Emacs if no server is running, which is not what we want from a script.
 
