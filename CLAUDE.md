@@ -447,7 +447,8 @@ Two machines is a real consideration and a rare one: Juha does not normally work
 Note this composes with the docs-only exemption below: push at the seam either way, but only *watch* when the push contains code.
 
 **Check CI after pushing.** If you've pushed any commit during the session, before signing off, run `gh run list -L 1 --branch <branch>` (or `gh run watch` if a run is in flight) to confirm CI is green. If red, investigate and fix in-session — don't leave a next-day surprise for the user. Lint failures, test failures, or platform-specific build breaks should be addressed before the session closes; if a fix isn't trivial, at minimum surface the failure to the user with the workflow URL so they can decide.
-  - **Docs-only pushes don't need the CI watch at all.** Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python and nothing else. No Markdown linting, no link checking, no docs build. A commit that touches only Markdown therefore cannot fail it on its own content, so waiting ~3 min to watch it go green tells you nothing. Push and carry on.
+  - **Docs-only pushes mostly don't need the CI watch.** Fleet CI runs `ruff`, `cython-lint` and `pytest` — Python and nothing else. No Markdown linting, no link checking, no docs build. A commit touching only Markdown then cannot fail on its own content, so waiting ~3 min to watch it go green tells you nothing. Push and carry on.
+    - **Except where a repo tests its docs under `pytest`.** pyan does, as of 2026-08-21: `tests/test_docs.py` checks the README's table of contents against its own headings and that anchor links resolve, so a Markdown-only change there *can* go red. Generalizing it to the rest of the fleet is tracked in this repo's `TODO_DEFERRED.md` under the internal-reference-check item; until that lands, pyan is the one exception. Check whether the repo has such a test before skipping the watch.
   - **"Docs-only" means exactly that: no `.py`, no `.pyx`/`.pxd`, no workflow YAML, no `pyproject.toml`, no lockfile.** A docstring lives in a `.py` file and *is* linted; a workflow edit changes CI itself. Either of those is a code push — watch it.
   - **Wait for CI in the background, always.** A foreground wait blocks the console for the entire run — several minutes in which Juha can neither ask anything nor redirect the work, for a result that arrives on its own anyway. Use `run_in_background: true`; the watcher re-invokes on completion. There is no case where blocking the console is the better trade.
   - **"The newest run for this commit" is not "CI is green".** These repos have more than one workflow — `Tests` and `Coverage` at least, plus Dependabot's `Graph Update` runs, which are *separate runs on the same SHA*. So `gh run list -L 1` can hand back a green Dependabot run while the real one is still going, and a wait-loop that exits on "some run for this SHA finished" exits early because `Coverage` finishes well before `Tests`. **Select the run by workflow name, and check the jobs, not just the run:**
@@ -578,12 +579,8 @@ whenever the PID or the output path is known — which, for a job this shell jus
 Reach for the tool's own directory option instead. `git -C <dir> status`, `pytest <dir>`,
 `ruff check <dir>`, `make -C <dir>`, `tar -C <dir>` — nearly everything worth running this way has one.
 
-Three reasons, and the third is the one that actually bites:
+Two reasons, and the second is the one that actually bites:
 
-- **`cd` before `git` prompts for permission**, because changing directory first means git may execute
-  hooks from the target repo, which the harness cannot vet in advance. `git -C` does not carry that
-  warning. A pattern that needs approving every time is a pattern that will eventually be approved
-  without reading.
 - **The working directory persists between Bash calls**, so a `cd` is not scoped to the command that
   used it. It silently relocates every later call in the session.
 - **Which fails at a distance, and the error blames the wrong thing.** A `cd subdir` that ran fine, or
@@ -593,6 +590,14 @@ Three reasons, and the third is the one that actually bites:
 
 Where no directory option exists, prefer an absolute path in the command. If a `cd` is genuinely
 unavoidable, run it in a subshell — `(cd <dir> && cmd)` — so the parent's cwd is untouched.
+
+**A refused compound command is not evidence about the `cd`.** Under auto mode `cd … && git …` does not
+prompt, so a refusal is about something *else* in the command. Live case 2026-08-21: `cd …/pyan; git
+status; …; git add -A && git diff --cached` was refused **for the `git add -A`** — a deny rule doing
+exactly its job — and reading the refusal as the `cd` led to reaching for `git -C … add -A`, which the
+rule's patterns did not cover, so the guard stayed defeated for the rest of the session. Read *what* was
+denied before routing around it: a workaround built on a misdiagnosis disables the thing that was
+protecting you, silently. (The `git -C` forms are now denied too, but the habit is the fix.)
 
 When stale bytecode interferes with an import (typical symptom: circular-import errors pointing at a rename that looks fine in source, or an import cycle that only repros in one entry order), clean with:
 

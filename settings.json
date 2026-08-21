@@ -50,6 +50,11 @@
       "Bash(git add --update:*)",
       "Bash(git add raven)",
       "Bash(git add raven/)",
+      "Bash(git -C * add -A:*)",
+      "Bash(git -C * add --all:*)",
+      "Bash(git -C * add .:*)",
+      "Bash(git -C * add -u:*)",
+      "Bash(git -C * add --update:*)",
       "Bash(ruff check --fix:*)",
       "Bash(ruff format:*)"
     ]
@@ -63,7 +68,7 @@
     "soft_deny": [
       "$defaults",
       "Bash(git push*) that pushes ANY tag in a fleet repo that has a `publish` job — CI publishes to PyPI on tag push and a published version can never be replaced or re-uploaded. Do not narrow this to `v*`: mcpyrate and chandra gate on `refs/tags/` and publish on any tag whatsoever.",
-      "Bash(git push --force*), Bash(git push -f*), and `--force-with-lease` variants against any fleet repo — no branch protection or rulesets exist anywhere, so there is no server-side safety net; note the default branch is `master`, not `main`, on the six older projects",
+      "Bash(git push --force*), Bash(git push -f*), and `--force-with-lease` variants against any fleet repo — every repo carries a `protect-default-branch` ruleset with an empty bypass list, so the server refuses these outright (GH013) and a legitimate rewrite means disabling the ruleset in the web UI, which is Juha's call; note the default branch is `master`, not `main`, on the six older projects",
       "Bash(twine upload*) — publishing is CI-driven via trusted publishing; a manual upload bypasses the release flow (leftover `uploaddist.sh` scripts in some repos predate that flow)",
       "Bash(gh pr create*), Bash(gh pr comment*), Bash(gh issue comment*), Bash(gh issue create*), Bash(gh release create*) — outward-facing publication under the user's name on public repos"
     ],
