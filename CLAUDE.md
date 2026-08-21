@@ -501,6 +501,34 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `testing-macro-enabled-python` — the macro-aware test framework in `unpythonic.test`, usable anywhere.
 - `live-gui-testing` — driving a running GUI app on my own X session: finding the window, aiming a click, synthetic keys that behave like real ones, teardown. The rules that protect *my* keyboard deliberately stay in the project's `CLAUDE.md`, because they have to fire before this would load.
 
+## It segfaulted — read the core, don't ask for a repro
+
+`systemd-coredump` is configured on these machines (`Storage=external`, `/proc/sys/kernel/core_pattern`
+pipes to it), so **every segfault has already been saved** with no preparation. `coredumpctl list` shows
+them by time, PID and executable. This matters most for the crashes that are hardest to chase: an
+intermittent one is usually gone by the time anyone tries to reproduce it, and the core from the run that
+*did* crash is still on disk.
+
+Two instruments, and they answer different halves — use both before theorising:
+
+- **`coredumpctl` + gdb names the C frame.** Batch it rather than sitting in gdb:
+
+  ```bash
+  coredumpctl --debugger-arguments="-batch -ex 'thread apply all bt 12'" gdb <PID> > /var/tmp/bt.txt
+  ```
+
+  `coredumpctl info <PID>` is mostly a list of loaded modules and rarely worth reading. In the backtrace,
+  pure-Python frames appear as `??` while extension-module calls show real symbols — which is usually the
+  answer, because a segfault in a Python program is nearly always inside a C extension.
+
+- **`PYTHONFAULTHANDLER=1` names the Python line**, printing every thread's stack on the fatal signal.
+  Free to leave on when launching anything that might crash.
+
+Together they say *which thread* and *which call*. (Live case 2026-08-21: an intermittent Raven segfault at
+app teardown, unreproducible by either of us afterwards, came straight out of the core as
+`dpg.is_dearpygui_running()` on a background thread after `destroy_context` — a guard against a freed
+library that was itself a call into it.)
+
 ## Is it hung, or is it working?
 
 A long-running job that goes quiet is ambiguous, and the ambiguity is worth resolving before killing it —
