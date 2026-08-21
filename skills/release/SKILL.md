@@ -35,11 +35,19 @@ takes whichever is newer; a tag name in `--sha` matches nothing at all and waits
 Neither is the run you need to see, and this one is the run that publishes. Confirm it green — including
 the `publish` job — before creating the GitHub release.
 
-**Then confirm the package actually arrived**, rather than inferring it from a green job:
+**Then confirm the package actually arrived**, rather than inferring it from a green job — and ask the
+*simple* index, not the JSON API. `https://pypi.org/pypi/<package>/json` can serve stale data for a
+release it has not caught up with yet, which is exactly the moment you are asking; `/simple/` is always
+current.
 
 ```bash
-curl -s https://pypi.org/pypi/<package>/json | python3 -c "import json,sys; print(json.load(sys.stdin)['info']['version'])"
+curl -s -H 'Accept: application/vnd.pypi.simple.v1+json' https://pypi.org/simple/<package>/ \
+  | python3 -c "import json,sys; print('<version>' in json.load(sys.stdin)['versions'])"
 ```
+
+Checking membership rather than reading the last element, since the `versions` list carries no ordering
+guarantee. Plain `curl -s https://pypi.org/simple/<package>/ | grep <version>` does the same against the
+HTML form if the JSON one is inconvenient.
 
 Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
