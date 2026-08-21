@@ -29,6 +29,18 @@ Existing tags are mixed: the ones made by hand (command line, later Magit, which
 
 The failure this prevents: a red tag run means the publish never happens, and recovering costs either force-moving a public tag or burning the version number entirely. On an ordinary push a red CI is cheap — fix it and push again. On a tag it is not, and the asymmetry is the whole reason the rule exists. (A local suite passing is not the same as CI passing: CI also lints.)
 
+**Then watch the tag run itself — `ci-watch --branch <tag>`, not `--sha`.** Pushing the tag starts a
+*second* run on the same commit as the branch run that just passed, so selecting by SHA matches both and
+takes whichever is newer; a tag name in `--sha` matches nothing at all and waits until it times out.
+Neither is the run you need to see, and this one is the run that publishes. Confirm it green — including
+the `publish` job — before creating the GitHub release.
+
+**Then confirm the package actually arrived**, rather than inferring it from a green job:
+
+```bash
+curl -s https://pypi.org/pypi/<package>/json | python3 -c "import json,sys; print(json.load(sys.stdin)['info']['version'])"
+```
+
 Check `pyproject.toml` for local file-path dependencies (`file:///...`). PyPI rejects these in sdists, and the failure comes late — at upload, after the build has already run.
 
 **Settle the version number first — the stub's is provisional.** The in-progress stub was opened right after the last release, when the only guess available was "next patch". What it actually becomes depends on what landed in it, per semver:
@@ -111,15 +123,21 @@ A titled release draws its name from the project's own well:
 
 Like the tag format, the changelog heading and the GitHub release title differ across
 projects. Don't apply another project's shape from memory; open the repo's `CHANGELOG.md`
-and its previous GitHub release, and match what's there. Two live examples:
+and its previous GitHub release, and match what's there. Three live examples:
 
 ```markdown
 **2.2.0** (12 May 2026) — *"Hail Eris"* edition:     unpythonic, mcpyrate
 ## 0.3.0 — First light — 2026-08-18                  chandra (## heading, unquoted title, ISO date last)
+## 2.8.0 (21 August 2026) — *Ground truth*           pyan3 (## heading, date in parens, italic unquoted title)
 ```
 
 and on GitHub, `mcpyrate 4.2.0 — "X marks the spot"` (project name prefixed) versus
-chandra's `0.2.0 — Earthshine` (not prefixed).
+chandra's `0.2.0 — Earthshine` (not prefixed) versus pyan's `v2.8.0 — Ground truth`
+(**tag name**, so the `v` is kept, and no quotes).
+
+pyan is the case that shows why this section exists: it matches neither of the other two,
+so either one applied from memory gets it wrong — prefixing the project name, quoting the
+title, or dropping the `v`.
 
 ## Post-release
 

@@ -19,9 +19,24 @@
 # green Coverage while the matrix is still going. That false green costs nothing on an ordinary push and
 # costs a burnt version number before a release tag, since a tag run that fails never publishes.
 #
+# A tag run needs --branch, not --sha. `git push origin v2.8.0` starts a run whose headSha is the tagged
+# commit — the same SHA as the branch run that already passed, so selecting by SHA matches both. (Measured
+# on pyan v2.8.0: runs 32469143360 ref=v2.8.0 and 32468935149 ref=master, both on 3df44ca.)
+#
+# Ordinarily `[0]` still picks the tag run, since it is the newer of the two. What it cannot survive is the
+# branch run becoming the newer one — a manual re-run of the branch workflow after tagging is enough — and
+# then it reports a green that is not the run about to publish, in the one place this script exists to stop
+# that. Selecting by ref cannot get it wrong in the first place.
+#
+# The failure actually hit was blunter: a tag *name* passed to --sha never matches a headSha, so the wait
+# ran until it timed out. That is now rejected at the door.
+#
+# GitHub reports a tag run with headBranch set to the tag name, so --branch v2.8.0 names it exactly.
+#
 # Usage:
 #     ci-watch                          # the CI run for HEAD, in the current repo
 #     ci-watch --sha abc1234            # ...for another commit
+#     ci-watch --branch v2.8.0          # ...for a tag or branch (use this for release tags)
 #     ci-watch --workflow Coverage      # ...another workflow
 #     ci-watch --repo OWNER/REPO        # ...another repo
 #     ci-watch --timeout 3600           # give up later than the default 30 minutes
@@ -36,6 +51,7 @@ set -uo pipefail
 
 WORKFLOW=CI
 SHA=""
+BRANCH=""
 REPO=""
 # Ten minutes. Measured 2026-08-19 over the last 20 completed runs in `raven`: `CI` takes 2–4 minutes and
 # `Coverage` 1–2, so this is about 2.5x the worst observed. The headroom is for the queue rather than the
@@ -50,10 +66,13 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --workflow) WORKFLOW="$2"; shift 2 ;;
         --sha) SHA="$2"; shift 2 ;;
+        --branch|--ref|--tag) BRANCH="$2"; shift 2 ;;
         --repo) REPO="$2"; shift 2 ;;
         --timeout) TIMEOUT="$2"; shift 2 ;;
         --poll) POLL="$2"; shift 2 ;;
-        -h|--help) sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        # Print the whole header block, however long it grows. A hardcoded line range goes stale the
+        # first time anyone adds a paragraph — which is what happened when --branch was documented.
+        -h|--help) awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
         *) echo "ci-watch: unknown option '$1'" >&2; exit 2 ;;
     esac
 done
@@ -61,12 +80,26 @@ done
 REPO_ARGS=()
 [ -n "$REPO" ] && REPO_ARGS=(--repo "$REPO")
 
-if [ -z "$SHA" ]; then
-    SHA=$(git rev-parse HEAD 2>/dev/null) || { echo "ci-watch: not in a git repository, and no --sha given" >&2; exit 2; }
+# A ref names the run on its own, so don't also pin a SHA: the tag run and the branch run share one.
+if [ -z "$SHA" ] && [ -z "$BRANCH" ]; then
+    SHA=$(git rev-parse HEAD 2>/dev/null) || { echo "ci-watch: not in a git repository, and no --sha or --branch given" >&2; exit 2; }
 fi
-SHORT=${SHA:0:7}
 
-runs() { gh run list -L 30 "${REPO_ARGS[@]}" --json headSha,status,conclusion,name,databaseId "$@"; }
+# A tag name in --sha can never match a headSha, so the wait would never end — the failure this whole
+# script exists to rule out. Catch it at the door and point at the option that does work.
+if [ -n "$SHA" ] && ! printf '%s' "$SHA" | grep -qiE '^[0-9a-f]{4,40}$'; then
+    echo "ci-watch: '--sha $SHA' is not a commit SHA. For a tag or branch use '--branch $SHA'." >&2
+    exit 2
+fi
+
+SHORT=${SHA:0:7}
+TARGET=${BRANCH:-$SHORT}
+[ -n "$BRANCH" ] && [ -n "$SHA" ] && TARGET="$BRANCH@$SHORT"
+
+BRANCH_ARGS=()
+[ -n "$BRANCH" ] && BRANCH_ARGS=(--branch "$BRANCH")
+
+runs() { gh run list -L 30 "${REPO_ARGS[@]}" "${BRANCH_ARGS[@]}" --json headSha,status,conclusion,name,databaseId "$@"; }
 
 # The name has to exist among recent runs, or the wait below can never end.
 NAMES=$(runs --jq '[.[].name] | unique | .[]' 2>/dev/null) || { echo "ci-watch: could not list runs (is gh authenticated?)" >&2; exit 2; }
@@ -76,9 +109,15 @@ if ! printf '%s\n' "$NAMES" | grep -qx "$WORKFLOW"; then
     exit 2
 fi
 
-echo "ci-watch: waiting for '$WORKFLOW' on $SHORT (timeout ${TIMEOUT}s, polling every ${POLL}s)"
+echo "ci-watch: waiting for '$WORKFLOW' on $TARGET (timeout ${TIMEOUT}s, polling every ${POLL}s)"
 
-SELECT='[.[] | select(.headSha[0:7]=="'"$SHORT"'" and .name=="'"$WORKFLOW"'")][0]'
+# `gh run list --branch` has already narrowed to the ref when one was given, so only pin the SHA when it
+# is doing the selecting. Pinning both is harmless but says the same thing twice.
+if [ -n "$SHA" ]; then
+    SELECT='[.[] | select(.headSha[0:7]=="'"$SHORT"'" and .name=="'"$WORKFLOW"'")][0]'
+else
+    SELECT='[.[] | select(.name=="'"$WORKFLOW"'")][0]'
+fi
 WAITED=0
 while :; do
     STATUS=$(runs --jq "$SELECT.status")
@@ -88,7 +127,7 @@ while :; do
         *) NOTE="$STATUS" ;;
     esac
     if [ "$WAITED" -ge "$TIMEOUT" ]; then
-        echo "ci-watch: gave up after ${WAITED}s; '$WORKFLOW' on $SHORT is '$NOTE'." >&2
+        echo "ci-watch: gave up after ${WAITED}s; '$WORKFLOW' on $TARGET is '$NOTE'." >&2
         echo "ci-watch: it may still be running — check https://github.com/$(gh repo view "${REPO_ARGS[@]}" --json nameWithOwner --jq .nameWithOwner)/actions" >&2
         exit 1
     fi

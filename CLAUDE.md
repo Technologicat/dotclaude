@@ -457,11 +457,20 @@ Note this composes with the docs-only exemption below: push at the seam either w
 
     ```bash
     ci-watch                       # the CI run for HEAD, here; run it in the background
+    ci-watch --branch v2.8.0       # the run a pushed *tag* started — see below
     ci-watch --sha abc1234 --workflow Coverage --repo OWNER/REPO --timeout 1200
     ```
 
     It exits 0 on success, 1 on failure or timeout, 2 when the workflow name matches nothing — and in that
     last case prints the names that do exist. It reports every poll, so silence means it is not running.
+
+    **After pushing a release tag, watch it with `--branch <tag>`, never `--sha`.** A tag run's `headSha`
+    is the tagged commit — the same SHA as the branch run that already passed — so a SHA selects both and
+    takes whichever is newer. That is normally the tag run, but a re-run of the branch workflow makes it
+    the branch run, and then the reported green is not the run that publishes. Passing the tag *name* to
+    `--sha` is worse and simpler: it matches no `headSha` at all, so the watch runs to timeout. The script
+    rejects that at the door now and names the right option, but the habit is the fix. (Live case: pyan
+    v2.8.0, 2026-08-21 — runs 32469143360 `ref=v2.8.0` and 32468935149 `ref=master`, both on 3df44ca.)
 
     **It is a script rather than a snippet because a snippet is invisible to the sweep that would have
     fixed it.** The workflows were renamed to `CI` on 2026-08-18; this block still said `Tests` the next
