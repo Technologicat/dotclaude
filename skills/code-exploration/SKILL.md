@@ -13,6 +13,7 @@ Two tools, answering different halves of "what is going on in here". Pick by the
 | How does it connect? What depends on what? | `pyan3 --module-level` or `--depth 0` |
 | What calls this function? | `pyan3 --function F --direction up` |
 | How does F end up calling G? | `pyan3 --paths-from F --paths-to G` |
+| Why is an edge I expected missing? | It may have been culled — see *Edges the graph deliberately omits* |
 | I don't know what to ask yet | Render the graph and look at it |
 
 **Start coarse.** A module-level pass is usually what tells you which question is worth asking; then
@@ -142,7 +143,29 @@ They both give you a module-scale picture, and they are not the same graph:
 - **`--depth 0`** collapses the *call graph* to module nodes. An edge means *code in A calls or uses something in B*.
 - **`--module-level`** analyses *imports*. An edge means *A imports B* — whether or not anything is called.
 
-So an import that's never used shows up in `--module-level` and not in `--depth 0`. Pick by the question: "who actually depends on this at runtime?" is the call graph; "what does this module pull in?" is module-level.
+Pick by the question: "who actually depends on this at runtime?" is the call graph; "what does this module pull in?" is module-level. (An import that's never used appears in *both* — the call graph records a uses edge for the import statement itself, and keeps it precisely because nothing finer does.)
+
+## Edges the graph deliberately omits (pyan3 ≥ 2.8)
+
+`pyan3` draws less than it knows, so a missing edge is not automatically something it failed to
+resolve. Two rules to know before concluding that it did:
+
+- **A module's uses edge is dropped when a finer edge already carries it.** `import b` produces a
+  uses edge whether or not the name is ever referenced, so a module node accumulates one per
+  imported name — each running parallel to the edges of the functions that actually use it. Those
+  go. Nothing disappears at module scale: the finer edge collapses back onto the same pair under
+  `--depth 0`, and an import nothing else records is kept. Defines edges are never touched.
+
+  **`--keep-subsumed-edges` turns it off** (`cull_subsumed_edges=False` from the API), and that is
+  what you want when the question is *about imports* — "does this module import `b` at all?" reads
+  the raw edge set, not the culled one.
+
+- **Under `--grouped` / `--nested-groups`, every module is a box**, with its own node inside it
+  labelled `<module>` — CPython's name for the module-level code object. So a box holding only
+  `<module>` is a module with no members, and a box with no `<module>` is one whose body neither
+  uses anything nor is used. A module's defines edges into its own box are not drawn either.
+
+The rules in full, with worked examples, are in pyan's README under *What the graph leaves out*.
 
 ## Flags worth knowing
 
@@ -165,3 +188,4 @@ So an import that's never used shows up in `--module-level` and not in `--depth 
 
 - `--root ROOT` — package root. Inferred by default, but inference **cannot** detect a PEP 420 namespace package (no `__init__.py` at the package directory), and will silently produce wrong module names. If the top-level package is a namespace package, pass `--root` explicitly.
 - `--namespace-constructor FQN` — register a constructor whose kwargs become attribute bindings, so `config.attr` resolves through it. Built in: `unpythonic.env.env`, `types.SimpleNamespace`, `argparse.Namespace`. Add your own (repeatable, or comma-separated) when a project passes config objects around and the graph comes out missing those edges.
+- `--ignore-parameter-annotations` — since 2.8, a parameter's annotation is treated as its type, so `def f(obj: Thing): obj.method()` draws an edge to `Thing.method`. Only classes and modules bind; a string annotation, `Optional[X]` or a union resolves to nothing. It's a static reading, and the value that actually arrives may be an overriding subclass — turn it off where a codebase's annotations are loose enough that base-class edges mislead more than they help.
