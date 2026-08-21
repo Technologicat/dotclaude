@@ -499,6 +499,7 @@ Fleet-wide skills in `~/.claude/skills/` carry the reference material that used 
 - `unpythonic` — what the library holds, and the contracts that are invisible at a call site.
 - `macro-enabled-python` — running, reading and debugging macro code: `mcpyrate` and `unpythonic.syntax`.
 - `testing-macro-enabled-python` — the macro-aware test framework in `unpythonic.test`, usable anywhere.
+- `live-gui-testing` — driving a running GUI app on my own X session: finding the window, aiming a click, synthetic keys that behave like real ones, teardown. The rules that protect *my* keyboard deliberately stay in the project's `CLAUDE.md`, because they have to fire before this would load.
 
 ## Is it hung, or is it working?
 
