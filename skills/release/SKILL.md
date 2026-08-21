@@ -38,7 +38,8 @@ the `publish` job — before creating the GitHub release.
 **Then confirm the package actually arrived**, rather than inferring it from a green job — and ask the
 *simple* index, not the JSON API. `https://pypi.org/pypi/<package>/json` can serve stale data for a
 release it has not caught up with yet, which is exactly the moment you are asking; `/simple/` is always
-current.
+current. Hit during the fleet-wide Python 3.15 upgrade — Juha recalls it being mcpyrate or unpythonic,
+without being sure which, so take the behaviour as established and the project as incidental.
 
 ```bash
 curl -s -H 'Accept: application/vnd.pypi.simple.v1+json' https://pypi.org/simple/<package>/ \
