@@ -1,6 +1,6 @@
 ---
 name: live-gui-testing
-description: How to launch, drive, screenshot and close a running GUI app on the developer's own X session — finding the window, aiming a click at a widget, sending synthetic keystrokes that behave like real ones, confirming an action landed, and shutting the app down again. Use when about to run a GUI app to look at a change, take a screenshot of one, inject keys or clicks with xdotool, compare layout candidates, or test how an app reacts to a dependency appearing or disappearing. The safety rules that must fire *before* deciding to launch anything live in the project's CLAUDE.md, not here.
+description: How to launch, drive, screenshot and close a running GUI app on the developer's own X session — finding the window, aiming a click at a widget, sending synthetic keystrokes that behave like real ones, confirming an action landed, and shutting the app down again. Use when about to run a GUI app to look at a change, take a screenshot of one, inject keys or clicks with xdotool, compare layout candidates, or exercise how an app behaves when a server it talks to goes down or comes back mid-session. The safety rules that must fire *before* deciding to launch anything live in the project's CLAUDE.md, not here.
 ---
 
 # Driving a live GUI on a shared desktop
@@ -173,7 +173,7 @@ Two things make or break it:
 arriving from the toolkit's own handlers, on either side of the app's, are invisible in the key path and
 obvious in such a log.
 
-## Testing what an app does when a dependency appears or disappears
+## Testing what an app does when a server goes down, or comes back
 
 **Own the moment it happens.** Point the app at a port you control — Raven's apps take `--backend-url` and
 `--server-url` for exactly this — and put a TCP relay in front of the real service. Starting and stopping
