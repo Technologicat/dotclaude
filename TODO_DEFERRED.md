@@ -205,6 +205,36 @@ which stamps every turn with the model that produced it):
 - **Rate, not count**, and split by model era (4.6 / 4.7 / 4.8), since the logs span the
   upgrades.
 
+**Three more resident-but-violated cases, 2026-08-21** (pyan, graph-cleanliness session),
+all of the confabulated-rationale kind and all in durable artifacts:
+
+- A README paragraph and a docstring explaining why only classes bind to an annotated
+  parameter. The stated reason ("other flavors give no guarantee") was invented; the real
+  one is that a class's scope *is* its attribute namespace where a function's is its
+  locals. Checkable in one command, which was not run until Juha challenged it.
+- The corrected version was *also* wrong — it said functions have nothing reachable as
+  attributes, when `helper.marker = Thing` resolves today. Corrected a second time, again
+  only under challenge.
+- An invented GitHub issue number (`#141`) in a test section header. Caught unprompted.
+
+What makes these useful for separating the hypotheses: the rule was resident *and* its
+visible-connective trigger was present — every one of these was a "because" clause. The
+trigger did not fire spontaneously, but fired reliably under challenge, and the rationale
+got strictly more accurate on each pass. That pattern fits **shape**, not dilution: the
+rule asks a question that does not feel uncertain at the time, which is exactly what the
+rule's own text says about it. Each instance was also in a sentence *arguing for a design
+decision*, the case the rule names as the pressure peak.
+
+**Counter-consideration for the dilution fix, worth recording before anyone starts
+cutting.** `CLAUDE.md` is long partly *because* of a rule it states itself — record the
+failure a rule prevents, not just the bound. That rewrite makes rules longer on purpose,
+and it is the shape fix. So line count and rule-following quality may pull in opposite
+directions, and "659 lines vs. the folklore 200" is probably the wrong measurement. The
+number that would matter is independently-firing always-on rules, not lines of prose
+explaining them. Note also that everything with a natural trigger has already been moved
+to skills; what stayed is largely what cannot be triggered, because its failure mode is
+not noticing.
+
 **Fold in the other open question** (same instrument, same logs): does the rate of
 *confabulated rationale* — unprompted "because…" / "therefore…" that was never checked —
 differ across model versions, or did it only become visible because the work shifted to
