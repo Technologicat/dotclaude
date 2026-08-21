@@ -217,6 +217,21 @@ all of the confabulated-rationale kind and all in durable artifacts:
   only under challenge.
 - An invented GitHub issue number (`#141`) in a test section header. Caught unprompted.
 
+**A fourth, in the same turn as the write-up of the first three.** Juha stated the
+push-at-seams policy without giving his reasons; the rule was written into `CLAUDE.md`
+with three invented ones. One was roughly right, one overweighted a fact already in the
+file, and one ("the end-of-session push is the one that gets skipped") was simply false
+and contradicted by observed behaviour. Corrected only when he supplied his actual
+reasoning — backup checkpoints, no coordination cost to holding, and the CI matrix being
+wider than any local run.
+
+This is the sharpest instance available, because salience was at its maximum: the
+paragraph documenting this exact failure mode was being written in the same turn. If the
+trigger does not fire *there*, it is not going to fire on an ordinary day, which is an
+argument that no amount of prominence fixes it and the mechanism has to change. Note also
+the shape — a rule stated without a rationale invites one to be supplied, so writing down
+someone else's policy is a high-risk site that the rule's current text does not name.
+
 What makes these useful for separating the hypotheses: the rule was resident *and* its
 visible-connective trigger was present — every one of these was a "because" clause. The
 trigger did not fire spontaneously, but fired reliably under challenge, and the rationale

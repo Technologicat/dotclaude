@@ -434,11 +434,15 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 
 Sometimes it's right to hold: work still under review, or a change the next unit may force a rewrite of. But the default is that the previous unit is pushed before the next one starts.
 
-Three failures this prevents, and the first is the expensive one:
+Juha's reasoning, in his order:
 
-- **A red CI arrives while the context that would fix it is gone.** Unit N's failure surfacing halfway through unit N+1 means paging N back in, and if several units are stacked, working out which one broke it. Pushing at the seam means the run finishes while its own context is still loaded.
-- **Two machines.** Juha works from a personal and a work machine. Unpushed commits do not exist on the other one, so a session that ends without pushing silently strands finished work on one box.
-- **The end-of-session push is the one that gets skipped**, because that is exactly when the session is being wound down and the remaining attention is going into the handover.
+- **A push is a checkpoint with off-machine backup.** If the local tree is lost while unit N+1 is in progress, everything finished so far goes with it. The probability is very low and the mitigation is free, so this is an err-on-the-side-of-caution call rather than a live worry.
+- **Holding finished work buys nothing.** Solo, or as a two-member human-AI team, there is no other branch to disturb and no coordination cost to pay — so the trade is a small risk against no benefit at all, and only points one way.
+- **CI is a wider test than any local run.** Local testing covers one OS and one Python; the push buys the whole matrix. Weaker for Raven, where some tests cannot run in CI at all (they need a running Raven server, or gigabytes of ML models) — but the other combinations still say something local testing cannot.
+
+Two machines is a real consideration and a rare one: Juha does not normally work on the same project from both, and concurrent CC sessions are deliberately pointed at *different* projects — partly to avoid clashes, mostly because his review bandwidth is the real limit. (The fleet-wide 3.15 upgrade ran alongside Raven `FileDialog` work because the two were different enough to review side by side, not because parallelism is free.)
+
+**`~/.claude` is the exception, and there the rule tightens to "immediately".** Any session may edit and push rules or notes at any time, so a dotclaude changeset goes up as soon as it is acceptable, rather than waiting for a seam.
 
 Note this composes with the docs-only exemption below: push at the seam either way, but only *watch* when the push contains code.
 
