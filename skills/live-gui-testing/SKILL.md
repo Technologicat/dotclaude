@@ -193,11 +193,15 @@ obvious in such a log.
 
 ## Testing what an app does when a server goes down, or comes back
 
-**Own the moment it happens.** Point the app at a port you control — Raven's apps take `--backend-url` and
-`--server-url` for exactly this — and put a TCP relay in front of the real service. Starting and stopping
-the relay is then an event timed to the millisecond, and no `config.py` is edited, which matters because
-those files carry machine-local overrides. Twenty lines of `socket` and two `threading.Thread`s is the whole
-relay; `socat` does it too, where installed.
+**Own the moment it happens.** Point the app at a port you control — in Raven, every app that talks to a
+server takes `--backend-url` and `--server-url` for exactly this — and put a TCP relay in front of the real
+service. Starting and stopping the relay is then an event timed to the millisecond. Twenty lines of
+`socket` and two `threading.Thread`s is the whole relay; `socat` does it too, where installed.
+
+**Prefer a command-line override to editing configuration**, wherever the app offers one. Config edited for
+a test has to be edited back, and it is the file most likely to be carrying settings that are not yours to
+change — in Raven specifically, each app's `config.py` is tracked *and* holds machine-local overrides, so a
+stray edit there is one commit away from publishing somebody's paths.
 
 The reason it is worth the setup: the interesting behaviour usually lives in a window narrower than the
 thing that would otherwise close it. Librarian's backend-status pill wanted a backend that came up *during*
