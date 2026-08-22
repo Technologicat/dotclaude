@@ -145,7 +145,7 @@ They both give you a module-scale picture, and they are not the same graph:
 
 Pick by the question: "who actually depends on this at runtime?" is the call graph; "what does this module pull in?" is module-level. (An import that's never used appears in *both* — the call graph records a uses edge for the import statement itself, and keeps it precisely because nothing finer does.)
 
-**`--module-level` under-reports on pyan3 ≤ 2.8.0**, which is what `pipx` has installed globally — check with `pyan3 --version`, since the pyan repo's own venv is ahead of it. A dependency on a *package* rather than on one of its modules was dropped without a warning, in both directions: a module importing a name re-exported from `pkg/__init__.py` showed nothing at all, and a package's own imports went missing too. On Raven that was 192 of 876 edges. Fixed in 2.8.1; until the global install catches up (`pipx upgrade pyan3`), read a module graph of a package-structured project as a lower bound. The call graph, including `--depth 0`, was never affected.
+**Needs pyan3 ≥ 2.8.1 to be trusted on a package-structured project.** Before that, `--module-level` silently dropped every dependency on a *package* rather than on one of its modules, in both directions, so the graph read clean while missing real edges. If `pyan3 --version` reports anything older, `pipx upgrade pyan3`. The call graph, `--depth 0` included, was never affected.
 
 ## Edges the graph deliberately omits (pyan3 ≥ 2.8)
 
