@@ -19,10 +19,26 @@
 #   - **Dropping to `-u normal` is not the fix**: it expires, but Cinnamon then files it in the systray
 #     notification widget, so the pile moves rather than going away — and the warning gets quieter at the
 #     same time.
-#   - **`-r <id>` replaces in place**, leaving exactly one toast on the screen however many are sent.
-#   - **`-r` with an id the human already dismissed is safe**: the server issues a *new* id and shows the
+#   - **Replacing in place** leaves exactly one toast on the screen however many are sent.
+#   - **Replacing an id the human already dismissed is safe**: the server issues a *new* id and shows the
 #     toast. It cannot swallow the next warning, which is the failure that would matter here, since it
 #     would be silent.
+#
+# The notification goes out over D-Bus rather than through `notify-send`, because the two options this
+# needs — print the new id, and replace an existing one — are `notify-send` 0.8 features. Mint 21.3 ships
+# 0.7.9, where `-p` is rejected outright with "Unknown option -p" and the toast never appears: a silent
+# failure of exactly the warning that exists to not be silent. The `Notify` method itself has taken the
+# same eight arguments since the spec's 1.0 and hands back the id as its return value, so one code path
+# covers every version instead of branching on what the local `notify-send` happens to support.
+#
+# Two details of that call are easy to get wrong, and were:
+#
+#   - **`expire_timeout` is 0, not -1.** Both are right for a critical toast (0 is "never expire", -1 is
+#     "server decides", and the server never expires a critical one), but `gdbus` reads a leading `-` as
+#     the start of an option and rejects the whole invocation.
+#   - **The reply is `(uint32 15,)`,** so a naive "first run of digits" match extracts *32*, out of the
+#     type name. Replacing a nonexistent id is silent — the server just issues a new one — so the bug
+#     shows up only as toasts quietly piling up again.
 #
 set -uo pipefail
 
@@ -39,9 +55,18 @@ close_previous() {
     rm -f "$STATE"
 }
 
-if ! command -v notify-send >/dev/null 2>&1; then
+notify() {  # $1 = id to replace (0 for a new one), $2 = body; prints the id the server assigned
+    gdbus call --session \
+          --dest org.freedesktop.Notifications \
+          --object-path /org/freedesktop/Notifications \
+          --method org.freedesktop.Notifications.Notify \
+          "$SUMMARY" "$1" "" "$SUMMARY" "$2" "[]" "{'urgency': <byte 2>}" 0 2>/dev/null \
+        | sed -n 's/^(uint32 \([0-9][0-9]*\),)$/\1/p'
+}
+
+if ! command -v gdbus >/dev/null 2>&1; then
     # Loudly, and non-zero: a silent failure here means the human was never warned, which is the whole job.
-    echo "cc-toast: notify-send not found — the desktop announcement did NOT happen." >&2
+    echo "cc-toast: gdbus not found — the desktop announcement did NOT happen." >&2
     exit 1
 fi
 
@@ -56,17 +81,13 @@ case "${1-}" in
         ;;
 esac
 
-previous=""
+previous="0"
 [ -s "$STATE" ] && previous="$(cat "$STATE")"
 
-if [ -n "$previous" ]; then
-    id=$(notify-send -p -u critical -r "$previous" "$SUMMARY" "$*")
-else
-    id=$(notify-send -p -u critical "$SUMMARY" "$*")
-fi
+id=$(notify "$previous" "$*")
 
 if [ -z "${id:-}" ]; then
-    echo "cc-toast: notify-send returned no notification id — the toast may not have appeared." >&2
+    echo "cc-toast: the notification server returned no id — the toast may not have appeared." >&2
     exit 1
 fi
 printf '%s' "$id" >"$STATE"
