@@ -211,6 +211,24 @@ The shape is always a coincidence that collapses the difference. A listing with 
 
 So the first question about a fixture is not "does this exercise the feature" but **"could this fixture tell the two behaviours apart?"** — and the cheapest answer is to run it against the old one. (Three in one session, 2026-08-18, every one caught by that check and none by reading the test.)
 
+**Where the answer can be an assertion, make it one — a negative control, inside the test.** Running it against the old behaviour is a check performed once, by whoever was there; it says the fixture discriminated *that day* and guarantees nothing afterwards. A fixture can stop discriminating later, and silently: someone shrinks a window, trims a sample, tightens a filter, and the test goes on passing while it stops testing. Nothing fails, because a vacuous assertion looks exactly like a satisfied one.
+
+The shape is to assert the *control* condition produces the opposite outcome, before asserting the treatment produces the expected one:
+
+```python
+# Raven, raven/common/gui/tests/test_utils.py — does an offscreen park survive a second frame?
+assert parked_once[0] >= edge, "the frame right after positioning is the one park that holds"
+assert min(parked_once[1:]) < edge, ("nothing was clamped, so this fixture cannot tell a renewed "
+                                     "park from an abandoned one")     # <- the negative control
+assert min(renewed) >= edge, f"a renewed park was still pulled on screen: {renewed} against {edge}"
+```
+
+Without the middle line, a fixture in which nothing is ever clamped passes the third assertion for the wrong reason, forever. That is not hypothetical: it happened on 2026-08-24, when the test inherited a 100×100 viewport built for tests that never map one, drew a 600×400 window into it, and ImGui had no inside to pull the window back to. The guard fired, named its own fixture as the problem, and the message was the entire diagnosis.
+
+**It earns its place where a passing assertion could be explained by "the mechanism never engaged".** Boundary comparisons, clamping, ordering, filtering, cache hits, timeouts, retries — anywhere the expected outcome is also the *default* outcome. It is wasted on an assertion whose failure mode is a wrong value rather than an absent effect.
+
+Write the control's message as a statement about the *fixture*, not about the code. "Nothing was clamped, so this fixture cannot tell X from Y" sends the next reader to the setup, which is where the fault is. "Clamping is broken" would have sent them into ImGui.
+
 When you fix a bug (test-surfaced or otherwise) on a project that maintains a user-facing changelog, add a compact entry to the `Fixed` section of the in-progress release in `CHANGELOG.md`. Don't wait until release time to reconstruct what was fixed from git log — write the entry while the context is fresh. House style for entries is in the `changelog` skill, and it's fleet-wide.
 
 ### File format
