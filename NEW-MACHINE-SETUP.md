@@ -174,6 +174,41 @@ Worth re-testing after a major OS upgrade. This arrangement was settled against 
 
 - **Systray calendar (Cinnamon):** Set start of week to Monday (not the default Sunday). Right-click the clock → Settings.
 
+## Core dumps
+
+`systemd-coredump` saves every segfault with no preparation, which is why chasing one starts with reading
+the core rather than trying to reproduce it. The defaults are too small for the processes worth reading,
+though, and a core over the cap is written **truncated** — which is not an error and does not say so. It
+looks like an ordinary core until gdb resolves every frame to `??`.
+
+Raise both caps (needs root):
+
+```bash
+sudo mkdir -p /etc/systemd/coredump.conf.d
+sudo tee /etc/systemd/coredump.conf.d/50-bigger-cores.conf >/dev/null <<'EOF'
+[Coredump]
+ProcessSizeMax=8G
+ExternalSizeMax=8G
+EOF
+sudo systemctl daemon-reexec
+```
+
+A drop-in rather than an edit to `/etc/systemd/coredump.conf`, so a distribution upgrade replacing that
+file cannot silently take the setting with it.
+
+**Why 8G.** The default is 2G, and Raven's test suite peaks at **2.43 GiB** without its ML group and
+**5.63 GiB** with it — the `ml` tests load Whisper, Kokoro, spaCy, Flair, transformers and
+sentence-transformers in-process, all resident at once. Note RSS is not quite what the cap measures, since
+a core omits file-backed pages and most of that first figure is shared objects; but the margin is thin
+enough at 2G that the narrow case only fits by luck.
+
+Storage is bounded separately by `MaxUse` (unset → 10% of the filesystem), cores are zstd-compressed, and
+`/var/lib/systemd/coredump` is swept after two weeks. So a bigger cap costs disk only while a core is
+actually there, and does not accumulate.
+
+Check what is saved with `coredumpctl list`; read one with
+`coredumpctl --debugger-arguments="-batch -ex 'thread apply all bt 12'" gdb <PID>`.
+
 ## Python tooling (user-level)
 
 ```bash
