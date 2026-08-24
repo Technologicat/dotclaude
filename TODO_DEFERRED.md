@@ -394,34 +394,6 @@ linter checks a claim against reality. Machine checks buy the easy half.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
 
-## Clean up the NVIDIA PyIndex pip config on the work machine
-
-Done on the personal machine 2026-08-17; the work machine needs the same treatment, since this
-is machine-local config that no repo carries.
-
-`nvidia-pyindex` writes **two** identical files — `~/.config/pip/pip.conf` and
-`~/.pip/pip.conf` — and both set three things worth removing:
-
-- `extra-index-url = https://pypi.ngc.nvidia.com` and a matching `trusted-host`. The host no
-  longer resolves, so every `pip install` pays two DNS retries before falling through to PyPI.
-  CUDA builds of torch and friends are served from PyPI proper now.
-- `no-cache-dir = true`, which disables pip's download cache globally and forces re-downloads.
-
-What to leave: `index-url = https://pypi.org/simple`, the default anyway, which keeps the file
-self-documenting rather than empty.
-
-Two things found while doing it here, both worth checking there:
-
-- **`nvidia-pyindex` is still installed** (1.0.9 here). It rewrites the config only at install
-  time, so an idle copy is harmless — but reinstalling or upgrading it undoes this.
-- **Some installed packages genuinely came from that index and are not on PyPI**: here,
-  `nvidia-cublas-cu11 2022.4.8`, where PyPI carries `11.10.3.66` and `11.11.3.6` but no
-  `2022.4.8`. Not an argument against the cleanup — the index is unreachable, so those versions
-  are already unreinstallable — but it means such a reinstall fails either way, and the pip
-  config will not be the reason.
-
-Raised 2026-08-17, when the dead host's retries surfaced while building a Python 3.15 venv.
-
 ## PyPy: done, apart from a version that does not exist yet
 
 **Resolved 2026-08-18.** Every fleet project that can run on PyPy now has a `pypy-3.11` job:
