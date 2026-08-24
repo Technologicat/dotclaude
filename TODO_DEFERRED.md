@@ -1,5 +1,43 @@
 # Deferred TODOs
 
+## Whitespace checking fell out of the fleet when it moved to ruff
+
+*Cluster: lint-config · Cost: M · Gate: none — **raised by Juha 2026-08-25**, "needs a solution fleet-wide, soon-ish, but not tonight" · Filed: 2026-08-25*
+
+**ruff's default rule set does not include pycodestyle's whitespace checks.** It selects E4/E7/E9 plus F;
+E1 (indentation), E2 (whitespace), E3 (blank lines) and the W codes are simply not enabled. Every fleet
+project moved to ruff as its primary linter, so those checks stopped running everywhere at once, and
+nothing announced it — a green `ruff check` reads exactly as it did before.
+
+**The drift is real and measurable.** Raven, 2026-08-25, running the still-present legacy `flake8rc`:
+
+| | findings | what they are |
+|---|---|---|
+| vendored trees | 29 | code ruff is configured to skip; `flake8rc` had not been told, so pure editor noise |
+| deliberate style | 44 | aligned literals (E241/E272), one-line stub classes (E701), tight `{'='*70}` (E226) |
+| genuine slips | 15 | continuations under-indented by one space, surplus blank lines, blank line at EOF |
+
+The 15 were repaired and the 29 excluded in Raven the same day; the 44 were left, being a policy question
+rather than a defect. What makes this worth fixing fleet-wide rather than per project: **one of the 15 was in
+a file written that day**, ruff-clean throughout. New code drifts in through the gap as fast as old code is
+cleaned out of it, so a sweep without a check is wasted.
+
+Three ways, and the third is already argued against:
+
+- **Enable the codes in ruff** — `select` E1/E2/E3/W, then `ignore` the deliberate-style codes with the
+  reasons, the way `flake8rc` already carries fourteen of them under "silly style items". One config, one
+  linter, CI enforces what the editor shows. Probably the answer, and it wants doing per project since each
+  has its own backlog to clear first.
+- **Keep flake8 for whitespace and run it in CI too.** Two linters to configure and keep in step forever,
+  and the fleet has just spent effort getting to one.
+- **Adopt a formatter** (`ruff format`, Black) — **rejected, and the reason should outlive the suggestion**:
+  this fleet aligns literals on purpose and treats the alignment as load-bearing (`__all__` groupings, the
+  columns in `_GPU_BACKENDS`, fixture tables read as tables). A formatter would reflow all of it and keep
+  reflowing it, which is a fight with the house style rather than an enforcement of it.
+
+Whichever is chosen, `flake8rc`'s exclude list wants deleting or syncing at the same time: it is what Emacs
+flycheck reads, and it drifted from `pyproject.toml`'s in every project that ever excluded a vendored tree.
+
 ## Fork `humanizer` and tune it to this fleet's writing
 
 *Cluster: prose · Cost: M · Gate: none · Filed: 2026-08-19 · See also: `scripts/check-prose.py`*
