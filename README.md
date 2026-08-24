@@ -53,7 +53,7 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 | [`settings.json`](settings.json) | Claude Code settings: permission allowlist, statusline, effort level. |
 | [`statusline.sh`](statusline.sh) | Custom status line — venv, host, cwd, model, effort, context usage. |
 | [`skills/`](skills/) | On-demand reference material (see below). |
-| [`scripts/`](scripts/) | `em` (open a file in the running Emacs), `build-webchat.py` (preferences-blob expander), `run-on-internal-gpu.sh` (hides the eGPU), `check-prose.py` (how hard a diff leans on "rather than", against a baseline of hand-written prose), `ci-watch` (wait for a commit's CI run and report it job by job, without waiting forever). |
+| [`scripts/`](scripts/) | On PATH, because `CLAUDE.md` and the skills invoke them by bare name: `em` (open a file in the running Emacs), `api-inventory` (every public name in a Python tree, with signature and summary), `cc-toast` (desktop notification), `ci-watch` (wait for a commit's CI run and report it job by job, without waiting forever). Run by path: `build-webchat.py` (preferences-blob expander), `check-move.py` (did moving a function change it?), `check-prose.py` (how hard a diff leans on "rather than", against a baseline of hand-written prose), `fleet-pull.sh` (clone or fast-forward the whole project fleet) and its `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` (hides the eGPU). |
 | [`briefs/`](briefs/) | Archived design briefs. |
 | `commands/` | Slash commands. Currently empty — the one that lived here became a skill. |
 

@@ -408,14 +408,24 @@ Both are optional: Claude Code ignores a missing `@import`, and nothing else rea
 
 Runtime state (`projects/`, `sessions/`, `memory/`, caches) is machine-local by design and is *not* synced — auto-memory accumulates per machine.
 
-Put `em` and `api-inventory` on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
+Put the four bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
 
 ```bash
 ln -s ~/.claude/scripts/em ~/.local/bin/em
 ln -s ~/.claude/scripts/api-inventory.py ~/.local/bin/api-inventory
+ln -s ~/.claude/scripts/cc-toast ~/.local/bin/cc-toast
+ln -s ~/.claude/scripts/ci-watch ~/.local/bin/ci-watch
 ```
 
-The symlink drops the extension because that is the name `CLAUDE.md` and the `code-exploration` skill invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
+The `api-inventory` symlink drops the `.py` because that is the name `CLAUDE.md` and the `code-exploration` skill invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
+
+**Four of the ten scripts, and which four is decided by how they are invoked.** These are the ones `CLAUDE.md` and the skills tell an agent to type as a bare command mid-task, so a missing symlink surfaces as a command not found in the middle of unrelated work. The other six — `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull.sh`, `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` — are named by path everywhere they appear, and `run-on-internal-gpu.sh` is `source`d, which needs a path regardless. Adding a script to `scripts/` is therefore not automatically a reason to symlink it; being told to type its bare name in `CLAUDE.md` or a skill is.
+
+**A machine set up before one of them existed will be missing it, silently.** The list has grown — `ci-watch` and `cc-toast` arrived after the first two — and nothing re-runs this section on a machine that is already up. Worth checking on every machine when a script is added here:
+
+```bash
+ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch}
+```
 
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
