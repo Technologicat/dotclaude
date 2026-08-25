@@ -310,6 +310,18 @@ write is general-purpose* — string munging, number or size formatting, path ha
 dedup, unit conversion, retry/backoff. Check in order of distance: the current package, then the project's
 shared layer (`raven.common`), then `unpythonic`, then the stdlib.
 
+**The trigger is any *named value*, not only a function**, and the narrower reading is what lets the
+commonest case through. A bare constant does not present as "writing a helper" — it presents as typing a
+number — so the habit never fires, and the duplicate is a literal that agrees with the original by
+coincidence until one of them changes. Padding, spacing and size constants, colours, durations and pulse
+periods, thresholds, magic numbers about a toolkit's defaults: all of these are things a shared layer
+tends to have already, for the same reason a helper is.
+
+The tell is that a value is *about the environment rather than about this call site* — what ImGui's default
+padding is, how wide a scrollbar comes out, how long a flash should last. A number that only means anything
+here needs no lookup. (Live case 2026-08-25: `_WINDOW_PADDING = 8` written into `helpcard.py`, with
+`guiutils.DPG_WINDOW_PADDING = 8` one module away and already imported.)
+
 Grep is the wrong instrument for this and will keep failing at it, because it needs you to guess the
 *name* — which is the one thing you do not have. Read the list of names instead:
 
