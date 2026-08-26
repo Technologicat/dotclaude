@@ -85,6 +85,13 @@ General rules that apply across all my projects, on top of the Zen of Python.
 
   That second one is also the *other* failure — an example asserted without checking whether it exists. The two arrive together often enough to watch for as a pair: the sentence that hand-waves a limit, and the sentence that invents a capability.
 
+- **In project docs, instructions name a role; attributions name a person.** The split is by tense, and it is not a preference about privacy — the GitHub account carries the real name anyway.
+  - **Present or future tense — who to ask, who does what — takes the role.** "the maintainer", "the user", "the project's convention". A doc that says *ask Juha to start the server* stops pointing at anybody the moment the project is handed over or forked, and the reader is left with an instruction they cannot follow. When a name is replaced this way its pronouns go with it: they/them, not he/him.
+  - **Past tense keeps the name.** "Juha's observation", "Raised by Juha (2026-08-13)", "(his correction, 2026-08-25)". That is history, and history does not transfer on a handover — "the maintainer decided X on 2026-08-05" is strictly less informative, and a reader would only ask which one.
+  - **Credit and copyright keep the name, obviously**: `AUTHORS.md`, `LICENSE.md`, a licensing paragraph in a README, git authorship. Those are also what makes the surviving attributions resolvable to a reader who has never met anyone on the project.
+
+  The proportions are the reassuring part, and the reason this is a writing habit rather than a periodic sweep: auditing Raven on 2026-08-26 found roughly four hundred mentions across forty files, of which **seven** were instructions. Nearly everything a project doc says about a person is already history. Note the tempting wrong version — scrub the name everywhere — costs four hundred edits, loses the record, and fixes nothing that the seven did not.
+
 # Collaboration style
 
 Be direct. Skip formalities. Treat me as a peer, not a customer.
