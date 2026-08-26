@@ -165,6 +165,19 @@ to be from *startup* — every message of the session gone, with no crash, no co
 first reading was a data-loss bug in the app under test, and the app was innocent. If state that should have
 been saved is missing after a driven run, check how the app was closed before believing anything else.
 
+**It does not always kill the client, and the case where it does not is worse.** Later the same day, the
+same call on a DPG app left the process *immortal*: the window was gone from the screen and from
+`xdotool search`, while the process ran on with 107 threads. `py-spy dump` put MainThread inside
+`render_dearpygui_frame` — the render loop still spinning against a destroyed window — and because
+MainThread never returns to the interpreter from that C call, Python never gets to run a signal handler, so
+**SIGTERM is ignored too** and only SIGKILL ends it. Two `kill`s and a two-minute wait said nothing.
+
+The tell that separates this from a genuine shutdown bug is what is *missing* from the log: teardown never
+**began**, so there are no teardown lines at all, as opposed to a hang that logs its first phase and stops.
+That reading cost most of an hour spent suspecting the session's own changes to the app's cancellation
+paths — which could not have run, because nothing had asked the app to shut down. **If a driven app will
+not exit, establish whether teardown started before investigating why it did not finish.**
+
 **Then wait for it to be gone before relaunching**, in the same Bash call:
 
 ```bash
