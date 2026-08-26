@@ -152,6 +152,19 @@ left the process running (twice, tens of seconds apart) while `wmctrl -c` shut i
 also the graceful path — it runs the app's own shutdown, so state is saved. Reserve a PID kill for a process
 with no window, or one that ignores the close.
 
+**Never `xdotool windowclose`, which is not the polite version of that.** Its man page is explicit: *"This
+action will destroy the window, but will not try to kill the client controlling it."* It is `XDestroyWindow`
+— the window is yanked out from under the app, with no `WM_DELETE_WINDOW` and no chance to object, so the
+toolkit's connection breaks and the process dies without running its `atexit` handlers. `wmctrl -i -c` sends
+`_NET_CLOSE_WINDOW` and lets the window manager ask the app to close, which is the entirely different thing
+the name suggests.
+
+The failure is silent and lands somewhere else. On 2026-08-26 it cost a Raven-librarian session: the app
+vanished from the screen looking exactly like a clean exit, and the chat datastore's last write turned out
+to be from *startup* — every message of the session gone, with no crash, no core dump and no log line. The
+first reading was a data-loss bug in the app under test, and the app was innocent. If state that should have
+been saved is missing after a driven run, check how the app was closed before believing anything else.
+
 **Then wait for it to be gone before relaunching**, in the same Bash call:
 
 ```bash
