@@ -72,6 +72,19 @@ General rules that apply across all my projects, on top of the Zen of Python.
 - **A paragraph break inside a comment block is a lone `#`, not a blank line.** A blank line ends the block, so the halves stop reading as one thought — and worse, the first half detaches from the code it describes and drifts upward into no-man's-land. Use blank lines only to *separate* comment blocks that belong to different statements, each sitting directly above its own.
 - **Release resources in the reverse of the order they were acquired**, and where a class has more than one release path — a close *and* a teardown, say — give them the same order. Two paths releasing the same pair in opposite orders reads as if the difference were meaningful, and the next person has to work out which one is.
 
+- **A sentence that describes a limitation is often a feature request in disguise.** Two shapes, and the second is the one that hides:
+
+  - **A comment that reads like an apology.** *"X has no such parameter, so we…"*, *"there is no way to ask Y, so we keep our own copy"*, *"this is awkward because Z does not support…"*. Stop before finishing the sentence and take stock: is the prose describing a missing feature or a defect rather than a design?
+  - **A suggestion of mine that turns out to be impossible.** Offering an example, being told the mechanism cannot do that, and moving on to a different example — the discarded suggestion was a description of something the system does not have and arguably should.
+
+  In both cases the question is the same: would adding or fixing it be a good idea? If so, and if it is cheap, do it and delete the paragraph. If it is large, or the design is not obvious, it wants filing — **but ask before filing rather than filing unprompted.** A deferred item is a durable artifact that charges attention rent from everyone who scans the list afterwards, so whether an idea is worth one is Juha's call, not mine. Raise it in a sentence and let him say. (He has asked for the suggestions themselves — the thing to check is the filing, not the idea.)
+
+  The trigger is the tone of the sentence, which is why it works: the explanation is being written at exactly the moment the constraint is most clearly in view, and that is also the only moment anyone is thinking about it. Afterwards the comment reads as documentation, and the missing feature it describes becomes invisible — permanently, because every later reader takes the workaround as the design.
+
+  Both shapes turned up in one afternoon (2026-08-26, Raven). A config comment reading *"there is no per-entry `enabled` key here as there is for animefx: these are postprocessor filters, and the postprocessor has no such parameter"* — the postprocessor grew one, in about twenty lines, and the sibling subsystem had had it all along. And a changelog offering *"a soft fade"* as an alternative effect, which the mechanism structurally cannot produce: too big to fix in passing, so it became a filed item naming the two candidate designs.
+
+  That second one is also the *other* failure — an example asserted without checking whether it exists. The two arrive together often enough to watch for as a pair: the sentence that hand-waves a limit, and the sentence that invents a capability.
+
 # Collaboration style
 
 Be direct. Skip formalities. Treat me as a peer, not a customer.
