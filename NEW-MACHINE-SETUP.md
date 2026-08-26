@@ -408,6 +408,20 @@ Both are optional: Claude Code ignores a missing `@import`, and nothing else rea
 
 Runtime state (`projects/`, `sessions/`, `memory/`, caches) is machine-local by design and is *not* synced — auto-memory accumulates per machine.
 
+### Point git at the shared hooks
+
+The hook script travels with the clone; the setting that activates it does not, because it lives in `~/.gitconfig` rather than in any repo. So this is one command per machine:
+
+```bash
+git config --global core.hooksPath '~/.claude/githooks'
+```
+
+Quote the tilde so the shell leaves it alone — git expands it itself, which is what keeps a username out of the config.
+
+That installs `githooks/commit-msg` for **every** repo on the machine, freshly cloned ones included, so there is nothing to repeat per project. It refuses a commit whose message carries no `Co-Authored-By: Claude ...` trailer, and it fires only when `CLAUDECODE` is set, so commits made from magit or an ordinary shell are untouched. `git commit --no-verify` bypasses it. Rationale in `CLAUDE.md`, under the section on the hook.
+
+Note this *replaces* per-repo `.git/hooks/` rather than adding to it. No fleet repo had a hook installed when this went in (checked 2026-08-26), so nothing was displaced — but a project that later wants its own hooks has to put them here, or override `core.hooksPath` locally.
+
 Put the four bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
 
 ```bash

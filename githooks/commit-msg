@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# Require a Claude co-authorship trailer on commits made from inside a Claude Code session.
+#
+# Why a hook rather than an instruction: the instruction already exists, in `CLAUDE.md`, and is followed
+# about four times in five. Measured on Raven 2026-08-26, month by month across the whole collaboration,
+# 74-90% of commits carry the trailer - so roughly a fifth of the record is missing its attribution, and
+# the gaps are invisible until someone goes looking for them (as happened with `raven/papers/fixbib.py`,
+# whose authorship had to be recovered from a recollection). Compliance that depends on a model
+# remembering, every time, is not compliance; this makes it deterministic.
+#
+# It fires ONLY when `CLAUDECODE` is set, which is what distinguishes an agent's commit from a human's.
+# A commit made from magit, or from any ordinary shell, is not touched - a human-only commit is a real
+# thing and has nothing to declare.
+#
+# `git commit --no-verify` skips this, as it skips every `commit-msg` hook. That is the escape hatch for
+# the case the check gets wrong.
+
+set -euo pipefail
+
+msg_file="$1"
+
+# Not an agent's commit: nothing to enforce.
+[ -n "${CLAUDECODE:-}" ] || exit 0
+
+# Messages git composes or rewrites, where the trailer either comes from elsewhere or does not belong.
+# `fixup!`/`squash!` are absorbed into the commit they name and never survive as messages of their own.
+if head -n 1 "$msg_file" | grep -qE '^(Merge |Revert "|fixup!|squash!)'; then
+    exit 0
+fi
+
+if grep -qiE '^Co-authored-by:[[:space:]]*Claude' "$msg_file"; then
+    exit 0
+fi
+
+cat >&2 <<'EOF'
+commit-msg: this commit has no Claude co-authorship trailer.
+
+You are committing from inside a Claude Code session, so the message must end with:
+
+    Co-Authored-By: Claude <model> <noreply@anthropic.com>
+
+naming the model that actually wrote the change (see CLAUDE.md for the exact form,
+including the Claude-Session line that goes with it).
+
+The commit has NOT been made. Re-run it with the trailer added.
+
+If this one is genuinely not yours to claim, bypass the check:
+
+    git commit --no-verify ...
+EOF
+exit 1

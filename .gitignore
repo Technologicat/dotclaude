@@ -22,6 +22,7 @@
 !statusline.sh
 !commands
 !scripts
+!githooks
 !skills
 !briefs
 !pyproject.toml

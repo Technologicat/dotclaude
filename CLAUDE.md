@@ -599,6 +599,27 @@ a re-run under a profiler often will not reproduce whatever it was doing.
     session with `sudo sysctl -w kernel.yama.ptrace_scope=0` (resets at reboot) — and since that needs a
     password, ask me to run it rather than attempting sudo.
 
+## A hook enforces the co-authorship trailer, so a forgotten one is a refused commit
+
+`~/.claude/githooks/commit-msg` rejects a commit whose message carries no
+`Co-Authored-By: Claude ...` line. It is wired in fleet-wide with
+`git config --global core.hooksPath /home/jje/.claude/githooks`, so it applies in every repo on the
+machine, including ones freshly cloned — there is nothing to install per project.
+
+**It fires only when `CLAUDECODE` is set**, which is what separates an agent's commit from a human's. A
+commit made from magit, or from any ordinary shell, is untouched: a human-only commit has nothing to
+declare. `git commit --no-verify` skips it, as it skips every `commit-msg` hook, and that is the escape
+hatch for the case the check gets wrong. Merge, revert, `fixup!` and `squash!` messages are skipped too.
+
+**Why it exists.** The instruction was already in this file and was followed about four times in five —
+measured on Raven, 2026-08-26, month by month across the whole collaboration: 74–90% of commits carry the
+trailer. So roughly a fifth of the record was missing its attribution, and the gaps are invisible until
+somebody goes looking, which is how `raven/papers/fixbib.py` ended up with its authorship recoverable only
+from a recollection. Compliance that depends on a model remembering, every time, is not compliance.
+
+The failure this prevents is not a bad commit but an incomplete *record*: `AUTHORS.md`, and any later
+question of who wrote what, are reconstructed from these trailers.
+
 ## Write commit messages through a quoted heredoc, not a shell-quoted string
 
 `git commit -m "…"` runs the message through the shell first, so anything the shell treats as syntax is
