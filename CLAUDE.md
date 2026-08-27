@@ -72,6 +72,14 @@ General rules that apply across all my projects, on top of the Zen of Python.
 - **A paragraph break inside a comment block is a lone `#`, not a blank line.** A blank line ends the block, so the halves stop reading as one thought — and worse, the first half detaches from the code it describes and drifts upward into no-man's-land. Use blank lines only to *separate* comment blocks that belong to different statements, each sitting directly above its own.
 - **Release resources in the reverse of the order they were acquired**, and where a class has more than one release path — a close *and* a teardown, say — give them the same order. Two paths releasing the same pair in opposite orders reads as if the difference were meaningful, and the next person has to work out which one is.
 
+- **Lock when the use site needs it, and say so when it doesn't.** At each access to a shared structure, stop and ask what guarantee *this* site actually requires — then take the lock if that is the answer, and if it is not, leave a comment saying what it relies on instead. Locking everything is not the safe default; it is a different bug with better manners.
+
+  The asymmetry that makes this worth a rule: a *missing* lock announces itself eventually, as a wrong answer or a crash under load. A *reflexive* lock can deadlock, and it does so at the least convenient moment, because the sites tempting you to add one are the hot ones. In a GUI that means the render thread: a per-frame reader that waits on a lock held by a worker which is itself waiting for a frame is a circular wait, and the app never finishes starting.
+
+  Where a reader must not block, the cheap answer is usually a copy rather than a lock — in CPython, `tuple(some_list)` is one C-level pass that never releases the GIL, so it cannot observe a half-mutated list. What it can be is an instant out of date, which for anything cosmetic is free.
+
+  **Write the reason down either way**, because an unexplained absence is indistinguishable from an oversight and the next reader will "fix" it. (Live case 2026-08-27, Raven: a sweep that locked twelve accesses to one list. Eleven were fine and one — read once per frame from the render loop — deadlocked the app on startup, blank panels, `py-spy` pointing straight at the `with` line. The race it was added to fix was real; only the remedy was wrong.)
+
 - **A sentence that describes a limitation is often a feature request in disguise.** Two shapes, and the second is the one that hides:
 
   - **A comment that reads like an apology.** *"X has no such parameter, so we…"*, *"there is no way to ask Y, so we keep our own copy"*, *"this is awkward because Z does not support…"*. Stop before finishing the sentence and take stock: is the prose describing a missing feature or a defect rather than a design?
