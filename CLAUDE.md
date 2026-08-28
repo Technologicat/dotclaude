@@ -525,6 +525,13 @@ Note this composes with the docs-only exemption below: push at the seam either w
     It exits 0 on success, 1 on failure or timeout, 2 when the workflow name matches nothing — and in that
     last case prints the names that do exist. It reports every poll, so silence means it is not running.
 
+    **Those exit codes only survive if you don't pipe it.** A pipeline reports the status of its *last*
+    command, so `ci-watch | tail` hands back `tail`'s 0 no matter what the watch concluded, and a `2` for
+    "no such workflow" arrives wearing a pass. It prints few enough lines to read whole; there is nothing
+    to trim. (Live case 2026-08-28, this repo: the workflow here was still named `tests`, `ci-watch` said
+    so and exited 2, and `| tail -20` turned that into a green — a CI result reported as verified when
+    nothing had been watched at all.)
+
     **After pushing a release tag, watch it with `--branch <tag>`, never `--sha`.** A tag run's `headSha`
     is the tagged commit — the same SHA as the branch run that already passed — so a SHA selects both and
     takes whichever is newer. That is normally the tag run, but a re-run of the branch workflow makes it
