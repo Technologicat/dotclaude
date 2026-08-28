@@ -2,6 +2,11 @@
 name = "dotclaude"
 version = "0.1.0"
 description = "The Claude Code configuration itself: CLAUDE.md, the skills, the scripts."
+# Three licenses because the repo holds three kinds of content — documentation, code, artwork.
+# `AND` is the SPDX form for "contains parts under each of these"; `OR` would say the recipient
+# picks one. Inert while `distribution = false`, and the field that would be read if that changed.
+license = "CC-BY-4.0 AND BSD-2-Clause AND CC0-1.0"
+license-files = ["LICENSE.md", "LICENSE-CODE.md", "icons/LICENSE.md"]
 # Bounded above on purpose. An unbounded `>=3.10` forces the resolver to pick versions valid for
 # *every* future Python, so a dep that caps itself (unpythonic declares `<3.16,>=3.10`) gets skipped
 # in favour of something ancient enough to declare no constraint — here, unpythonic 0.14.2.1, which
