@@ -2,11 +2,32 @@
 name = "dotclaude"
 version = "0.1.0"
 description = "The Claude Code configuration itself: CLAUDE.md, the skills, the scripts."
+authors = [{name = "Juha Jeronen", email = "juha.jeronen@jamk.fi"}]
 # Three licenses because the repo holds three kinds of content — documentation, code, artwork.
 # `AND` is the SPDX form for "contains parts under each of these"; `OR` would say the recipient
 # picks one. Inert while `distribution = false`, and the field that would be read if that changed.
 license = "CC-BY-4.0 AND BSD-2-Clause AND CC0-1.0"
 license-files = ["LICENSE.md", "LICENSE-CODE.md", "icons/LICENSE.md"]
+# No `License ::` entry: the SPDX expression above supersedes it, and declaring both trips a
+# warning. The fleet was migrated off those classifiers in 2026-06.
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    # CPython only, unlike the libraries: the CI matrix here tests nothing else.
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+]
 # Bounded above on purpose. An unbounded `>=3.10` forces the resolver to pick versions valid for
 # *every* future Python, so a dep that caps itself (unpythonic declares `<3.16,>=3.10`) gets skipped
 # in favour of something ancient enough to declare no constraint — here, unpythonic 0.14.2.1, which
