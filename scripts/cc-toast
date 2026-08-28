@@ -50,10 +50,10 @@ STATE="${XDG_RUNTIME_DIR:-/tmp}/claude-code-toast.$(id -u).id"  # SC2155: split,
 readonly STATE
 readonly SUMMARY="Claude Code"
 
-# The icon lives beside this script, which is reached through a symlink on PATH — hence the `readlink -f`
-# rather than a bare `dirname "$0"`. If it has gone missing the toast still goes out with the server's
-# default icon: a warning with the wrong picture on it is worth far more than no warning.
-ICON="$(dirname -- "$(readlink -f -- "$0")")/cc-toast.svg"
+# The icon is in the repo's `icons/`, located relative to this script's own real path — `readlink -f`
+# because the name on PATH is a symlink into the repo. If the file has gone missing the toast still goes
+# out with the server's default icon: a warning with the wrong picture on it beats no warning.
+ICON="$(dirname -- "$(readlink -f -- "$0")")/../icons/sparkle.svg"
 [ -r "$ICON" ] || ICON=""
 readonly ICON
 
