@@ -15,4 +15,9 @@ provides for computer-generated works with no human author and vests them in
 whoever arranged their creation. CC0 is what makes "no rights asserted" mean the
 same thing in both places.
 
+None of which generalizes to AI-assisted work with real direction behind it. An
+image that was composed, inpainted to fix what came out wrong, and then edited by
+hand is a different case, and this file says nothing about it. What is thin here
+is specifically the direction these four icons got.
+
 Use them for anything, with or without credit.
