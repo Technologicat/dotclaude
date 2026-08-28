@@ -16,6 +16,9 @@
 !.gitignore
 !.gitattributes
 !README.md
+!LICENSE.md
+!LICENSE-CODE.md
+!AUTHORS.md
 !TODO_DEFERRED.md
 !CLAUDE.md
 !CLAUDE_webchat.md

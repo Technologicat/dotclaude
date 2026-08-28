@@ -54,7 +54,8 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 | [`statusline.sh`](statusline.sh) | Custom status line — venv, host, cwd, model, effort, context usage. |
 | [`skills/`](skills/) | On-demand reference material (see below). |
 | [`scripts/`](scripts/) | On PATH, because `CLAUDE.md` and the skills invoke them by bare name: `em` (open a file in the running Emacs), `api-inventory` (every public name in a Python tree, with signature and summary), `cc-toast` (desktop notification), `ci-watch` (wait for a commit's CI run and report it job by job, without waiting forever). Run by path: `build-webchat.py` (preferences-blob expander), `check-move.py` (did moving a function change it?), `check-prose.py` (how hard a diff leans on "rather than", against a baseline of hand-written prose), `fleet-pull.sh` (clone or fast-forward the whole project fleet) and its `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` (hides the eGPU). |
-| [`icons/`](icons/) | Artwork for anything here that needs a picture — currently `cc-toast`, which uses `sparkle.svg`. Drawn for this repo, so reuse is unencumbered; `robot.svg`, `neural-net.svg` and `prompt.svg` are alternates. All four are one warm hue in two mid-tones, which is what keeps them legible whether the desktop theme is light or dark. |
+| [`icons/`](icons/) | Artwork for anything here that needs a picture — currently `cc-toast`, which uses `sparkle.svg`; `robot.svg`, `neural-net.svg` and `prompt.svg` are alternates. All four are one warm hue in two mid-tones, which is what keeps them legible whether the desktop theme is light or dark. Public domain — take them. |
+| [`LICENSE.md`](LICENSE.md), [`LICENSE-CODE.md`](LICENSE-CODE.md), [`AUTHORS.md`](AUTHORS.md) | Three licenses for three kinds of content, and who wrote what. See below. |
 | [`briefs/`](briefs/) | Archived design briefs. |
 | `commands/` | Slash commands. Currently empty — the one that lived here became a skill. |
 
@@ -82,6 +83,20 @@ Claude Code writes continuously into this directory — sessions, caches, shell 
 The upshot is that when a Claude Code release starts writing some new directory here, it is gitignored automatically and stays out of the repo until someone decides otherwise. A new entry showing up in `git status --ignored` is the safety net working, not a problem to fix.
 
 Adding something on purpose is the other half, and it is the half git gives bad advice about. A new tracked directory — `icons/`, say — needs its own `!` line; the refusal you get without one recommends `git add -f`, which tracks the file and leaves the whitelist no longer a complete account of what's here.
+
+## Licensing
+
+Three licenses, because the repo holds three kinds of thing and one license would fit at most one of them well.
+
+| What | License | |
+|------|---------|---|
+| The documentation — `CLAUDE.md`, the skills, the setup notes, this file | CC BY 4.0 | [`LICENSE.md`](LICENSE.md) |
+| The code — `scripts/`, `tests/`, `githooks/`, and the config files | BSD 2-Clause | [`LICENSE-CODE.md`](LICENSE-CODE.md) |
+| The artwork — `icons/` | CC0 1.0 | [`icons/LICENSE.md`](icons/LICENSE.md) |
+
+Attribution rather than ShareAlike on the prose, deliberately: the point of publishing this is that people lift rules out of `CLAUDE.md` into their own config, and copyleft would make a public dotfiles repo that did so into a licensing problem. Credit is all that's asked.
+
+The artwork is CC0 because it was drawn by a model to a brief, which is not enough human creative direction to support a copyright claim — so rather than assert one, the icons are dedicated to the public domain. [`AUTHORS.md`](AUTHORS.md) records who drew them, which is a separate question from who owns them, and the only one of the two with an answer.
 
 ## Provenance
 
