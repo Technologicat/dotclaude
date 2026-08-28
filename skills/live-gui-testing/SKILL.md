@@ -38,6 +38,26 @@ misdiagnosis has happened, in both directions, on the same incident.
 It also means a window mapping is never free, even for a check that needs no focus of its own: launching is
 what hands the app the keyboard, and whoever is typing finds out afterwards.
 
+## Waiting for the app to come up
+
+**Wait for the app's own ready line, not for a guessed number of seconds.** Startup times differ by an order
+of magnitude between apps in one project and change as a project grows — measured 2026-08-28, Raven's
+Visualizer is up in under ten seconds where Librarian takes about twenty-five — so a sleep is either a stall
+or a race, and picking between them is a guess renewed every session.
+
+```bash
+LOG=/tmp/.../app.log
+nohup <app> --log-level INFO --log "$LOG" >/dev/null 2>&1 &
+until grep -q "App render loop starting" "$LOG" 2>/dev/null; do sleep 1; done
+```
+
+The ready line is per project. **In Raven every GUI app logs `App render loop starting.`** when its render
+loop begins, which is the earliest moment a window can be driven. An app with no such line is worth giving
+one; the alternative is polling for the window, which appears before the app is ready to answer.
+
+Note the loop tests a *file*, so it cannot match itself — unlike the `pgrep -f` shape, which finds the shell
+running it and waits forever.
+
 ## Finding the window
 
 ```bash
