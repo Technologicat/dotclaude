@@ -4,6 +4,10 @@
 # default is to ignore everything at the root and opt in explicitly. A new
 # state dir appearing in `git status --ignored` after a CC update is the safety
 # net working, not a problem: tracking it requires a deliberate decision.
+#
+# That decision is a `!` line below. Not `git add -f`, which is what git's refusal suggests:
+# it tracks the file and leaves this list silent about it, so the list stops being a complete
+# answer to what the repo holds.
 
 # Ignore everything at the top level by default...
 /*

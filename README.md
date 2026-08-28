@@ -81,6 +81,8 @@ Claude Code writes continuously into this directory — sessions, caches, shell 
 
 The upshot is that when a Claude Code release starts writing some new directory here, it is gitignored automatically and stays out of the repo until someone decides otherwise. A new entry showing up in `git status --ignored` is the safety net working, not a problem to fix.
 
+Adding something on purpose is the other half, and it is the half git gives bad advice about. A new tracked directory — `icons/`, say — needs its own `!` line; the refusal you get without one recommends `git add -f`, which tracks the file and leaves the whitelist no longer a complete account of what's here.
+
 ## Provenance
 
 This repo's design was hashed out in a Claude Code session and reviewed in a claude.ai session; the migration was then executed by Claude Code. The original brief is preserved verbatim in [`briefs/`](briefs/) as a record of the design rationale — including the parts that turned out to be wrong. Future briefs land alongside it.
