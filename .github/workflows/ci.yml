@@ -56,13 +56,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # ShellCheck is preinstalled on the ubuntu runner images.
-      # `scripts/em` has no extension, so list scripts explicitly rather than globbing *.sh —
-      # a glob would silently skip it, which is the one most likely to be edited by hand.
       - name: Lint shell scripts
         # The version comes with the image and moves when GitHub rebuilds it, so print it: a new
         # rule in a newer ShellCheck turns unchanged scripts red, and the log is the only place
         # that distinguishes it from a real regression — or from a local copy that is older and
         # therefore quieter (Ubuntu noble ships 0.9.0).
+        #
+        # Select by shebang. Several of these scripts have no extension, so a `*.sh` glob misses
+        # them; and a hand-written list of the exceptions goes stale the moment a script is added,
+        # without anything going red to say so. The shebang is the one place the answer already is.
         run: |
           shellcheck --version
-          shellcheck scripts/*.sh scripts/em statusline.sh
+          grep -rlE '^#!.*/(env +)?(ba)?sh\b' scripts statusline.sh | xargs -r shellcheck
