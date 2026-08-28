@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>cc-toast</title>
+  <!-- One tone throughout, and a mid-tone at that: the notification server paints the toast in the
+       desktop theme's colours, so a near-white glyph vanishes the day the theme goes light. -->
+  <path d="M27 4 C29.5 20 34 25 50 27 C34 29 29.5 34 27 50 C24.5 34 20 29 4 27 C20 25 24.5 20 27 4 Z"
+        fill="#d97757"/>
+  <path d="M50 38 C51 46 52.5 47.5 60 49 C52.5 50.5 51 52 50 60 C49 52 47.5 50.5 40 49 C47.5 47.5 49 46 50 38 Z"
+        fill="#b3573a"/>
+</svg>

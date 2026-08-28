@@ -40,11 +40,22 @@
 #     type name. Replacing a nonexistent id is silent — the server just issues a new one — so the bug
 #     shows up only as toasts quietly piling up again.
 #
+# The `app_icon` argument takes a path as readily as an icon-theme name, and Cinnamon renders an SVG from
+# one (GdkPixbuf carries an SVG loader). Without it the server picks the icon for the urgency level, which
+# for critical is a "no entry" road sign — right for a disk filling up, wrong for "I am about to type".
+#
 set -uo pipefail
 
 STATE="${XDG_RUNTIME_DIR:-/tmp}/claude-code-toast.$(id -u).id"  # SC2155: split, so `id -u` can fail loudly
 readonly STATE
 readonly SUMMARY="Claude Code"
+
+# The icon lives beside this script, which is reached through a symlink on PATH — hence the `readlink -f`
+# rather than a bare `dirname "$0"`. If it has gone missing the toast still goes out with the server's
+# default icon: a warning with the wrong picture on it is worth far more than no warning.
+ICON="$(dirname -- "$(readlink -f -- "$0")")/cc-toast.svg"
+[ -r "$ICON" ] || ICON=""
+readonly ICON
 
 close_previous() {
     [ -s "$STATE" ] || return 0
@@ -60,7 +71,7 @@ notify() {  # $1 = id to replace (0 for a new one), $2 = body; prints the id the
           --dest org.freedesktop.Notifications \
           --object-path /org/freedesktop/Notifications \
           --method org.freedesktop.Notifications.Notify \
-          "$SUMMARY" "$1" "" "$SUMMARY" "$2" "[]" "{'urgency': <byte 2>}" 0 2>/dev/null \
+          "$SUMMARY" "$1" "$ICON" "$SUMMARY" "$2" "[]" "{'urgency': <byte 2>}" 0 2>/dev/null \
         | sed -n 's/^(uint32 \([0-9][0-9]*\),)$/\1/p'
 }
 
