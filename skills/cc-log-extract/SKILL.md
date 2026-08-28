@@ -1,6 +1,6 @@
 ---
 name: cc-log-extract
-description: Extract readable conversation turns from Claude Code JSONL session logs (the files under ~/.claude/projects/<project>/). Use when summarizing past sessions ("what did we build", "pull the chatlogs"), reviewing how a feature was implemented across a session, doing AI pair-programming ethnography, or tracking which model produced which turns. Strips tool-I/O noise and emits Markdown with model stamps. For a monthly activity report, see the `monthly-report` skill, which drives this one.
+description: Extract readable conversation turns from Claude Code JSONL session logs (the files under ~/.claude/projects/<project>/). Use when summarizing past sessions ("what did we build", "pull the chatlogs"), reviewing how a feature was implemented across a session, doing AI pair-programming ethnography, or tracking which model produced which turns. Also when the log is being consulted as a *record* rather than read as prose: recovering what a compaction dropped ("what were we about to do", a TODO lost across a seam), or timing something that already happened ("how long did that actually take", checking an estimate against the commit that closed it). Strips tool-I/O noise and emits Markdown with model stamps. For a monthly activity report, see the `monthly-report` skill, which drives this one.
 ---
 
 # Extracting Claude Code session logs
@@ -66,6 +66,37 @@ sessions at once.
   extraction step it calls.
 - **"How did we build X?"** — extract the relevant session with `--tools edits`
   to see the actual diffs inline.
+- **Recovering what a compaction dropped.** A summary keeps what mattered to the
+  summarizer, and an unplanned one — the context filling mid-item, the handover
+  improvised — keeps rather less. The log has every turn. Extract from the last
+  clean point to the seam and read what was outstanding: the "next we should…"
+  that never reached a file, a TODO agreed in conversation, a decision that
+  produced no diff. **The compacted session can do this to itself**, which is the
+  case worth knowing about: its own transcript is still on disk under its own
+  UUID, and it is the only copy of what it has just forgotten.
+
+  This should be rare. It is the failure mode the "leave the last turn fit to be
+  compacted" rule exists to prevent, and reaching for the log means that rule was
+  not applied in time. Worth doing anyway when it happens — the alternative is
+  re-deriving the same decisions, differently, without knowing you are.
+
+- **Timing something that already happened.** Every record carries a `timestamp`
+  (UTC, ISO-8601), so the log answers questions the conversation no longer can:
+  when a thing was said, how long it took, what preceded it.
+
+  The estimate-versus-actual check is the useful instance. An estimate stated in a
+  message has a timestamp; the commit that closed it has one too, from
+  `git log --format=%ad --date=iso-strict`. Neither party reconstructs elapsed
+  time reliably afterwards, and the two records settle it in one command. (Live
+  case, Raven 2026-08-28: a GUI sweep estimated at "an hour or so" was committed
+  20.4 minutes later.)
+
+  **For timing, read the raw JSONL rather than the extracted Markdown.** The
+  extractor is built for reading — it merges consecutive turns and drops tool
+  bodies — and `--timestamps` stamps what survives that, which is the wrong grain
+  when the question is when a particular tool call ran. `json.loads` per line and
+  pick the `timestamp` off the records you want.
+
 - **Ethnography / field notes** — `--no-tools` for pure HUMAN↔CC dialogue; the model
   stamps let you attribute behavior to a specific model version.
 
