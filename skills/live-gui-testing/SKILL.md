@@ -167,10 +167,19 @@ Without it, a missed click reads as a pass against whatever the previous step le
 
 ## Closing the app
 
-**Prefer the window manager: `wmctrl -i -c <window-id>`.** Measured on one app: SIGTERM to the correct PID
-left the process running (twice, tens of seconds apart) while `wmctrl -c` shut it down within seconds. It is
-also the graceful path — it runs the app's own shutdown, so state is saved. Reserve a PID kill for a process
-with no window, or one that ignores the close.
+**Prefer the window manager: `wmctrl -i -c <window-id>`.** SIGTERM to the correct PID left the process
+running (twice, tens of seconds apart) while `wmctrl -c` shut it down within seconds. It is also the
+graceful path — it runs the app's own shutdown, so state is saved. Reserve a PID kill for a process with no
+window, or one that ignores the close.
+
+**Assume this of any DPG app rather than testing it each time** (Juha, 2026-08-31, after a second app
+behaved identically — `raven-avatar-settings-editor`, still running its render loop some seconds after a
+SIGTERM it never acted on). Why the signal goes unanswered has not been established; what is established
+is that it does, on two apps on two occasions.
+
+**The confusing part is that the kill *looks* like it worked.** The shell reports success, `pgrep` in the
+same pipeline has already listed the process, and the next thing you see is a second window beside the
+first. Check with `ps -p <pid>` before relaunching, not after.
 
 **Never `xdotool windowclose`, which is not the polite version of that.** Its man page is explicit: *"This
 action will destroy the window, but will not try to kill the client controlling it."* It is `XDestroyWindow`
