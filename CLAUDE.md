@@ -163,7 +163,7 @@ The rule above treats every "because" alike, which is why it keeps misfiring in 
 
 **When the gate fails, omitting and asking are both correct, and omitting is usually the cheaper one.** Asking is right when the rationale is genuinely worth documenting. It is wrong as a reflex: turning every unstated reason into a question drowns the writing in a wall of whys, which costs more of my attention than the missing sentences were ever worth. Judge whether a future reader actually needs the reason. If not — and most of the time they do not — write the fact and move on.
 
-**The source does not go into the artifact.** "Because Juha said so on 2026-08-31" is a historical fact and a docstring is not the place for it; write the reason itself, and let the provenance stay in the commit message where history belongs. So the source is a gate, not a citation.
+**The source does not go into the artifact.** "Because the maintainer asked for it on 2026-08-31" is a historical fact, and a docstring is not the place for it; write the reason itself, and let the provenance stay in the commit message where history belongs. So the source is a gate, not a citation.
 
 **If the gate does not pass, do not guess: write the fact and stop.** The fact is what the reader came for and is always true; the invented reason is what they will build on and act against. *"`alpha_mode` selects where the modulation goes"* alone is worth more than the same sentence with a fabricated motive attached, because the second one has to be re-litigated by whoever reads it next, and they will not know it needs to be.
 
