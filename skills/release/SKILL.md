@@ -25,6 +25,22 @@ Existing tags are mixed: the ones made by hand (command line, later Magit, which
 
 ## Pre-release
 
+**First, run whatever checkers the project keeps for itself.** If it has a `scripts/` directory, read its
+`README.md` — the table there says what each one answers — and run the ones whose subject the release
+touches. Do this before the release commit, since a finding turns into a commit of its own that then needs
+its own CI pass.
+
+These exist precisely because CI does not cover what they check. A checker in `scripts/` is, by
+construction, asking a question no test asks and no linter sees: whether the three dependency lists still
+agree, whether a module map still describes its package, whether the `python -m` commands the README tells
+people to type still name modules that exist. Green CI says nothing about any of it, and release is when
+that documentation goes out.
+
+**Raven is currently the only project in the fleet with any** (six, in `scripts/`), so elsewhere this step
+is a five-second look that finds nothing to run. It is written as a habit rather than a Raven note because
+the cost of checking is that look, and the cost of not having the habit is that a checker added later is
+run by whoever wrote it and by nobody afterwards.
+
 **Tag only once CI is green on the exact commit you intend to tag.** Push the release commit, wait for the run to pass, *then* tag and push the tag. Never tag and push in one motion on the strength of a local test run.
 
 The failure this prevents: a red tag run means the publish never happens, and recovering costs either force-moving a public tag or burning the version number entirely. On an ordinary push a red CI is cheap — fix it and push again. On a tag it is not, and the asymmetry is the whole reason the rule exists. (A local suite passing is not the same as CI passing: CI also lints.)
