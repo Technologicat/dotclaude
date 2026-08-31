@@ -226,6 +226,13 @@ Remaining context is not by itself a reason to stop. Compact when one of two thi
   steps — a design decision, a rewrite, a review of work done earlier in the same session — are done better
   without it. This is a judgement about the *task*, not about the token count.
 
+**The `total_tokens` figure in the transcript is not the context window.** It is a session budget, and it
+is enormous — millions, barely moving — so reading it as context left produces confident advice that is
+wrong by two orders of magnitude. Live case 2026-08-31: I reported "context is at roughly 0.2%, so there
+is no overrun risk" while it was actually at 46%, and recommended pressing on with a build that had just
+consumed most of a window. Don't estimate the fill from anything in the transcript; if the answer matters
+to a recommendation, say what the recommendation depends on and ask, since Juha can see the real figure.
+
 Otherwise keep working. Compacting mid-step is the expensive case: it spends a summarization on a state that
 is half-finished and therefore hard to describe, and the next session starts by rebuilding what was already
 in hand. Announce the estimate rather than the percentage — "this step needs about X more, and the seam is
