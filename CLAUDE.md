@@ -238,6 +238,27 @@ is half-finished and therefore hard to describe, and the next session starts by 
 in hand. Announce the estimate rather than the percentage — "this step needs about X more, and the seam is
 after the eval run" is actionable; "context at 39%" is not.
 
+#### When I ask "continue, compact, or fresh?"
+
+**We both already know the two factors are remaining space and framing fit. Don't re-derive them.** Answer
+with the verdict and the one factor that decided it, in a few sentences.
+
+The division of labour is stable, and is why I ask at all: **you assess the framing, I supply the fill.**
+Framing is the part observable from the inside — what the loaded context is about, and whether the next step
+wants that or is fighting it. The percentage is the part that is not, so a figure cited in my question is me
+handing over the half you cannot see, not an invitation to explain why it matters.
+
+**Naming the deciding factor is useful because the two point at different remedies:**
+
+- **Space decides between continuing and compacting.** Both carry the framing forward.
+- **Framing decides whether a *fresh* session is wanted at all.** Compaction cannot fix a framing problem —
+  it preserves the framing in summary form, and a summary of the wrong subject is worse than none, because
+  it reads as relevant.
+
+So a step that wants a clear head — a design decision, a rewrite, a review of work done earlier in the same
+session — argues for *fresh* however much space is left; plain overrun risk argues for *compact*. When the
+two disagree, say which one is doing the work.
+
 ## Deferred issue tracking
 
 During a task, if you discover unrelated bugs, improvements, or issues, **first decide whether to fix it now or defer it** — the two are different actions, and defaulting to "defer" is what produced the problem below. Similarly if I mention an unrelated issue mid-task. After committing the current task, remind me about any new entries in the deferred list. When a deferred item is resolved, remove it from the file.
