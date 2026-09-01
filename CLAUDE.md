@@ -188,6 +188,33 @@ It reads as confidence rather than as a guess, so the usual hedging instinct nev
 
 The tell is a sentence that would need a qualifier to survive one more case, and does not have it.
 
+### And a third: a negative result from an instrument nobody checked
+
+The two above are about a claim that was asserted. This one is about a claim that was *measured*, where the
+measurement is the part that failed. A probe reports "no test rejects this", "nothing changed", "it does not
+reproduce" — and the finding gets written down without anyone asking whether the apparatus could have
+produced the other answer.
+
+The asymmetry is what hides it. A *positive* result carries its own evidence: something happened, and the
+something is proof the instrument was pointed at the right thing. A negative result looks identical whether
+the hypothesis is false or the probe never ran, because the output is empty either way.
+
+**So before believing a negative, make the instrument produce a positive.** Print what the anchor matched
+before relying on the substitution. Assert the injected break is actually present before running the suite
+against it. Check the exit status of the step that set the state up, not only of the step that measured it.
+
+This is the negative-control habit from "Deferred issue tracking" applied one level up — to throwaway
+apparatus rather than to a committed fixture — and it needs saying separately because none of what enforces
+it downstream exists here. A probe is written once, run once and deleted: nothing reviews it and nothing
+re-runs it, while its conclusion outlives it in a brief or a commit message, by which point the instrument
+can no longer be inspected.
+
+(Live case 2026-09-01, Raven: a probe that patched a dash-dropping bug into the renderer and ran the suite
+against it reported that no test caught it. Its anchor did not match, so nothing was patched and the suite
+had passed against unmodified code — a working test was nearly deleted as useless. Raven's project notes
+record the same shape from 2026-08-31, where a `git stash push` aborted and the check that followed
+silently measured the tree it was meant to have reverted.)
+
 ## Leave the last turn fit to be compacted
 
 Compaction keeps the last turn and summarizes everything before it. So when I say I'm about to compact — or
