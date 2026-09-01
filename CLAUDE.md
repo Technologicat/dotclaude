@@ -226,12 +226,45 @@ Remaining context is not by itself a reason to stop. Compact when one of two thi
   steps — a design decision, a rewrite, a review of work done earlier in the same session — are done better
   without it. This is a judgement about the *task*, not about the token count.
 
-**The `total_tokens` figure in the transcript is not the context window.** It is a session budget, and it
-is enormous — millions, barely moving — so reading it as context left produces confident advice that is
-wrong by two orders of magnitude. Live case 2026-08-31: I reported "context is at roughly 0.2%, so there
-is no overrun risk" while it was actually at 46%, and recommended pressing on with a build that had just
-consumed most of a window. Don't estimate the fill from anything in the transcript; if the answer matters
-to a recommendation, say what the recommendation depends on and ask, since Juha can see the real figure.
+**The `total_tokens` figure in the transcript is not the context window**, and it is not a running total
+either: it resets to its ceiling at the start of every one of my messages and ticks down through your own
+tool calls within the turn, so a reading late in a session can be *higher* than one from early in it.
+Reading it as context left produces confident advice that is wrong by two orders of magnitude. Live case
+2026-08-31: "context is at roughly 0.2%, so there is no overrun risk", while it was actually at 46%, and
+the recommendation was to press on with a build that had just consumed most of a window.
+
+**The real figure is on disk, in this session's own log**, and costs one Bash call — the file is a few MB,
+but only the number it prints enters the context:
+
+```bash
+python - <<'PY'
+import json, pathlib
+# Both path components come from the scratchpad directory named in the system prompt:
+#   /tmp/claude-<uid>/<project-dir>/<session-uuid>/scratchpad
+p = pathlib.Path.home() / ".claude/projects/<project-dir>/<session-uuid>.jsonl"
+last = None
+for line in p.open(encoding="utf-8"):
+    try:
+        usage = (json.loads(line).get("message") or {}).get("usage")
+    except Exception:
+        continue
+    if usage:
+        last = usage
+fill = sum(last.get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+print(f"{fill:,} tokens in the prompt")
+PY
+```
+
+Two things to know before trusting it:
+
+- **The three input fields have to be summed**, because nearly all of the prompt is
+  `cache_read_input_tokens`. Reading `input_tokens` alone returns something like `2` — a number that
+  looks like an answer and is not.
+- **It lags one turn.** The newest record is the *previous* response's prompt, so it excludes my latest
+  message and everything you have done since. Harmless at 55%, misleading at 95%.
+
+Verified once, 2026-09-01: the sum read 549,624 against the TUI's reported 55% of a 1M window. One data
+point, so treat the field interpretation as well-supported rather than documented.
 
 Otherwise keep working. Compacting mid-step is the expensive case: it spends a summarization on a state that
 is half-finished and therefore hard to describe, and the next session starts by rebuilding what was already
@@ -243,10 +276,10 @@ after the eval run" is actionable; "context at 39%" is not.
 **We both already know the two factors are remaining space and framing fit. Don't re-derive them.** Answer
 with the verdict and the one factor that decided it, in a few sentences.
 
-The division of labour is stable, and is why I ask at all: **you assess the framing, I supply the fill.**
-Framing is the part observable from the inside — what the loaded context is about, and whether the next step
-wants that or is fighting it. The percentage is the part that is not, so a figure cited in my question is me
-handing over the half you cannot see, not an invitation to explain why it matters.
+**The framing judgement is the half I am asking for.** It is the part observable only from the inside — what
+the loaded context is about, and whether the next step wants that or is fighting it. The fill is a number,
+and you can read it yourself (recipe above), so don't ask me for it. Where I cite one anyway, prefer mine:
+I see it live, and the log lags a turn.
 
 **Naming the deciding factor is useful because the two point at different remedies:**
 
