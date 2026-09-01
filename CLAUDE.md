@@ -260,8 +260,12 @@ Two things to know before trusting it:
 - **The three input fields have to be summed**, because nearly all of the prompt is
   `cache_read_input_tokens`. Reading `input_tokens` alone returns something like `2` — a number that
   looks like an answer and is not.
-- **It lags one turn.** The newest record is the *previous* response's prompt, so it excludes my latest
-  message and everything you have done since. Harmless at 55%, misleading at 95%.
+- **It lags, but by an absolute amount rather than a proportional one.** The newest record is the prompt
+  of your last API round, so the error is whatever has been added since — not a fraction of the fill. At
+  the moment this question gets asked it is my message plus the progress report you just wrote, a few
+  thousand tokens, which is a rounding error against a 1M window at any fill level (Juha's observation,
+  2026-09-01). It is only worth a thought after a round that ingested something large — a big file read,
+  a subagent's report — and even then the fix is to run it again a round later.
 
 Verified once, 2026-09-01: the sum read 549,624 against the TUI's reported 55% of a 1M window. One data
 point, so treat the field interpretation as well-supported rather than documented.
