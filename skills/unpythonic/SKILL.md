@@ -142,9 +142,33 @@ The `timer` snippet is worth memorising, since it recurs: `with timer() as tim: 
 human-readable ETA, averaging over a ring buffer whose size `keep_last` tunes. `typecheck` is `isoftype`, a runtime check
 that understands `typing` constructs. `lazyutil` is `Lazy`/`force` promises.
 
-**Not part of the tour:** `unpythonic.net` is a REPL server. `unpythonic.monads` is largely a
-self-contained experiment and a body of teaching code; its `List` is what backs `amb`. Neither is
-general-purpose utility code you would reach for while building something else.
+**Not part of the tour:** `unpythonic.monads` is largely a self-contained experiment and a body of
+teaching code; its `List` is what backs `amb`. Not general-purpose utility code you would reach for
+while building something else.
+
+### `unpythonic.net`: a REPL into a running process
+
+A REPL server — Common Lisp's Swank, for Python — so a live process can be connected to and inspected
+while it keeps running. Worth knowing about because the situation it answers is one where nothing else
+helps: **a long unattended job has wedged, and killing it destroys the evidence.** An overnight batch
+that stops making progress leaves you a choice between waiting and losing the state that would explain
+it; this is the third option.
+
+**It is opt-in, and the app decides what the session can see.** Starting the server is a deliberate act,
+and the app says what goes into the REPL session's locals. `sys.modules` reaches every module's
+top-level namespace from there, so in principle anything module-global is available.
+
+**Which is also the catch, and it wants designing for in advance.** The interesting state in a wedged
+job is usually *not* module-global: it is inside a closure, or a local in the frame that is currently
+blocked, and neither is reachable from `sys.modules`. So a process that is going to be debugged in
+flight has to have been built for it — anything you may need to look at must be linked from somewhere a
+REPL can walk to. That is the same foresight that goes into a spacecraft's telemetry, and it is not
+something that can be bolted on once the job is already stuck.
+
+The practical reading: reach for it when *designing* a long-running unattended process, not when one has
+already hung. If the design work has not been done, cheaper instruments answer most of the same
+questions — `py-spy dump` for where the threads are, a resumable state file for how far it got, and
+logging the model's reasoning trace at DEBUG for what an agent loop was actually doing.
 
 ## Reach for these instead of writing your own
 
