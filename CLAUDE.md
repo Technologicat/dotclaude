@@ -975,6 +975,33 @@ the reflex to approve without reading, and that reflex is what makes the *unavoi
 guarding a `kill` or an `rm` — worthless. A permission dialog is a scarce resource, and spending it on
 `basename` devalues the currency.
 
+## Don't pipe a live run through `tail`
+
+`some-long-job | tail -40` is fine for content that already exists and wrong for content still being
+produced, and the difference is invisible when you type it. Two harms, and the second is the one that
+costs an afternoon:
+
+- **Nothing appears until the job ends.** `tail` cannot know which lines are the last ones until there
+  are no more, so it buffers the lot. A run with a per-batch progress line becomes a run with no output
+  at all, and there is then no way to tell "working" from "wedged" except by going and looking somewhere
+  else. On a job measured in hours that is most of what the progress line was for.
+- **It then throws away everything but the end.** The discarded part is where a failure's first symptom
+  lives — the batch that came back short, the record that was skipped, the warning before the stall — so
+  the one run that would have explained the problem keeps only its summary.
+
+**Just don't pipe it.** A backgrounded job's stdout is captured to a file in full, so read the tail of
+*that* when you want the end; the material is on disk either way and `tail` on a finished file has
+neither problem. Where a job is in the foreground and genuinely verbose, redirect to a file and read the
+file.
+
+**And prefer a side channel for progress.** A long run usually writes something as it goes — a resumable
+JSONL, an output directory, a state file — and `wc -l` on that is a truer progress signal than stdout,
+because it survives buffering, redirection and the job being restarted.
+
+Related but a different harm: piping also **replaces the exit code with the pipeline's last command**,
+which is why `ci-watch | tail` reports success no matter what the watch concluded. Same instrument, and
+the reason to reach for it less often than the fingers want to.
+
 ## Filesystem
 
 - **`/tmp` is a ramdisk on both my machines** — it lives in RAM and is wiped at every boot (not just cleared of old files; gone). Fine for scratch: probes, dry-run copies, intermediate artifacts that only matter within the session. **Never** treat it as durable storage: don't stash a backup, a generated report, or anything I'd want after a reboot there. Anything worth keeping goes in the repo (committed), a project file, or `~`. (This is also why investigation code that captured a real invariant must be promoted to the test suite — see "Promote useful investigation code to the test suite" — rather than left in `/tmp`.)
