@@ -239,6 +239,23 @@ had passed against unmodified code — a working test was nearly deleted as usel
 record the same shape from 2026-08-31, where a `git stash push` aborted and the check that followed
 silently measured the tree it was meant to have reverted.)
 
+**A probe that edits Python source has a second way to measure nothing: stale bytecode.** CPython decides a
+`.pyc` is current from the source's *size* and its mtime **truncated to whole seconds**, so an edit that
+preserves the file's length and lands in the same second as the last import is invisible — the interpreter
+runs the previous version. That is exactly the shape of a good revert: `zoom.target` → `zoom.current`,
+`== 1` → `>= 1`, one constant swapped for another of the same width. Verified 2026-09-02: a two-line module
+rewritten from `AAA` to `BBB` went on printing `AAA`, while a longer replacement was picked up at once.
+
+It fails in *both* directions, which is what makes it worth more than a footnote. The revert can be masked,
+so a discriminating test is written off as vacuous. And the poisoned cache outlives the probe: a later run —
+the full suite, minutes afterwards — imports the patched bytecode, and a passing test fails for a reason
+nobody can find anywhere in the source. That is how this one was caught: a clamp test failed once in a full
+run, then passed alone and on re-run, with no edit in between.
+
+So a probe that patches source must **delete the target's `__pycache__` entry after every write** and run
+its subprocesses with `PYTHONDONTWRITEBYTECODE=1`. Have it print which reverts were length-preserving as
+well: those are the ones whose earlier results were worth nothing, and the flag costs one line.
+
 ## Leave the last turn fit to be compacted
 
 Compaction keeps the last turn and summarizes everything before it. So when I say I'm about to compact — or
