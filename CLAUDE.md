@@ -256,6 +256,41 @@ So a probe that patches source must **delete the target's `__pycache__` entry af
 its subprocesses with `PYTHONDONTWRITEBYTECODE=1`. Have it print which reverts were length-preserving as
 well: those are the ones whose earlier results were worth nothing, and the flag costs one line.
 
+### And a fourth: a threshold tuned against examples I wrote myself
+
+The three above are about believing an instrument. This one is about *building* one — a heuristic with a
+number in it, a threshold, a bound, a cutoff — and it fails at the moment the number gets chosen.
+
+**Real data is dinky, dirty and dynamic**, and a heuristic calibrated on tidy inputs meets none of those.
+The "4D" formulation is not ours: Juha picked it up from a visiting lecturer at JYU some time in the
+2010s, and neither the name nor the occasion is recorded, so it belongs to an unknown lecturer and to
+nobody here.
+
+**Which cashes out as: do not calibrate against examples you invented.** Writing probes to test a bound is
+right; choosing the bound so those probes come out correctly is fitting to the test set, and it feels like
+validation because the probes really were adversarial. They were adversarial against the *previous*
+version, and have become the thing being fitted.
+
+Two habits, and the second is the one that actually catches it:
+
+- **Try to break it on purpose.** Construct inputs designed to defeat the rule as written, rather than
+  examples of what it should catch. An adversarial stance is a decent proxy for what a large real corpus
+  contains, because at scale somebody has already written the pathological case by accident.
+- **Then run it against every real dataset on hand, not the one it was built for.** This is the step that
+  cannot be faked, because that data was not written by whoever is choosing the number.
+
+(Live case 2026-09-02, Raven: a check for "is this paper title too vague to judge from". A bare word count
+fell to `"and and and the the the"`. Stopwording fixed that and fell to pluralization, the lists holding
+base forms only. Lemmatizing fixed *that*, and the bound was then raised until it caught long padded
+titles — which looked right on the corpus it was built for and flagged **a quarter** of an unrelated one,
+because a short precise title scores the same as a padded one. What separates them turned out not to be
+the count at all but the share of the title that is load-bearing. Four versions; the first three were each
+overturned by Juha asking for one more adversarial case or one more corpus, and every one of them looked
+finished when it shipped.)
+
+The tell is that a bound is being *adjusted* rather than *derived* — a number moved until the examples in
+front of you come out right is a number that describes those examples.
+
 ## Leave the last turn fit to be compacted
 
 Compaction keeps the last turn and summarizes everything before it. So when I say I'm about to compact — or
