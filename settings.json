@@ -56,7 +56,9 @@
       "Bash(git -C * add -u:*)",
       "Bash(git -C * add --update:*)",
       "Bash(ruff check --fix:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(xdotool windowclose:*)",
+      "Bash(xdotool windowkill:*)"
     ]
   },
   "statusLine": {
