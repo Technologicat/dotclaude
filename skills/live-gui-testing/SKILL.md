@@ -40,15 +40,27 @@ what hands the app the keyboard, and whoever is typing finds out afterwards.
 
 ## Waiting for the app to come up
 
-**Wait for the app's own ready line, not for a guessed number of seconds.** Startup times differ by an order
-of magnitude between apps in one project and change as a project grows — measured 2026-08-28, Raven's
-Visualizer is up in under ten seconds where Librarian takes about twenty-five — so a sleep is either a stall
-or a race, and picking between them is a guess renewed every session.
+**Wait for the app's own ready line, not for a guessed number of seconds.** Startup times differ between apps
+in one project and drift as a project grows, so a sleep is either a stall or a race, and picking between them
+is a guess renewed every session.
+
+**Do not carry the figures below into a `sleep`.** They are here to show that the spread is real and that it
+moves, and they are the reason this section exists rather than a table of timings. The failure this warns
+about has happened: a session read "Librarian takes about twenty-five" and wrote `sleep 25`, in a step whose
+own instruction was not to. Whatever number is written here is measured on one machine, on one day, with
+whatever else that machine was running — it is not a fact about your session.
+
+- Raven's Visualizer, 2026-08-28: up in under ten seconds.
+- Raven's Librarian, six consecutive launches 2026-09-04: **6.8–7.1 s** from the first log line to the render
+  loop, with `raven-server` already up and the caches warm. The same doc said twenty-five a week earlier,
+  which is the drift the rule is about.
 
 ```bash
 LOG=/tmp/.../app.log
 nohup <app> --log-level INFO --log "$LOG" >/dev/null 2>&1 &
-until grep -q "App render loop starting" "$LOG" 2>/dev/null; do sleep 1; done
+# Bounded, like the shutdown loop below: an app that dies during startup writes no ready line ever, and an
+# unbounded wait on one is indistinguishable from a slow boot until somebody asks what is taking so long.
+for _ in $(seq 1 60); do grep -q "App render loop starting" "$LOG" 2>/dev/null && break; sleep 1; done
 ```
 
 The ready line is per project. **In Raven every GUI app logs `App render loop starting.`** when its render
