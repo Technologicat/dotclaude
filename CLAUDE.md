@@ -341,39 +341,29 @@ Reading it as context left produces confident advice that is wrong by two orders
 2026-08-31: "context is at roughly 0.2%, so there is no overrun risk", while it was actually at 46%, and
 the recommendation was to press on with a build that had just consumed most of a window.
 
-**The real figure is on disk, in this session's own log**, and costs one Bash call — the file is a few MB,
-but only the number it prints enters the context:
+**The real figure is on disk, in this session's own log**, and costs one command — `scripts/cc-context.py`,
+symlinked onto PATH as `cc-context`:
 
 ```bash
-python - <<'PY'
-import json, pathlib
-# Both path components come from the scratchpad directory named in the system prompt:
-#   /tmp/claude-<uid>/<project-dir>/<session-uuid>/scratchpad
-p = pathlib.Path.home() / ".claude/projects/<project-dir>/<session-uuid>.jsonl"
-last = None
-for line in p.open(encoding="utf-8"):
-    try:
-        usage = (json.loads(line).get("message") or {}).get("usage")
-    except Exception:
-        continue
-    if usage:
-        last = usage
-fill = sum(last.get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
-print(f"{fill:,} tokens in the prompt")
-PY
+cc-context                    # the newest session of the current directory's project
+cc-context <session-uuid>     # or a path to a .jsonl, for another session
 ```
 
-Two things to know before trusting it:
+It prints the fill, the percentage, and how old the reading is. The window is read from the model the
+session logged, so it needs no telling; `--window` overrides that, and `-q` prints the bare number for a
+script. The log is a few MB and none of it enters the context — only the line it prints.
 
-- **The three input fields have to be summed**, because nearly all of the prompt is
-  `cache_read_input_tokens`. Reading `input_tokens` alone returns something like `2` — a number that
-  looks like an answer and is not.
+It is a script rather than the snippet that used to sit here for the reason `ci-watch` is: the mechanism has
+three ways to be silently wrong (which fields to sum, which session to read, which window to divide by), and
+each of them yields a plausible number rather than an error. Its header carries what was measured about all
+three. The one worth knowing at the call site:
+
 - **It lags, but by an absolute amount rather than a proportional one.** The newest record is the prompt
   of your last API round, so the error is whatever has been added since — not a fraction of the fill. At
   the moment this question gets asked it is my message plus the progress report you just wrote, a few
   thousand tokens, which is a rounding error against a 1M window at any fill level. It is only worth a
   thought after a round that ingested something large — a big file read, a subagent's report — and even
-  then the fix is to run it again a round later.
+  then the fix is to run it again a round later. It prints the reading's age so this is visible.
 
 Verified once, 2026-09-01: the sum read 549,624 against the TUI's reported 55% of a 1M window. One data
 point, so treat the field interpretation as well-supported rather than documented.
