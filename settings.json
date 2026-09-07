@@ -58,7 +58,8 @@
       "Bash(ruff check --fix:*)",
       "Bash(ruff format:*)",
       "Bash(xdotool windowclose:*)",
-      "Bash(xdotool windowkill:*)"
+      "Bash(xdotool windowkill:*)",
+      "Bash(xdotool getwindowgeometry:*)"
     ]
   },
   "statusLine": {
