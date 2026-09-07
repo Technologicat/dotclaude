@@ -622,6 +622,12 @@ Three projects consume the Python AST directly, and they are the ones a new CPyt
 
 **Before any of that, though, just import the package under the new interpreter.** It costs one command and it catches the breakages the grammar cannot describe — the import machinery, the bytecode format, a stdlib protocol. On 3.15 that check fails instantly for `mcpyrate`: its `source_to_code` override does not match importlib's new signature, so the expander does not load at all. A thorough ASDL survey will not mention it, and a green test suite on the *previous* version says nothing about it.
 
+**And after both of those, run the whole test suite on the new interpreter** — because the stdlib modules these projects read can be renamed underneath them, and that is invisible to the other two checks. On 3.15 `symtable` renamed the anonymous scopes it reports so they agree with the corresponding code objects: `lambda` became `<lambda>`, `genexpr` became `<genexpr>`. `pyan` looked them up under the old names, so **any module containing a lambda** died with `ValueError: Unknown scope` — 117 occurrences across its own test suite. Generator expressions happened to survive, `analyze_comprehension` synthesizing a missing scope as a fallback; lambdas have no such fallback, which is why the damage looked arbitrary.
+
+That one is the argument for the third step existing at all. It is not a grammar change, so the ASDL diff cannot mention it; the package imports perfectly well, so the import check passes; and it is not in any AST node field, so an audit of those would not reach it. Only running the tests found it.
+
+The fix is worth knowing too, because the obvious one is wrong: pyan normalizes the new spellings *back* to the old bare ones rather than adopting symtable's. These names reach graph output (`mymodule.make_adder.lambda.0`), and following the interpreter would make a project's call graph depend on which Python generated it.
+
 The corresponding follow-on is that anything reading AST fields needs an audit per bump, and the failure is not always loud: a field that becomes optional turns a crash into a wrong answer in code that merely *reads* it, and into a crash only where it is dereferenced.
 
 # Development conventions
