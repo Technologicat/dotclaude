@@ -119,6 +119,28 @@ the windows and child windows that have no `rect_min` — so a click is aimed at
 `screen = xwininfo origin + get_widget_pos`. Reading a coordinate off a screenshot still works and needs no
 running Python, but it has to be re-read whenever the layout moves.
 
+**A click has to survive a frame, twice over** — and both halves fail silently, so a correctly aimed click
+does nothing and reads as a wrong coordinate. An immediate-mode toolkit samples the pointer *and* the
+button once per frame, and an idle-throttled app is not running at 60 fps: Raven's Librarian drops to
+~12 fps when nothing is happening, which is 80 ms a frame.
+
+- **`mousemove` and `click` in one command register at the old position.** The pointer has moved on the X
+  server, but the app has not read it yet, so the press is attributed to wherever the pointer was.
+- **`xdotool click 1` is about 12 ms down-to-up**, which can fall entirely between two frames and never be
+  observed at all.
+
+```bash
+xdotool mousemove --sync $X $Y
+sleep 0.4                                  # let the app read the new pointer position
+xdotool mousedown 1; sleep 0.3; xdotool mouseup 1
+```
+
+**Hover first when a click seems not to land.** A toolkit that highlights the widget under the pointer —
+DPG does — turns a bare `mousemove` plus a screenshot into a test of the *arithmetic alone*, with the click
+question held apart. That is the negative control for this whole section: without it, a coordinate error
+and a timing error look identical, and 2026-09-07 was spent proving the coordinates twice before suspecting
+the timing.
+
 **In a throwaway probe, pin the window to the origin instead.** With DearPyGui,
 `dpg.set_primary_window(win, True)` drops the title bar and pins the window to the viewport origin, so the
 arithmetic is the widget's own offset and nothing else. Worth the line because the failure without it is
