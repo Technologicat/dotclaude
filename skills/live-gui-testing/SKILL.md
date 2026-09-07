@@ -284,8 +284,17 @@ obvious in such a log.
 
 **Own the moment it happens.** Point the app at a port you control — in Raven, every app that talks to a
 server takes `--backend-url` and `--server-url` for exactly this — and put a TCP relay in front of the real
-service. Starting and stopping the relay is then an event timed to the millisecond. Twenty lines of
-`socket` and two `threading.Thread`s is the whole relay; `socat` does it too, where installed.
+service. Starting and stopping the relay is then an event timed to the millisecond.
+
+**In Raven the relay already exists**: `investigations/backend-fault-injection/tcprelay.py`, run as
+`python tcprelay.py --port 8999 --upstream localhost:5100`. Kill it and the server has vanished; run it
+again and it is back, with the real server and its models untouched — which matters, since restarting
+Raven-server costs a model reload of half a minute or so. Its sibling `faultproxy.py` is for the other
+question, a server that *misbehaves* rather than disappears, and is HTTP-aware for that reason; do not put
+it in front of Raven-server, whose API carries real data in headers an HTTP proxy will not think to copy.
+
+Elsewhere, twenty lines of `socket` and two `threading.Thread`s is the whole relay; `socat` does it too,
+where installed.
 
 **Prefer a command-line override to editing configuration**, wherever the app offers one. Config edited for
 a test has to be edited back, and it is the file most likely to be carrying settings that are not yours to
