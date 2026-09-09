@@ -144,8 +144,9 @@ A titled release draws its name from the project's own well:
 - **chandra** — its decipherment/astronomy palette: *reading what's present but unseen*. (Hence `Earthshine` — Earth's reflected light revealing the moon's dark limb. The palette is described in chandra's own `CLAUDE.md` under "Voice and naming", and covers component names too: `rosetta`, `concordance`, `palimpsest`.)
 - **raven, pylu, pydgq, wlsqm** — no well chosen yet, so releases have gone out plain (`Raven 0.2.7`,
   `wlsqm 1.1.0`, `pylu v1.1.0`). An absence rather than a decision: nobody has thought of one.
-  - Raven is an evolving research prototype, and its theme likely waits for a release worth calling
-    0.3.0 — so plain is right there for now.
+  - Raven is an evolving research prototype whose version trajectory is itself undecided — what a
+    1.0.0 should contain is still an open question, as in many open-source projects — so there is no
+    milestone for a theme to attach to yet. Plain is right there for now.
   - For the numerics trio the question is open, and an untitled minor release is the moment it comes up.
 
 ### Heading formats vary by project — copy the last release
