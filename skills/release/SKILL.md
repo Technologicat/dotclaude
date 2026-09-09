@@ -143,6 +143,9 @@ A titled release draws its name from the project's own well:
 - **pyan3** — cartography
 - **chandra** — its decipherment/astronomy palette: *reading what's present but unseen*. (Hence `Earthshine` — Earth's reflected light revealing the moon's dark limb. The palette is described in chandra's own `CLAUDE.md` under "Voice and naming", and covers component names too: `rosetta`, `concordance`, `palimpsest`.)
 - **raven** — none. It's an evolving research prototype; releases are plain (`Raven 0.2.7`).
+- **pylu, pydgq, wlsqm** — no well chosen yet, so their titled releases have gone out plain anyway
+  (`wlsqm 1.1.0`, `pylu v1.1.0`). Unlike raven, that is an absence rather than a decision: picking
+  themes for the numerics trio is open, and release time is when someone notices.
 
 ### Heading formats vary by project — copy the last release
 
