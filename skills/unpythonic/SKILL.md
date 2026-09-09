@@ -190,6 +190,37 @@ The recurring reinventions, with the fleet-relevant contract stated:
 | draining a `queue.Queue` | `slurp` | |
 | a pop-while loop over a shrinking container | `Popper` | |
 
+## Read it for the reasoning, not only for the imports
+
+The table above is about *using* the library. This is the other reason to open it: `unpythonic` is
+foundation code written to a standard most application code is not, and the awkward corners of a problem
+have usually already been thought through there — in the source and its comments, at length. So when a
+design question is genuinely hard (concurrency, object lifetime, pickling, identity, what to do about a
+state that should be impossible), it is worth reading how `unpythonic` handled the same shape, **whether
+or not you end up using the class**.
+
+Two habits it will hand you, both visible in `singleton.py`:
+
+- **Lock every door, including the one that bypasses the obvious one.** `Singleton` locks in the
+  metaclass's `__call__` *and* in `__new__`, and says why: unpickling skips the metaclass, so guarding
+  only the constructor guards nothing.
+- **Enumerate the options and say which was rejected.** Its comments work through three possible
+  behaviours for a second constructor call before choosing to raise `TypeError` — so a reader who thinks
+  the choice is wrong can see what was already weighed.
+
+**And it goes the extra mile in ways worth knowing about even when you do not need them** — surviving a
+pickle roundtrip is the standing example, applied to things most libraries would not bother with
+(`gensym`s keep their identity across a dump; `Singleton` redirects unpickling to the existing instance).
+That is the bar it is written to, and it is often the source of the idea you were missing.
+
+**Borrowing the method is not the same as adopting the class.** The fit has to be checked, because these
+abstractions are precise about *which* invariant they enforce, and a neighbouring one will not do. (Live
+case 2026-09-09, Raven's `common/gui/tooltip`: a per-frame updater needing at most one *registered with
+the animator* is not what `Singleton` provides, which is at most one *instance by reachability* — and the
+two diverge during the hand-off, where the animator's own loop variable still holds the outgoing one. The
+reasoning transplanted; the class would have raised `TypeError` on a benign race. See the comment above
+`_Updater` there.)
+
 ## Finding the rest
 
 ```
