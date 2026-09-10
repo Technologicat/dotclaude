@@ -100,6 +100,22 @@ sessions at once.
 - **Ethnography / field notes** — `--no-tools` for pure HUMAN↔CC dialogue; the model
   stamps let you attribute behavior to a specific model version.
 
+  **Copy the `.jsonl` beside the digest, at extraction time.** Claude Code clears old
+  sessions on a period set by `cleanupPeriodDays` — about a month by default, and unset
+  in this fleet's settings, so the default is what applies. Extraction alone therefore
+  puts a deadline on the raw material without saying so.
+
+  It matters because the digest is lossy *by design*: `thinking` blocks, tool result
+  bodies and consecutive-turn boundaries are gone, and the tool detail is whatever
+  `--tools` was set to on the day. Re-running at a different setting, or reaching for
+  something the extractor dropped, needs the transcript — which is the half that
+  expires. The digest survives and cannot be regenerated, and nothing announces the
+  loss; you find out months later when you go looking.
+
+  Observed 2026-09-10 in `substrate-independent`'s `00_stuff/`: two of the transcripts
+  held there no longer exist under `~/.claude/projects/` at all. Both were saved by
+  somebody copying them in time rather than by any mechanism.
+
   The stamp groups by `family-major-minor`, folding a bare identifier
   (`claude-opus-4-7`) together with a dated pin of the same version
   (`claude-opus-4-7-20260416`) — under the current naming scheme those are the same
