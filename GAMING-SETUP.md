@@ -62,6 +62,71 @@ First check that the rule file survived (OS reinstalls clear `/etc/udev/rules.d/
 
 If both check out and the phantom is still there, the mechanism has changed again. `fuser` on the device node is what settled it last time: it shows unambiguously who is reading what.
 
+## Audio: silent games on a device with a narrow rate table
+
+Symptom: one game has no sound at all, while everything else on the desktop plays normally.
+
+The USB interface used here has **no 48000 Hz at 16 bits** (its full rate table is in `HARDWARE-NOTES.md`), and PulseAudio's stock configuration walks straight into that combination:
+
+```
+; default-sample-format = s16le
+; default-sample-rate = 44100
+; alternate-sample-rate = 48000
+```
+
+The sink runs at `default-sample-rate` and switches to `alternate-sample-rate` when a stream's native rate matches it, so that 48 kHz material can play unresampled. Essentially all modern game audio is 48 kHz. So the first such stream makes PulseAudio reopen the sink at 48000/`s16le`, the device has no altsetting offering that pair, and the game is silent — while every 44.1 kHz source on the machine carries on working, which is what makes it look like a game bug rather than a device one.
+
+Nothing rescues it in between: `module-alsa-sink` opens the device with explicit parameters, so PulseAudio meets the raw rate table itself.
+
+**The fix**, in `/etc/pulse/daemon.conf`:
+
+```
+alternate-sample-rate = 44100
+resample-method = soxr-vhq
+```
+
+The first takes 48000 out of the pair of rates the sink will run at, pinning it to 44100 — which the device does support at 16 bits. The second upgrades the resampling that this makes unavoidable: stock is `speex-float-1`, and `soxr-vhq` is SoX's very-high-quality mode.
+
+Apply with `systemctl --user restart pulseaudio`.
+
+**To find out what is actually customized**, rather than trying to remember:
+
+```bash
+dpkg -V pulseaudio                                # flags daemon.conf when it differs from the package
+grep -vE '^\s*;|^\s*$' /etc/pulse/daemon.conf     # stock lines are all ';'-commented, so this is the diff
+```
+
+That pair is worth keeping in mind generally: `dpkg -V` finds *which* config files a past self edited, across every package, which is a far better starting point than guessing at directories.
+
+### Not the fix: `libasound2-plugins`
+
+Recorded because it is the plausible-looking answer, and wrong. The package is installed for both architectures and does ship ALSA's `samplerate`/`speexrate` converters — but nothing here names a converter for `plug` to use (`grep -rn rate_converter /usr/share/alsa /etc/alsa` is empty), and the path that failed was PulseAudio's, which does not go through `plug` at all.
+
+### After an OS upgrade
+
+Newer Mint ships PipeWire, where none of the above applies: `/etc/pulse/daemon.conf` is not read, and rate policy lives in `~/.config/pipewire/pipewire.conf.d/` as `default.clock.rate` and `default.clock.allowed-rates`.
+
+It may well need no equivalent. PipeWire negotiates a format per device instead of defaulting everything to `s16le`, and on the work machine it opens this same interface at **`S24_3LE` 48000** — exactly the pairing the device does support, sidestepping the gap without being told to. Test before configuring anything.
+
+If a rate policy *is* wanted there, list what the hardware actually offers:
+
+```
+context.properties = {
+    default.clock.rate          = 44100
+    default.clock.allowed-rates = [ 44100 48000 ]
+}
+```
+
+### If a game is silent again
+
+```bash
+cat /proc/asound/card<N>/stream0    # the device's real rate table, per altsetting
+pactl list sinks                    # what rate and format the sink is actually running at
+pactl list sink-inputs              # while the game runs — did it reach the sound server at all?
+```
+
+A game that shows up as a sink-input has reached the server, so any refusal is between server and hardware: compare the sink's rate and format against the rate table. A game that never appears did not get that far, and the cause is upstream of the server.
+
 ## vkBasalt (CRT post-processing)
 
 Vulkan post-processing layer for applying ReShade FX shaders to games at runtime. Used here for CRT-style filters (scanlines and shadow mask; curvature is switched off) on 2D fighters and shoot-em-ups whose sprite art was authored against CRT presentation assumptions — the filter doesn't add a layer so much as restore the half of the visual contract that flat HD panels strip away.
