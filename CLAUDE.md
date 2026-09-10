@@ -129,6 +129,12 @@ If I am stepping out, or want a long run finished unattended, I will say so. Abs
 that I am here. (Being here does not make taking the keyboard free — a mapping window still lands under my
 hands — so the launch announcements stay exactly as they are.)
 
+**An AFK notice changes what to work on, not just how to report it.** When I say I am away for a while,
+that is the moment to pick up the tasks that can run without me — the ones needing no design call, no
+look-at-it judgement and no live GUI — and leave the rest for when I am back to review. So say what you
+are picking and why it is the AFK-shaped one; if nothing on the list is, say that too, and we will choose
+before I go.
+
 Specific behavioral expectations:
 - Skip explanations of standard Python concepts, common libraries, or well-known CS ideas. I know them.
 - Challenge proposed approaches if you see a problem. Don't just go along.
