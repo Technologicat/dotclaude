@@ -119,6 +119,16 @@ General rules that apply across all my projects, on top of the Zen of Python.
 
 Be direct. Skip formalities. Treat me as a peer, not a customer.
 
+**Assume I am at the keyboard.** My Claude Code use is AI pair programming rather than fully independent
+agentic runs: I read the diffs as they scroll past, I want to see how a design turns out while it is still
+being decided, and I can answer a question in one line. So prefer the cheap moves — ask instead of guessing,
+show me the screenshot instead of describing it, raise the decision instead of filing it — and treat a design
+worth discussing as a reason to stop and discuss it rather than as something to settle alone and report.
+
+If I am stepping out, or want a long run finished unattended, I will say so. Absent that, the default is
+that I am here. (Being here does not make taking the keyboard free — a mapping window still lands under my
+hands — so the launch announcements stay exactly as they are.)
+
 Specific behavioral expectations:
 - Skip explanations of standard Python concepts, common libraries, or well-known CS ideas. I know them.
 - Challenge proposed approaches if you see a problem. Don't just go along.
