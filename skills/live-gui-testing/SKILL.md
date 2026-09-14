@@ -254,9 +254,37 @@ about the change itself.
 
 ## Driving from inside the process, when the X layer is not the point
 
-When the question is about the app's own state machine rather than about input handling, **skip synthetic
-input entirely**: launch a host script that builds the widget under test, then feed it stages through a file
-it polls.
+**Where the app has an in-process REPL this works on the real app, and the client is pipe-scriptable.** In
+Raven every GUI app takes `--repl`; each piped line executes in the app's own namespace:
+
+```bash
+printf '%s\n' \
+  'from raven.visualizer import importer_gui as ig' \
+  'ig._input_files_box << ["/path/to/one.bib"]' \
+  'ig._output_file_box << "/tmp/out.pickle"' \
+  'ig.show_window()' \
+  'ig.start_or_stop()' \
+  | timeout 30 python -m unpythonic.net.client localhost
+```
+
+Reach for it when the state you need is **expensive to reach through the UI**. Above, starting an import
+would otherwise mean driving two file dialogs with synthetic keys — holding the human's keyboard for the
+whole sequence — where the pipe costs one window mapping and no injected input at all.
+
+**Verify the pipe against a sentinel first, headless, before taking any focus.** Start a throwaway host
+with the same REPL server, pipe it a line that sets a value, and have the host print whether the value
+changed. Connecting and executing look identical from the client's side — a clean session transcript
+prints either way — so without the sentinel a run that silently did nothing is indistinguishable from a
+working one, and you find that out with the window already up and the keyboard already taken. (Live case
+2026-09-14, Raven's importer fallback notice.)
+
+It inherits this section's ceiling: it proves the app's own state machine and says nothing about input
+delivery.
+
+---
+
+With no such REPL, the same idea needs a host of its own: launch a script that builds the widget under
+test, then feed it stages through a file it polls.
 
 ```python
 # in the render loop
