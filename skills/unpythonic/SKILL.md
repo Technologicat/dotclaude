@@ -190,6 +190,27 @@ The recurring reinventions, with the fleet-relevant contract stated:
 | draining a `queue.Queue` | `slurp` | |
 | a pop-while loop over a shrinking container | `Popper` | |
 
+## The REPL server, and the two things its README does not say
+
+`unpythonic.net.server` / `unpythonic.net.client` put a REPL *inside* a running process — the debug hatch
+for an instance that came up wrong and is still running, where a log can only answer questions somebody
+thought to ask in advance. The README covers starting one and connecting to it by hand. Two things it does
+not:
+
+- **The client is pipe-scriptable.** `printf 'expr\n' | python -m unpythonic.net.client localhost` runs
+  each line in the host's namespace, so driving a live process needs no interactive session — which is what
+  makes it reachable from a script, a harness or an agent rather than only from a keyboard.
+- **The session echoes the value of an *expression*, and a statement has none.** So `x = 5` shows nothing,
+  where `print(...)` is visible because `print` writes to stdout itself — and a pipe made only of
+  assignments looks identical whether it executed or not, the connect banner, the prompts and
+  `Session closed.` all arriving either way. **So a check that the pipe works has to print something and
+  grep for it**, and `python -m unpythonic.net.server`
+  — the module's own demo app, which runs when it is `__main__` for exactly this — is the throwaway host to
+  check against, needing nothing from the project under test.
+
+In Raven this is `--repl` on every GUI app (`raven.common.replserver`), where a non-default port reaches
+the client as *separate arguments*, `localhost PORT PORT+1`, rather than as `host:port`.
+
 ## Read it for the reasoning, not only for the imports
 
 The table above is about *using* the library. This is the other reason to open it: `unpythonic` is

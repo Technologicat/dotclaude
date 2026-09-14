@@ -271,12 +271,22 @@ Reach for it when the state you need is **expensive to reach through the UI**. A
 would otherwise mean driving two file dialogs with synthetic keys — holding the human's keyboard for the
 whole sequence — where the pipe costs one window mapping and no injected input at all.
 
-**Verify the pipe against a sentinel first, headless, before taking any focus.** Start a throwaway host
-with the same REPL server, pipe it a line that sets a value, and have the host print whether the value
-changed. Connecting and executing look identical from the client's side — a clean session transcript
-prints either way — so without the sentinel a run that silently did nothing is indistinguishable from a
-working one, and you find that out with the window already up and the keyboard already taken. (Live case
-2026-09-14, Raven's importer fallback notice.)
+**Verify the pipe against a sentinel first, headless, before taking any focus.** The throwaway host is one
+command — `unpythonic.net.server` runs a demo of itself when run as main, which exists for exactly this —
+so the check needs nothing from the project under test:
+
+```bash
+python -m unpythonic.net.server &                     # binds 1337, control 8128; the client's defaults
+printf 'print("SENTINEL-OK")\n' | timeout 12 python -m unpythonic.net.client localhost | grep SENTINEL-OK
+```
+
+**The sentinel has to *print*.** The session echoes the *value* of an expression and a statement has none,
+so an assignment shows nothing at all, where `print(...)` is visible because `print` writes to stdout
+itself. A pipe made only of assignments therefore looks identical whether it executed or not: the connect
+banner, the prompts and `Session closed.` all arrive either way. Discovering
+that afterwards means discovering it with the window already up and the keyboard already taken. (Live case
+2026-09-14, Raven's importer fallback notice — whose own check piped an assignment and needed a purpose-built
+host to read it back, which is the work this recipe removes.)
 
 It inherits this section's ceiling: it proves the app's own state machine and says nothing about input
 delivery.
