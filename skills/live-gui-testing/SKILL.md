@@ -82,14 +82,26 @@ WID=$(xdotool search --onlyvisible --name "raven" | head -1)
   exact-case one. Worth knowing because app titles are rarely consistent — in Raven, `raven-cherrypick` is
   lowercase, `Raven-librarian` and `Raven-visualizer` are not, and the xdot viewer is `Raven XDot Viewer`.
 - **`--onlyvisible`**, so a stale or unmapped window cannot answer instead.
-- **Guard the empty result before the first injection.** `xdotool windowactivate --sync ""` *blocks*
-  waiting for an activation that will never happen, until the Bash timeout kills the whole call — taking
-  the app with it, that being the same process group. A two-minute hang that looks like a slow app.
+- **Guard the empty result before *anything* uses it** — not only before injection, which is where this
+  warning used to stop. An empty `$WID` does not make the next command fail; it makes it wait, and the two
+  ways it waits look like different bugs:
+  - `xdotool windowactivate --sync ""` blocks on an activation that will never happen, until the Bash
+    timeout kills the whole call — taking the app with it, that being the same process group.
+  - `import -window "" shot.png` falls back to ImageMagick's **click-to-select-a-window** mode, which
+    holds a pointer grab until somebody clicks. That freezes the whole desktop rather than just the run,
+    so it is the one that costs the human instead of you. (Live case 2026-09-14: a couple of minutes of
+    unresponsive desktop, ended by the Bash timeout. The guard one line above was already in this file;
+    the command that skipped it was a screenshot, which never reads as *driving* a GUI.)
+
+  **Both present as a slow app**, which is the misdiagnosis to expect: the call hangs somewhere after the
+  launch, so the launch gets blamed. The app's own log settles it in one line — read when it wrote its
+  ready line before believing anything about startup time. In that live case the app had been up in 2.5 s.
 
 ## Screenshots
 
 `import -window <id> shot.png` captures an **unfocused** window fine, so a screenshot-only check is never
-intrusive. `wmctrl -l` also lists window ids.
+intrusive — provided the id is a real one. Check it first: an empty `<id>` turns the same command into a
+desktop-freezing pointer grab, as the previous section says. `wmctrl -l` also lists window ids.
 
 **The capture is in client-area coordinates**, which matters for the arithmetic below.
 
