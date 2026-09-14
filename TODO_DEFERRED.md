@@ -462,3 +462,55 @@ Local PyPy for checking this by hand is in `NEW-MACHINE-SETUP.md`; there is no a
 deadsnakes being CPython-only and Ubuntu universe carrying a 2022 build.
 
 Raised 2026-08-17; resolved 2026-08-18.
+
+
+## A pre-commit check for private tokens reaching a public repo
+
+*Cluster: prose · Cost: S (about an hour) · Gate: a decision on block-vs-warn · Filed: 2026-09-14 · See also: the "a tracked file is published" bullet in `CLAUDE.md`, `githooks/commit-msg`*
+
+Hostnames, the maintainer's email, and other details that are not secret but that a human developer
+would leave out of a public artifact by instinct. The rule for it now exists fleet-wide; this is the
+half that does not depend on anyone's attention.
+
+The machinery is already in place: `githooks/commit-msg` is wired fleet-wide through
+`core.hooksPath`, so a `pre-commit` beside it needs no per-project installation. It would grep the
+staged diff for tokens read out of the gitignored `SECRET-SAUCE.md` and `HARDWARE-NOTES.md` — which
+is what keeps the list of private things itself private — plus the address in `git config user.email`.
+
+**Why this one can block where the prose checks only advise**: "does this hostname appear in a fleet
+repo" is decidable from the line, unlike "is this foil real". False positives should be near zero,
+since none of these strings has a legitimate reason to appear. Worth confirming that against the
+fleet's current contents before wiring it to a nonzero exit, though — `~/.claude` itself is the one
+repo that *discusses* the convention, so it may need an exemption for prose about the rule.
+
+**The failure it prevents is a tax on conversation rather than a leak.** The maintainer's own
+statement of the problem (2026-09-14): *"I find the dev process much more efficient if I can talk
+freely, rather than watching every word I say, acknowledging anything may be suddenly made public."*
+A check at the commit boundary is what makes the session safe to speak in.
+
+Raised by Juha, 2026-09-14, alongside the item below; both deferred the same day for time.
+
+
+## Extend `check-prose.py` to report history written into docstrings and comments
+
+*Cluster: prose · Cost: S (about half an hour) · Gate: none · Filed: 2026-09-14 · See also: `scripts/check-prose.py`, the "docstrings and comments describe code as it is now" bullet in `CLAUDE.md`*
+
+The rule against narrating a rename, an extraction, or what the previous implementation did has been
+in `CLAUDE.md` a long time and does not hold, for the same reason the contrastive-construction rule
+did not: it needs the writer to notice, and at the moment of writing there is nothing to notice.
+What there *is* is a small vocabulary on the page — "used to", "previously", "formerly", "no longer",
+"was renamed", "originally", "instead of the old" — which is greppable.
+
+**It belongs in `check-prose.py` rather than in a new script**, that one already being a
+vocabulary-over-a-diff measurement with a baseline methodology and an advisory default.
+
+One question to settle first, and it is the interesting one: the existing check reports a *density*
+because whether a foil is real is unfalsifiable from the line, so a per-line verdict would be
+unreviewable. History does not obviously share that — whether a sentence describes the present code
+is checkable by reading the code beside it — so a per-line report may work here where it could not
+there. Worth deciding deliberately rather than inheriting the density design because it is next door.
+
+Report only, never block: the rule has a real exception (history that is load-bearing, such as a
+file-format migration or a workaround whose shape needs the upstream bug to make sense).
+
+Raised by Juha, 2026-09-14.
