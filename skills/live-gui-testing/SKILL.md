@@ -70,6 +70,22 @@ one; the alternative is polling for the window, which appears before the app is 
 Note the loop tests a *file*, so it cannot match itself — unlike the `pgrep -f` shape, which finds the shell
 running it and waits forever.
 
+## Testing together: you launch, they drive
+
+**When the human is going to judge the result by using the app, launch it yourself and hand them the
+keyboard** — rather than asking who should launch, or leaving it to them. They drive with real input, and
+you get the log, which you would otherwise have to ask them to find and paste. (Juha, 2026-09-15.)
+
+The shape is the recipe above with two differences:
+
+- **Log to a file you can read**, in your scratchpad, and read it while they drive — so what they report
+  seeing can be lined up against what the app did, as it happens.
+- **Do not restore focus afterwards.** They are about to take the keyboard, and restoring raises your
+  terminal over the app they were meant to be looking at.
+
+The announcement and the toast are still owed: the window takes focus when it maps, whoever launched it.
+Then say what to try and what you will be watching for in the log, and wait for them to report.
+
 ## Finding the window
 
 ```bash
