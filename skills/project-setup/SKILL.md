@@ -504,6 +504,13 @@ dotfiles copy is needed. It is symlinked as `~/.config/flake8`
 (and `~/.config/pep8`). flycheck is pointed at the absolute path via `flycheck-flake8rc` in
 `~/.spacemacs.d/init.el`.
 
+**From the command line, pass it explicitly: `flake8 --config ~/.config/flake8 <paths>`.**
+flake8 6.0 does not pick up `~/.config/flake8` by itself, so a bare `flake8` runs with
+pycodestyle's defaults — 79 columns and the blank-line rules — and buries the few warnings
+that matter under thousands the global config ignores. Nothing says the config was skipped;
+the output just looks like a codebase in bad shape. (Verified 2026-09-16: 12 warnings on one
+unpythonic module bare, none with `--config`.)
+
 **Don't commit a per-project flake8 config.** The global is the only copy.
 
 Some projects used to carry a `flake8rc` — a snapshot of the global, meant to make
