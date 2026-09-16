@@ -62,6 +62,56 @@ First check that the rule file survived (OS reinstalls clear `/etc/udev/rules.d/
 
 If both check out and the phantom is still there, the mechanism has changed again. `fuser` on the device node is what settled it last time: it shows unambiguously who is reading what.
 
+## Logitech G29 racing wheel: `new-lg4ff`
+
+The in-kernel `hid-logitech` module drives the G29 but plays only the constant-force effect. [`berarma/new-lg4ff`](https://github.com/berarma/new-lg4ff) is an out-of-tree replacement for the same module that plays most of the Linux FF API (all but inertia), with realtime effect handling, plus sysfs knobs for global gain, autocenter and per-type spring/damper/friction levels.
+
+**The G29's mode switch must be in the PS3 position** — that is the mode the driver supports.
+
+Installed through DKMS, so it is rebuilt automatically for each new kernel. DKMS installs it *as* `hid-logitech` under `updates/dkms/`, which takes precedence over the in-tree module of the same name. Nothing else is configured: no modprobe options, no udev rules. Secure Boot is disabled on this machine, so the module needs no signing.
+
+The checkout lives at `~/Documents/koodit/new-lg4ff`. Given a directory, `dkms install` copies the source to `/usr/src/new-lg4ff-<version>` by itself (without `.git`), taking the version from `dkms.conf`:
+
+```bash
+git clone https://github.com/berarma/new-lg4ff ~/Documents/koodit/new-lg4ff
+sudo dkms install ~/Documents/koodit/new-lg4ff
+sudo update-initramfs -u
+```
+
+The last step is per upstream's README: newer DKMS no longer updates the initramfs, and without it the in-tree module loads at boot instead. On the current install the DKMS build is already in the initramfs (`lsinitramfs /boot/initrd.img-$(uname -r) | grep hid-logitech` shows `updates/dkms/hid-logitech.ko`), so check that after a fresh install.
+
+### Updating
+
+Remove the old version from every kernel, then install the new one:
+
+```bash
+dkms status new-lg4ff                     # which version is installed
+sudo dkms remove new-lg4ff/<old> --all
+git -C ~/Documents/koodit/new-lg4ff pull
+sudo dkms install ~/Documents/koodit/new-lg4ff
+sudo update-initramfs -u
+```
+
+**Update before an OS upgrade that brings a newer kernel.** Upstream needed build fixes for Linux 6.12 and 6.15, which landed in 0.5.0. If the DKMS build fails on a new kernel, the in-tree module is still there and loads instead, so the wheel keeps working with degraded force feedback rather than failing outright.
+
+### Verifying
+
+Without the wheel connected:
+
+```bash
+dkms status new-lg4ff        # expect "installed" for the running kernel
+modinfo -n hid-logitech      # expect a path under updates/dkms/, not kernel/drivers/hid/
+```
+
+With it connected:
+
+```bash
+sudo dmesg | grep -i 'force feedback'           # the driver version is at the end of the line
+ls /sys/bus/hid/drivers/logitech/*/             # expect gain, spring_level, ffb_leds, ...
+```
+
+The sysfs entries are the unambiguous check, since the in-tree module does not create `gain` or the `*_level` files.
+
 ## Audio: silent games on a device with a narrow rate table
 
 Symptom: one game has no sound at all, while everything else on the desktop plays normally.
