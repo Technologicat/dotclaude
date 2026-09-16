@@ -30,6 +30,7 @@ import argparse
 import datetime
 import json
 import pathlib
+import re
 import sys
 
 PROJECTS = pathlib.Path.home() / ".claude" / "projects"
@@ -63,10 +64,13 @@ def parse_window(text: str) -> int:
 def project_dir_for(path: pathlib.Path) -> pathlib.Path:
     """The log directory Claude Code uses for a working directory.
 
-    The encoding is the absolute path with every `/` replaced by `-`, so `/home/jje/Documents/koodit/raven`
-    becomes `-home-jje-Documents-koodit-raven`.
+    The encoding is the absolute path with every character other than a letter or a digit replaced by `-`,
+    so `/home/jje/Documents/koodit/raven` becomes `-home-jje-Documents-koodit-raven`, `~/.claude` becomes
+    `-home-jje--claude`, and an underscore in a directory name becomes a dash too. `/`, `.` and `_` are the
+    characters observed in `~/.claude/projects/`; that every other non-alphanumeric goes the same way is
+    assumed.
     """
-    return PROJECTS / str(path.resolve()).replace("/", "-")
+    return PROJECTS / re.sub(r"[^A-Za-z0-9]", "-", str(path.resolve()))
 
 def resolve_log(argument: str | None) -> pathlib.Path:
     """Find the session log to read.
