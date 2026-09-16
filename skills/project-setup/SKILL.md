@@ -500,8 +500,8 @@ use flake8 at all; `[tool.ruff]` in each `pyproject.toml` is the enforced linter
 The authoritative file is `~/.spacemacs.d/flake8`, version-controlled with the Spacemacs
 config and public at
 [Technologicat/spacemacs.d/flake8](https://github.com/Technologicat/spacemacs.d/blob/master/flake8) — that repo *is* the archive, so no separate
-dotfiles copy is needed. It is symlinked as `~/.config/flake8`
-(and `~/.config/pep8`). flycheck is pointed at the absolute path via `flycheck-flake8rc` in
+dotfiles copy is needed. It is symlinked as `~/.config/flake8`. (autopep8's
+`~/.config/pep8` is a separate whitelist, `~/.spacemacs.d/pep8`, since autopep8 ignores `# noqa`.) flycheck is pointed at the absolute path via `flycheck-flake8rc` in
 `~/.spacemacs.d/init.el`.
 
 **From the command line, pass it explicitly: `flake8 --config ~/.config/flake8 <paths>`.**

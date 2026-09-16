@@ -365,9 +365,10 @@ git clone git@github.com:Technologicat/spacemacs.d.git ~/.spacemacs.d
 ### Config files (symlinks)
 
 ```bash
-# flake8 config chain: pep8 → flake8 → actual file in .spacemacs.d
+# flake8 (reporter) and autopep8 (rewriter) each get their own config from .spacemacs.d.
+# Not one shared file: autopep8 ignores `# noqa`, so it needs a whitelist, not flake8's ignore list.
 ln -s ~/.spacemacs.d/flake8 ~/.config/flake8
-ln -s ~/.config/flake8 ~/.config/pep8
+ln -s ~/.spacemacs.d/pep8 ~/.config/pep8
 ```
 
 ### Wiktionary dictionary
