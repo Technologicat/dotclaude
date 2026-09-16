@@ -571,7 +571,7 @@ by any new formatting gate. Being a copy, it can drift: if it disagrees with
         W503,
         # line break after binary operator
         W504
-    exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,node_modules,instance,00_stuff,00_old
+    exclude = .git,.venv,__pycache__,docs/source/conf.py,old,build,dist,node_modules,instance,00_stuff,00_old
 
 **Rule-overlap note:** The flake8 ignore list and the ruff ignore list are
 deliberately close but not identical — flake8 has legacy rules like `C901`
