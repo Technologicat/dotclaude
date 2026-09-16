@@ -113,6 +113,28 @@ paths and `~/.claude`).
 
 Noticed while adding dotclaude to the fleet (2026-08-03).
 
+## Find out what `libturbojpeg0-dev` in `NEW-MACHINE-SETUP.md` is for
+
+*Cluster: personal-machine-reinstall · Cost: S · Gate: the personal machine's OS upgrade · Filed: 2026-09-16*
+
+The first `apt install` line in `NEW-MACHINE-SETUP.md` lists `libturbojpeg0-dev`. On the
+personal machine it will not install: `libjpeg-turbo8` and `libjpeg-turbo8-dev` there are
+`1:2.1.5-3+22.04+jammy+release+build6`, from an apt source no longer configured, and the
+`-dev` package wants the stock `2.1.2` beside it. Removing the library would take most of
+the desktop with it, and downgrading drags in unrelated upgrades, so it was left out.
+
+Raven does not need it at runtime: PyTurboJPEG loads `libturbojpeg.so.0` from the runtime
+package, and a JPEG encode/decode round trip worked without the `-dev` package. It was
+probably needed for something at some point, though. The line predates `~/.claude` going
+under git (`feba043`), so the history does not say what for. Candidates worth checking
+first are whatever builds against the TurboJPEG headers: a from-source build of
+PyTurboJPEG, Pillow, or something in the avatar/video stack.
+
+On the reinstall, a stock libjpeg makes the package installable again. Settle whether
+anything uses it, then either note the reason in the setup doc or drop it from the line.
+
+Noticed while bringing the personal machine's packages up to the setup doc (2026-09-16).
+
 ## Python 3.15: a cleanup pass once it goes final
 
 **The support pass is done and released, 2026-08-18.** Every project that can take 3.15 has it,
