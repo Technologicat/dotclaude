@@ -38,6 +38,7 @@
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git tag:*)",
+      "Bash(gh release create:*)",
       "Bash(ruff:*)",
       "Bash(pytest:*)",
       "Bash(python -m pytest:*)"
