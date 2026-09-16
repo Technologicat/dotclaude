@@ -11,7 +11,7 @@
 # So the three things it guarantees, none of which a retyped snippet did:
 #
 #   - it never waits forever (--timeout, and it says so when it gives up),
-#   - it never waits on a name that matches nothing (it checks first, and prints the names that exist),
+#   - it never waits on a name that matches nothing (it checks the repo's workflows first, and prints them),
 #   - it says something on every poll, so silence means "not running" rather than "maybe working".
 #
 # Selecting the run by *workflow name* is the point of it. These repos run more than one workflow per push
@@ -41,7 +41,8 @@
 #     ci-watch --repo OWNER/REPO        # ...another repo
 #     ci-watch --timeout 3600           # give up later than the default 30 minutes
 #
-# Exits 0 when the run succeeded, 1 when it failed or the wait timed out.
+# Exits 0 when the run succeeded, 1 when it failed or the wait timed out, 2 on a usage error or a workflow
+# name the repo does not define.
 #
 # Deploy by symlinking onto PATH, so this stays the single copy:
 #
@@ -101,10 +102,14 @@ BRANCH_ARGS=()
 
 runs() { gh run list -L 30 "${REPO_ARGS[@]}" "${BRANCH_ARGS[@]}" --json headSha,status,conclusion,name,databaseId "$@"; }
 
-# The name has to exist among recent runs, or the wait below can never end.
-NAMES=$(runs --jq '[.[].name] | unique | .[]' 2>/dev/null) || { echo "ci-watch: could not list runs (is gh authenticated?)" >&2; exit 2; }
+# The name has to be a workflow the repo defines, or the wait below can never end.
+#
+# Checked against the workflow definitions, not against recent runs: runs are narrowed by --branch, and a
+# tag pushed a moment ago has none yet, so a runs-based check found no names at all and exited before the
+# run it was started for had even been queued.
+NAMES=$(gh workflow list "${REPO_ARGS[@]}" --json name --jq '.[].name' 2>/dev/null) || { echo "ci-watch: could not list workflows (is gh authenticated?)" >&2; exit 2; }
 if ! printf '%s\n' "$NAMES" | grep -qx "$WORKFLOW"; then
-    echo "ci-watch: no workflow named '$WORKFLOW' among recent runs. These exist:" >&2
+    echo "ci-watch: no workflow named '$WORKFLOW' in this repo. These exist:" >&2
     printf '%s\n' "$NAMES" | sed 's/^/  /' >&2
     exit 2
 fi
@@ -128,7 +133,7 @@ while :; do
     esac
     if [ "$WAITED" -ge "$TIMEOUT" ]; then
         echo "ci-watch: gave up after ${WAITED}s; '$WORKFLOW' on $TARGET is '$NOTE'." >&2
-        echo "ci-watch: it may still be running — check https://github.com/$(gh repo view "${REPO_ARGS[@]}" --json nameWithOwner --jq .nameWithOwner)/actions" >&2
+        echo "ci-watch: it may still be running — check https://github.com/$(gh repo view ${REPO:+"$REPO"} --json nameWithOwner --jq .nameWithOwner)/actions" >&2
         exit 1
     fi
     echo "  ${WAITED}s: $NOTE"
