@@ -43,18 +43,6 @@
       "Bash(python -m pytest:*)"
     ],
     "deny": [
-      "Bash(git add -A:*)",
-      "Bash(git add --all:*)",
-      "Bash(git add .:*)",
-      "Bash(git add -u:*)",
-      "Bash(git add --update:*)",
-      "Bash(git add raven)",
-      "Bash(git add raven/)",
-      "Bash(git -C * add -A:*)",
-      "Bash(git -C * add --all:*)",
-      "Bash(git -C * add .:*)",
-      "Bash(git -C * add -u:*)",
-      "Bash(git -C * add --update:*)",
       "Bash(ruff check --fix:*)",
       "Bash(ruff format:*)",
       "Bash(xdotool windowclose:*)",

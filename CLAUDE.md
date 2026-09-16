@@ -946,7 +946,7 @@ status; …; git add -A && git diff --cached` was refused **for the `git add -A`
 exactly its job — and reading the refusal as the `cd` led to reaching for `git -C … add -A`, which the
 rule's patterns did not cover, so the guard stayed defeated for the rest of the session. Read *what* was
 denied before routing around it: a workaround built on a misdiagnosis disables the thing that was
-protecting you, silently. (The `git -C` forms are now denied too, but the habit is the fix.)
+protecting you, silently. (Those bulk-staging rules have since been retired, but the habit is the fix.)
 
 When stale bytecode interferes with an import (typical symptom: circular-import errors pointing at a rename that looks fine in source, or an import cycle that only repros in one entry order), clean with:
 
