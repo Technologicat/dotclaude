@@ -713,6 +713,8 @@ Related: don't guess a repo's GitHub name from its directory name. `~/Documents/
 
 **Lint before pushing.** Run what CI lints with (`ruff check .`, and `cython-lint` for a Cython project) before pushing code. It costs a second or two; skipping it costs a CI round-trip on a failure that was visible locally the whole time. A passing local test suite is not a substitute — CI lints as well as tests, and lint is the half that's easy to forget.
 
+**flake8 is not in CI, but it is what catches whitespace ruff does not** — continuation-line alignment, for one, which a rename that changes a name's length can break. Always run it as `flake8 --config ~/.config/flake8 <paths>`: flake8 6.0 does not find that global config by itself, and a bare run silently lints against pycodestyle's defaults, burying the real warnings under thousands the config ignores. Details in the `project-setup` skill.
+
 **Push at each seam, not at the end of the session.** When a unit of work is finished — committed, tested, written up — push it and start the CI watch *before* opening the next one. Don't batch a day's units into one push while signing off.
 
 Sometimes it's right to hold: work still under review, or a change the next unit may force a rewrite of. But the default is that the previous unit is pushed before the next one starts.
