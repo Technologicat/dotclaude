@@ -460,10 +460,20 @@ just described the thing in a sentence is evidence that it is small: an item tha
 usually has a fix of about that size, and the sentence took nearly as long as the fix would have.
 
 **Measured, on Raven's list, 2026-09-18: of 172 items carrying a metadata line, 104 — three in five — have
-`Cost: ?`.** Twenty-four are sized `S` and were filed anyway. The first number is the more damning: the
-decision to file was mostly taken *without pricing the fix*, and pricing it is the whole of the step that
-would have said to do it instead. `?` is a sanctioned answer in the format below, and it is meant for the
-item whose size cannot be known without going and looking, not as the default for one nobody asked about.
+`Cost: ?`, and 24 are sized `S` and were filed regardless.**
+
+**Read that with the two kinds of deferral kept apart, or it says more than it should.** What is deferred
+may be the *work* or it may be the *decision*, and only the first is this rule's business:
+
+- **The change is wanted and the only question is when.** Then the size decides, and not knowing it is the
+  failure — pricing the fix is the whole of the step that would have said to do it now instead.
+- **The idea is tentative** — it may turn out unnecessary, or plainly bad once anybody looks at it
+  properly (Juha, 2026-09-18). Then filing is right and `?` is honest: there is nothing to price until
+  somebody decides they want it, and pricing it first is work spent on a change that may never be made.
+  This is one of the places YAGNI genuinely applies.
+
+So the number to act on is the `S` one — two dozen items priced as small and filed anyway. The unsized
+majority is a mixture, and which mixture is a question for the dehydration pass rather than an indictment.
 
 Why the pull is toward filing, since it is worth recognizing from the inside: filing looks like diligence
 and discharges the decision, and it avoids the risk that is *visible* — scope creep, an unasked-for change
