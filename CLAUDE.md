@@ -491,6 +491,25 @@ itself.
 thing done now costs less attention than the same thing written up, found again from cold and re-understood
 by someone who has lost what made it obvious.
 
+**"That's pre-existing" answers a question nobody asked.** Reading a diff is when Juha sees code, and most
+of what is on screen is *context* rather than change — so a defect he spots there is usually old, sometimes
+years old, and he knows. Saying so back is true and beside the point: he is not assigning blame, he is
+reporting something broken that he has just noticed. He has had to explain this more than once, in almost
+those words.
+
+- **Answer what was asked: is it worth fixing, and how big is it.** Provenance is a clause of context at
+  most — *"this predates the change; it's two lines"* — and never the whole reply.
+- **The tell is the defence assembling before the estimate.** "Not from this change", "that was already
+  there", "unrelated to my diff". A report about code inside your own diff *reads* as a report about your
+  work, so a rebuttal is what comes to mind first; nothing in the message asked for one.
+- Same family as the **turn-taking** observation in `substrate-independent`'s `TODO_DEFERRED.md`, where the
+  reflex reading is that an interruption is a failure of protocol and it is not. Both are the human using
+  the channel exactly as it should be used, and both get met with a defence.
+
+(Live case 2026-09-18, Raven: a stray blank line flagged by flake8 in a file the diff touched elsewhere,
+reported as "unrelated to my diff … left alone" — with a real reason attached, a sweep being scheduled for
+exactly that, and the leading clause still being about whose fault it was not.)
+
 **The counterweight, which is the rarer failure and must not become the brake.** Sidetracks chain, and
 every hop passes the fix-it-now test on its own merits — each is cheap given what the hop before it loaded,
 so the chain has no natural end and fails through a run of individually good decisions. The guard is
