@@ -447,6 +447,44 @@ Two guards on "fix it now":
 - **It must be independently committable.** If the fix can't stand as its own commit — if it has to tangle into the current one — it isn't small, whatever its size. A separate commit is also what keeps it reviewable: it shows up as its own diff with its own rationale, rather than as noise inside an unrelated change.
 - **It must not need my decision — but "needs a decision" means *ask*, not automatically *defer*.** If I'm in the session, asking right then is usually the cheapest of the three: we both have the context loaded, the answer takes one line, and it resolves into either a fix or a real decision *now*. Writing a deferred item instead trades a ten-second question for an entry that has to be re-understood from cold later, by someone who has lost the context that made it obvious. Defer only when the decision needs something neither of us has on hand — a measurement, a design session — or when the question is big enough that asking it mid-task would derail the task. A one-liner that changes behaviour is not automatically deferred; it is automatically *raised*.
 
+### The bias runs toward filing, and the offer to file is the tell
+
+The rule above already says not to default to deferring, and it goes on being defaulted to anyway — Juha
+has had to point at the same small items repeatedly (2026-09-18). So it needs a trigger that fires in the
+moment rather than a principle to agree with afterwards.
+
+**The trigger is being about to write "want me to file this?".** Stop there and price it instead. Having
+just described the thing in a sentence is evidence that it is small: an item that can be *stated* compactly
+usually has a fix of about that size, and the sentence took nearly as long as the fix would have.
+
+Why the pull is toward filing, since it is worth recognizing from the inside: filing looks like diligence
+and discharges the decision, and it avoids the risk that is *visible* — scope creep, an unasked-for change
+— at the price of two that are not. A filed edge case is a surprise left in the product for someone to
+find, and an entry charging attention rent from everyone who scans the list afterwards, forever, whether or
+not anyone ever acts on it. Weigh those against each other explicitly, because only one side announces
+itself.
+
+**Size does factor in, and "context cost, not size" above is not denying it.** That test is about the
+*reload*, where line count genuinely predicts nothing. What size predicts is the *interruption*: a small
+thing done now costs less attention than the same thing written up, found again from cold and re-understood
+by someone who has lost what made it obvious.
+
+**The counterweight, which is the rarer failure and must not become the brake.** Sidetracks chain, and
+every hop passes the fix-it-now test on its own merits — each is cheap given what the hop before it loaded,
+so the chain has no natural end and fails through a run of individually good decisions. The guard is
+depth, not refusal: the first sidetrack off the task is ordinary work; at a second one off *that*, say so
+and name it as the last before returning, because nothing downstream will.
+
+**And there is no clean rule here, which is part of the rule.** Focus and completeness pull against each
+other, so this admits a set of defensible answers rather than one right one (Juha's framing, 2026-09-18: a
+Pareto front rather than an optimum). What a rule can do is name the axes, so the trade is made knowingly
+and out loud instead of being settled by whichever pull was stronger that afternoon.
+
+(Live case 2026-09-18, Raven's chat graph: a search match too wide for its box went unpainted. It was
+filed, with the reason "rare enough that I'd rather not spend layout machinery on it" — and unfiled and
+built the moment Juha asked for the size rather than the verdict, which came out moderate and *replacing*
+machinery rather than adding it. Nothing had changed but the question being asked.)
+
 **The failure this prevents:** a `TODO_DEFERRED.md` that has stopped being a queue and become an archive. Raven's passed 120 items — long past the point where anyone reads it end to end, so items are neither done nor found again, and every one of them charges standing attention rent for nothing. This is the *hydra tax* (glossary): closing an item genuinely surfaces adjacent ones, so the backlog grows even under honest work, and backlog *length* is a misleading score. The corrective is twofold — the rule above throttles the inflow, and a periodic **dehydration pass** (also glossary: a cleanup sprint whose whole purpose is retiring items faster than feature work spawns them) drains the standing pile. Schedule the pass; don't wait for the list to become unbearable, because by then reading it is itself the obstacle. Expect a meaningful fraction to be already done or already stale.
 
 **A recognized cluster is a brief waiting to be written, and nothing in the process promotes it.** The `Cluster:` field records the moment a group of items is *seen* as one job; afterwards they go on living as loose entries, each of which has to be found separately. So the backlog can hold a fully-identified piece of work that a search will not surface — and the search reads as exhaustive, because every place it looked really was empty.
