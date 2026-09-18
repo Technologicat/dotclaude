@@ -459,11 +459,14 @@ principle to agree with afterwards.
 just described the thing in a sentence is evidence that it is small: an item that can be *stated* compactly
 usually has a fix of about that size, and the sentence took nearly as long as the fix would have.
 
-**Measured, on Raven's list, 2026-09-18: of 172 items carrying a metadata line, 104 — three in five — have
-`Cost: ?`, and 24 are sized `S` and were filed regardless.**
+**Measured on Raven's list, 2026-09-18, and the number that counts is not the first one it offers.** Of
+172 items, 104 carry `Cost: ?` — which says almost nothing, the field having arrived around August 2026:
+92% of everything filed before then is unsized against 5% of what was filed in September. **Take the 88
+items filed since sizing began: 34 of them, 39%, are small or mostly small** — 24 flat `S`, nine more whose
+cost opens with `S`, one `mechanical`. Two in five filed rather than done.
 
-**Read that with the two kinds of deferral kept apart, or it says more than it should.** What is deferred
-may be the *work* or it may be the *decision*, and only the first is this rule's business:
+**And read even that with the two kinds of deferral kept apart, or it says more than it should.** What is
+deferred may be the *work* or it may be the *decision*, and only the first is this rule's business:
 
 - **The change is wanted and the only question is when.** Then the size decides, and not knowing it is the
   failure — pricing the fix is the whole of the step that would have said to do it now instead.
@@ -472,8 +475,9 @@ may be the *work* or it may be the *decision*, and only the first is this rule's
   somebody decides they want it, and pricing it first is work spent on a change that may never be made.
   This is one of the places YAGNI genuinely applies.
 
-So the number to act on is the `S` one — two dozen items priced as small and filed anyway. The unsized
-majority is a mixture, and which mixture is a question for the dehydration pass rather than an indictment.
+So the 39% is an upper bound rather than a verdict: some of those small items are small *and* tentative,
+which is the second case and a fair filing. What it is not is a rounding error, and the direction it points
+is the one to lean against.
 
 Why the pull is toward filing, since it is worth recognizing from the inside: filing looks like diligence
 and discharges the decision, and it avoids the risk that is *visible* — scope creep, an unasked-for change
