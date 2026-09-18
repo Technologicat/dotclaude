@@ -459,6 +459,12 @@ principle to agree with afterwards.
 just described the thing in a sentence is evidence that it is small: an item that can be *stated* compactly
 usually has a fix of about that size, and the sentence took nearly as long as the fix would have.
 
+**Measured, on Raven's list, 2026-09-18: of 172 items carrying a metadata line, 104 — three in five — have
+`Cost: ?`.** Twenty-four are sized `S` and were filed anyway. The first number is the more damning: the
+decision to file was mostly taken *without pricing the fix*, and pricing it is the whole of the step that
+would have said to do it instead. `?` is a sanctioned answer in the format below, and it is meant for the
+item whose size cannot be known without going and looking, not as the default for one nobody asked about.
+
 Why the pull is toward filing, since it is worth recognizing from the inside: filing looks like diligence
 and discharges the decision, and it avoids the risk that is *visible* — scope creep, an unasked-for change
 — at the price of two that are not. A filed edge case is a surprise left in the product for someone to
