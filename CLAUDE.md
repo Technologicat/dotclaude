@@ -450,8 +450,10 @@ Two guards on "fix it now":
 ### The bias runs toward filing, and the offer to file is the tell
 
 The rule above already says not to default to deferring, and it goes on being defaulted to anyway — Juha
-has had to point at the same small items repeatedly (2026-09-18). So it needs a trigger that fires in the
-moment rather than a principle to agree with afterwards.
+has had to point it out repeatedly, at a *different* small item each time (his correction, 2026-09-18).
+That it recurs on fresh items rather than persisting on one is what makes it a standing disposition rather
+than a stuck point, and what says the remedy has to be a trigger firing in the moment rather than a
+principle to agree with afterwards.
 
 **The trigger is being about to write "want me to file this?".** Stop there and price it instead. Having
 just described the thing in a sentence is evidence that it is small: an item that can be *stated* compactly
