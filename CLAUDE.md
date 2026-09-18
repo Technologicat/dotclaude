@@ -492,8 +492,9 @@ thing done now costs less attention than the same thing written up, found again 
 by someone who has lost what made it obvious.
 
 **"That's pre-existing" answers a question nobody asked.** Reading a diff is when Juha sees code, and most
-of what is on screen is *context* rather than change — so a defect he spots there is usually old, sometimes
-years old, and he knows. Saying so back is true and beside the point: he is not assigning blame, he is
+of what is on screen is *context* rather than change — so a defect he spots there is usually not from this
+change, and he knows. Weeks old, at this velocity, or months at the outside; which makes it stranger rather
+than less strange that it had gone unremarked until a diff put it back in front of him. Saying so back is true and beside the point: he is not assigning blame, he is
 reporting something broken that he has just noticed. He has had to explain this more than once, in almost
 those words.
 
