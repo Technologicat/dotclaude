@@ -438,6 +438,30 @@ format — Juha's note when it was written was that other projects would want th
 but that it depends on each README's format, so it is a starting point rather than a
 drop-in.
 
+**There are now two copies, which is what makes this worth doing rather than merely
+worth wanting** (2026-09-20). Raven has `scripts/check_doc_links.py`, whose five core
+functions are character-for-character pyan's, deliberately — the eventual shared module
+is a lift rather than a merge, and keeping them from drifting in the meantime is what
+preserves that. **So fix any bug in both copies**, which is already the standing
+instruction and has been exercised once: a link quoted inside an inline code span was
+read as a reference, found by Raven's corpus and ported back to pyan the same day.
+
+What the second copy taught, and what a shared version has to carry:
+
+- **Whether a TOC is meant to be exhaustive is per-document, not per-project.** pyan's
+  README is; Raven's component READMEs index their top-level sections and stop, so
+  requiring completeness of them reports twenty-odd faults that are all deliberate.
+  Raven's copy keeps a `COMPLETE_TOC` set for this, which is the shape the shared one
+  wants.
+- **The format-dependence Juha flagged turned out to be smaller than feared.** Raven's
+  148 tracked documents needed no parsing change at all — only the completeness policy
+  above and the code-span fix. So a shared module looks more achievable than this item
+  assumed in July.
+- **The two run differently, and that is fine.** pyan's is a pytest module; Raven's is a
+  `scripts/` checker run by hand, matching each project's existing convention. That is a
+  packaging question, not a logic one, and it is orthogonal to the copy-vs-shared-checkout
+  decision this item is gated on.
+
 Design question to settle first: nine repos need this, and nine copies of a script
 will drift. Options are a copy per repo (simple, drifts), a second SHA-pinned checkout
 of this repo in each workflow (DRY, adds a cross-repo dependency), or a small reusable
