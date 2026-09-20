@@ -823,6 +823,15 @@ the trap. From GitHub's [filter pattern cheat sheet](https://docs.github.com/en/
   it decides whether a multi-segment ref matches at all: Dependabot names its branches
   `dependabot/github_actions/codecov/codecov-action-7.1.0`, so `dependabot/**` covers them while
   `dependabot/*` matches none of them. That is the form `coverage.yml` excludes them with.
+  - **Measured on chandra, 2026-09-20**, rather than taken from the cheat sheet, which two fetches
+    failed to return. Three branches pushed against `branches-ignore: ['dependabot/**']`: an ordinary
+    one produced a Coverage run, `dependabot/glob-check` produced none, and
+    `dependabot/github_actions/probe/glob-check` produced none.
+  - **Only the third of those proves anything about `**`.** `dependabot/glob-check` has one slash, so
+    `dependabot/*` would exclude it too — the fixture could not tell the two patterns apart, and it
+    looked like a clean result. Testing a glob that spans `/` needs a ref that actually spans one.
+    The ordinary branch is the other half: without a run somewhere, "no run appeared" says only that
+    nothing was listening.
 - `?` — zero or one of the **preceding** character.
 - `+` — one or more of the **preceding** character.
 - `[]` — one alphanumeric character from the listed set or range, ranges limited to `a-z`, `A-Z`,
