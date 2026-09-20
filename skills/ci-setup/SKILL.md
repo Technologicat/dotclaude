@@ -276,6 +276,23 @@ are easy to run together:
 So the cost of skipping this is a review signal rather than an outage, and the second interval is the
 one to weigh — it is two orders of magnitude longer than the first.
 
+**But testing the bump is the incidental reason to want a PR trigger, and the real one argues the
+other way.** What coverage on a PR is *for* is seeing whether a change drops the number before it
+lands. Three things make that a poor trade here:
+
+- **A dependency bump cannot move coverage**, changing no source. So for the Dependabot PRs that
+  started this, a PR-triggered Coverage run could only ever report on the action itself.
+- **A branch push already uploads.** With `branches-ignore` the run happens when the branch is
+  pushed, so the coverage data for work in progress exists without a PR trigger. What a PR trigger
+  would add is Codecov's comment on the PR, a presentation of a number already gathered. (Whether
+  Codecov posts that comment off a push-triggered upload, or needs the PR number from `pull_request`
+  context, is worth checking the next time a PR is open — it is the one thing this setup may lose.)
+- **A PR from a branch in the same repository fires both events**, so the run would happen twice on
+  the same commit. On a public repo GitHub-hosted minutes are unmetered, which removes the argument
+  that would normally be made here and leaves the one that actually applies: the second run burns
+  real electricity in a datacentre to recompute a number already known. Free at the invoice is not
+  free, and "it costs us nothing" is the reasoning that makes fleets of redundant CI runs normal.
+
 - **So a `codecov-action` bump is never exercised by the PR that proposes it.** Its green checks are
   `ci.yml`'s. The post-merge Coverage run is the evidence, and it is what to watch after merging one
   — batch-merging several bumps at once means several unverified changes landing together.
