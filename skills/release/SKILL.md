@@ -33,10 +33,10 @@ its own CI pass.
 These exist precisely because CI does not cover what they check. A checker in `scripts/` is, by
 construction, asking a question no test asks and no linter sees: whether the three dependency lists still
 agree, whether a module map still describes its package, whether the `python -m` commands the README tells
-people to type still name modules that exist. Green CI says nothing about any of it, and release is when
-that documentation goes out.
+people to type still name modules that exist, whether the links in that README still land on headings it
+has. Green CI says nothing about any of it, and release is when that documentation goes out.
 
-**Raven is currently the only project in the fleet with any** (six, in `scripts/`), so elsewhere this step
+**Raven is currently the only project in the fleet with any** (nine, in `scripts/`), so elsewhere this step
 is a five-second look that finds nothing to run. It is written as a habit rather than a Raven note because
 the cost of checking is that look, and the cost of not having the habit is that a checker added later is
 run by whoever wrote it and by nobody afterwards.
