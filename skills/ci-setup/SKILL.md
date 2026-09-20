@@ -264,12 +264,21 @@ empty and the upload fails. `ci.yml` survives Dependabot PRs only because it use
 **Which is also why there is no `pull_request` trigger.** Adding one would be the obvious way to make
 a `codecov-action` bump testable by its own PR — and it does not work, for the reason above, unless
 `CODECOV_TOKEN` is *also* added as a Dependabot secret in every repo (Settings → Secrets and
-variables → Dependabot). That is a manual per-repo step, and the thing it buys is small: the bump is
-unproven only until the post-merge run on the default branch, which lands a couple of minutes later
-on a workflow that gates nothing.
+variables → Dependabot). That is a manual per-repo step, and the trade has two intervals in it that
+are easy to run together:
+
+- **The default branch is exposed for about two minutes** — from the merge to the post-merge Coverage
+  run, on a workflow that gates nothing. This is the small one.
+- **The PR carries a misleading green for as long as it sits**, which is days to a week: Dependabot
+  opens them whenever upstream releases, and they get reviewed in batches. For that whole window the
+  checks say "passing" about a bump nothing has run, and that green is what a reviewer decides on.
+
+So the cost of skipping this is a review signal rather than an outage, and the second interval is the
+one to weigh — it is two orders of magnitude longer than the first.
 
 - **So a `codecov-action` bump is never exercised by the PR that proposes it.** Its green checks are
-  `ci.yml`'s. The post-merge Coverage run is the evidence, and it is what to watch after merging one.
+  `ci.yml`'s. The post-merge Coverage run is the evidence, and it is what to watch after merging one
+  — batch-merging several bumps at once means several unverified changes landing together.
 
 **The job guard keeps forks quiet.** With the workflow running on every branch, a fork runs it on its
 own pushes, with no `CODECOV_TOKEN` of its own — so a contributor's first sight of the project is a
