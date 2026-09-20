@@ -218,7 +218,7 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
 
 ### GitHub Actions — Coverage (`.github/workflows/coverage.yml`)
 
-- **Trigger:** push to the default branch only (not PRs)
+- **Trigger:** push to any branch except Dependabot's, and no PR trigger — see "Triggers and the fork guard" below, which is the whole of why
 - **Single Python version** — no matrix needed. **Use the newest the project supports**, i.e. the top of its CI matrix. That's the version most users will be on, and it's where new-syntax code paths actually run
   - **It needs bumping when the matrix grows**, and nothing will remind you — Dependabot updates actions, not this. Left alone, a `coverage.yml` freezes at whatever was newest the day it was written, which is exactly what happened across the fleet: before the 3.15 pass the coverage jobs sat at 3.10, 3.12, 3.13 and 3.14 with no rationale behind any of them. When you add a Python version to the CI matrix, bump the coverage job in the same commit — see the checklist below
   - **Version-gated code will look under-covered**, unavoidably. A single-version coverage run cannot exercise `if sys.version_info < (3, 12):` fallback branches. That's an artifact of the choice, not a defect to chase — running coverage across the whole matrix to fix it would cost far more than the signal is worth
@@ -226,10 +226,68 @@ and a `.flake8` (or `setup.cfg`, or `tox.ini`) would be auto-discovered and sile
 - Upload step:
   ```yaml
   - name: Upload coverage reports to Codecov
-    uses: codecov/codecov-action@<sha>   # v6.x — resolve the SHA, see "Pin GitHub Actions to commit SHAs"
+    uses: codecov/codecov-action@<sha>   # v7.x — resolve the SHA, see "Pin GitHub Actions to commit SHAs"
     with:
       token: ${{ secrets.CODECOV_TOKEN }}
   ```
+
+### Triggers and the fork guard
+
+The shape, fleet-wide as of 2026-09-20:
+
+```yaml
+on:
+  push:
+    branches-ignore: ['dependabot/**']
+  workflow_dispatch:
+
+jobs:
+  codecov:
+    if: github.repository == 'Technologicat/<repo>'
+    runs-on: ubuntu-latest
+```
+
+Note `branches` and `branches-ignore` are mutually exclusive, so "every branch but these" is spelled
+with the second one alone.
+
+**Every branch, because the default branch alone means coverage exists only for work that already
+landed.** These are solo projects developed mostly on `master`/`main`, so the branch case is
+occasional — which is exactly why nobody notices that the run is missing there.
+
+**Dependabot's branches are excluded, and they have to be excluded from `push` rather than only from
+`pull_request`.** GitHub treats a workflow run triggered by Dependabot as if it came from a fork, and
+[that covers `push`, `pull_request`, `pull_request_review` and `pull_request_review_comment`
+alike](https://docs.github.com/en/code-security/dependabot/troubleshooting-dependabot/troubleshooting-dependabot-on-github-actions).
+Such a run sees *Dependabot* secrets, never Actions secrets, so `secrets.CODECOV_TOKEN` resolves
+empty and the upload fails. `ci.yml` survives Dependabot PRs only because it uses no secrets at all.
+
+**Which is also why there is no `pull_request` trigger.** Adding one would be the obvious way to make
+a `codecov-action` bump testable by its own PR — and it does not work, for the reason above, unless
+`CODECOV_TOKEN` is *also* added as a Dependabot secret in every repo (Settings → Secrets and
+variables → Dependabot). That is a manual per-repo step, and the thing it buys is small: the bump is
+unproven only until the post-merge run on the default branch, which lands a couple of minutes later
+on a workflow that gates nothing.
+
+- **So a `codecov-action` bump is never exercised by the PR that proposes it.** Its green checks are
+  `ci.yml`'s. The post-merge Coverage run is the evidence, and it is what to watch after merging one.
+
+**The job guard keeps forks quiet.** With the workflow running on every branch, a fork runs it on its
+own pushes, with no `CODECOV_TOKEN` of its own — so a contributor's first sight of the project is a
+red X about a secret they were never meant to hold. `github.repository` is `owner/repo` of the
+repository the run happens in, so the equality check is false everywhere but upstream.
+
+- **Match the guard string to the real repository name, not the directory name.** `wlsqm` lives at
+  `Technologicat/python-wlsqm`; read `git remote -v`. A wrong name does not error — the job is simply
+  skipped, forever, and the run still reports success because a skipped job is not a failed one.
+  Verify by checking that the job *ran*: `gh api repos/OWNER/REPO/actions/runs/<id>/jobs` should say
+  `conclusion=success`, not `skipped`.
+
+**On why a public repo needs a token at all**, since this looks redundant and is not: Codecov
+requires one for uploads to a *protected* branch — the permanent ones, `main`/`master` — even on a
+public repository, unless the organization has turned that requirement off. Tokenless upload applies
+to *unprotected* branches, which is what a fork PR produces (CI rewrites the branch as
+`forkname:main`). So the fleet's `CODECOV_TOKEN` covers exactly the case that demands it, and the
+tokenless path exists for the fork case where secrets are unavailable by design.
 
 ### Adding a Python version to the matrix — the whole checklist
 
@@ -735,6 +793,10 @@ the trap. From GitHub's [filter pattern cheat sheet](https://docs.github.com/en/
 
 - `*` — zero or more of **any** character, except `/`. A glob star: it does not attach to whatever
   precedes it.
+- `**` — zero or more of any character, `/` included. The difference from `*` is only that slash, and
+  it decides whether a multi-segment ref matches at all: Dependabot names its branches
+  `dependabot/github_actions/codecov/codecov-action-7.1.0`, so `dependabot/**` covers them while
+  `dependabot/*` matches none of them. That is the form `coverage.yml` excludes them with.
 - `?` — zero or one of the **preceding** character.
 - `+` — one or more of the **preceding** character.
 - `[]` — one alphanumeric character from the listed set or range, ranges limited to `a-z`, `A-Z`,
