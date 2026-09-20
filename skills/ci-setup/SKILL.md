@@ -254,6 +254,19 @@ with the second one alone.
 landed.** These are solo projects developed mostly on `master`/`main`, so the branch case is
 occasional — which is exactly why nobody notices that the run is missing there.
 
+**The result is a gradient, and it is the point rather than a shortfall.** A branch push runs the
+coverage job, which executes the suite on one Python version and goes red if anything fails; the full
+matrix waits for a PR or for the push to `master`/`main`. So a branch buys a fast single-version
+check while the work is still moving, and the expensive check happens where the work is being
+proposed as finished.
+
+- **Read that as an argument for working on a branch, not for putting the matrix on branches.** The
+  lighter check is what makes the branch worth using: develop there for quick feedback, then merge
+  for the thorough pass. Adding the matrix to every branch push would delete the distinction and
+  spend a full run on every intermediate commit.
+- Before this trigger existed a branch push ran nothing at all, so there was no signal to develop
+  against and the path of least resistance was to work on the default branch directly.
+
 **Dependabot's branches are excluded, and they have to be excluded from `push` rather than only from
 `pull_request`.** GitHub treats a workflow run triggered by Dependabot as if it came from a fork, and
 [that covers `push`, `pull_request`, `pull_request_review` and `pull_request_review_comment`
