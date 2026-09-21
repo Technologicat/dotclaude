@@ -41,6 +41,14 @@ The failure is not verbosity for its own sake. It is that the material ends up *
 
 Measured on Raven, 2026-09-21, which is what prompted this: a single feature entry had reached 1395 words — longer than the longest entry in `unpythonic`'s entire history (1126) — and the in-progress release section was 20,748 words against 36,033 for the whole file across ten releases. The README already had a section on that feature.
 
+### There is no word count, and the failure lives in the tail
+
+**How long an entry should be depends on the feature** (Juha, 2026-09-21): the shortest prose that describes a thing clearly is a property of the thing, so a bound in words would be wrong for half the entries whatever number it took. That is why every rule here is about *what a sentence is doing* rather than how many there are.
+
+What a measurement does say is **where to look**. Across the same four Raven releases, the median entry moved 73 → 72 → 73 → 100 words, which is nearly flat and plausibly just bigger features. The tail did not: entries over 250 words went 0, 1, 6, **14** — and in the last release those 14 entries, a tenth of the section, held **35% of its words**. So the typical entry was never the problem, and reviewing for length by reading from the top finds nothing wrong for a long time. Sort by length and read the longest five; that is where the documentation is hiding.
+
+**A related tell, when the writing itself is hard.** The Zen of Python says an implementation that is hard to explain is a bad idea, and one that is easy to explain may be a good one. Generalized beyond implementations — which is our extension and not the original claim — an entry that resists being written compactly is sometimes reporting on the *feature* rather than on the writing: a thing that takes 600 words to describe may be several things, or the wrong shape. Worth a moment's suspicion before concluding the entry simply needs to be long.
+
 ## Nest subordinate detail; don't flatten it
 
 When an entry has detail that *belongs to it* — a caveat, a consequence worth knowing, an error taxonomy — put it in nested bullets under the entry rather than cramming it into the lead sentence or splitting it into a sibling entry. The lead bullet says what changed from the user's point of view; the children carry what a user of *that* change then needs to know.
