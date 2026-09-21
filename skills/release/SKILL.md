@@ -142,12 +142,24 @@ A titled release draws its name from the project's own well:
   became 0.10.2 *"Just a few more things"*, then deflated into 0.10.3 *"Small fixes"*.
 - **pyan3** — cartography
 - **chandra** — its decipherment/astronomy palette: *reading what's present but unseen*. (Hence `Earthshine` — Earth's reflected light revealing the moon's dark limb. The palette is described in chandra's own `CLAUDE.md` under "Voice and naming", and covers component names too: `rosetta`, `concordance`, `palimpsest`.)
-- **raven, pylu, pydgq, wlsqm** — no well chosen yet, so releases have gone out plain (`Raven 0.2.7`,
-  `wlsqm 1.1.0`, `pylu v1.1.0`). An absence rather than a decision: nobody has thought of one.
-  - Raven is an evolving research prototype whose version trajectory is itself undecided — what a
-    1.0.0 should contain is still an open question, as in many open-source projects — so there is no
-    milestone for a theme to attach to yet. Plain is right there for now.
-  - For the numerics trio the question is open, and an untitled minor release is the moment it comes up.
+- **raven** — **named objects in the night sky**: stars, clusters, nebulae, galaxies. Raven is a
+  constellation of apps, and Corvus is the raven's own constellation, but the well is deliberately the
+  *whole* sky rather than Corvus alone — six stars would run out in a few releases, and falling back on
+  catalogue numbers gives a reader nothing a version number did not already give them (Juha,
+  2026-09-21). Unordered, for the same reason. First one: 0.2.9 *"Pleiades"*, a cluster of siblings you
+  can see one by one and step between, for the release whose headline was the chat graph.
+  - **The reason for naming Raven's releases is not the fleet's usual one**, and it changes what a good
+    name is. Elsewhere a title is a joke for somebody already reading the changelog. Here it is upgrade
+    UX: nobody remembers whether they were running 0.2.9, and everybody remembers a name. So memorable
+    and recognizable beat clever — an object a reader has heard of does the job that a deep cut does not.
+  - **A release takes the whole object, so its parts are then spoken for.** Naming a later release after
+    one of the Pleiades would read as a point release of 0.2.9.
+  - The pun-on-content rule above still governs, and star names pun less readily than quoted lines do —
+    so reach for an object whose *story* fits the release, as the Antennae Galaxies (two galaxies
+    merging) are being held for the release that makes Librarian and Visualizer reach into each other.
+- **pylu, pydgq, wlsqm** — no well chosen yet, so releases have gone out plain (`wlsqm 1.1.0`,
+  `pylu v1.1.0`). An absence rather than a decision: nobody has thought of one. The question is open,
+  and an untitled minor release is the moment it comes up.
 
 ### Heading formats vary by project — copy the last release
 
