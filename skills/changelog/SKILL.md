@@ -105,6 +105,15 @@ Flattening these into siblings would imply they're independent changes; folding 
 > …an attached document shows its file type's icon, ~~so a message that is nothing but attachments no longer reads as an empty one~~
 > …clicking previews and a second click commits. ~~So the whole tree can be explored without committing to anything.~~
 
+**A title is a name, not a description, and it takes the same cut.** The clause after the comma goes there too: *"a Thinking toggle, for asking a reasoning model to just answer"* becomes *"a Thinking toggle"*, and what the qualifier said moves into the body or turns out not to have been needed. *"What the thinking cost is now reported, where before the single largest consumer of a reasoning turn had no numbers on it"* becomes *"the thinking cost is reported"*.
+
+**Evidence goes, and the claim it supported stays.** An entry states what is true; it does not exhibit why you should believe it. A demonstration — *"asked for `1234 * 5678` with reasoning off, Qwen 3.6 reached for the calculator rather than answering from its head"* — is replaced by the sentence it was evidence for, and a measurement quoted in support (*"1.6 s on a 10k-token chat"*) simply goes. This is the persuasion rule again from its other side: not only *don't argue the design is right*, but *don't prove the claim*.
+
+- **Cutting the evidence can cut a hedge that was riding on it**, and that is the one way this rule makes an entry *worse*. Losing "observed on that model rather than promised for all of them" left an entry asserting something broader than anybody knew. Before cutting, ask which claims the evidence was *limiting*, not just which it was supporting — and keep those limits in a clause.
+- **A caveat survives on the counterfactual, with the reader as the actor**: would somebody deciding whether to use the feature plausibly assume the wrong thing without it? If yes it steers a real tendency; if no it is a *depleted uranium disclaimer* and goes with the rest. The reader, not the maintainer — what is obvious to somebody who knows how it works is exactly what the entry cannot rely on.
+
+**Name a thing by the path a reader could use.** `agent.turn` becomes `raven.librarian.agent.turn`. An entry naming an API is read by somebody who wants to go and find it.
+
 **"No longer" and "used to" are tells of their own**, and they are the subtlest of these: a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving. The entry already implies the change by existing.
 
 The reasoning that comes out is usually true, usually good, and already written down where it belongs — in the commit message that made the change, and in the comment beside the code. It is being cut for its audience, not for its accuracy.
