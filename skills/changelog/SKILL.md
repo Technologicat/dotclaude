@@ -121,7 +121,11 @@ Flattening these into siblings would imply they're independent changes; folding 
 
 **Name a thing by the path a reader could use.** `agent.turn` becomes `raven.librarian.agent.turn`. An entry naming an API is read by somebody who wants to go and find it.
 
-**"No longer" and "used to" are tells of their own**, and they are the subtlest of these: a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving. The entry already implies the change by existing.
+**"No longer" and "used to" are tells — in an `Added` entry.** There a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving: nobody was relying on the absence of a feature, so the old picture is decoration and the entry already implies the change by existing.
+
+**In `Changed` and `Fixed` they are the point, and the before-picture is load-bearing.** Somebody *was* relying on the old behaviour — that is what makes it a change rather than an addition — so the old picture is the only thing that tells a reader whether this happened to them. *"Previously the stored system prompt was overwritten at every app start, so a conversation you had last month silently acquired today's instructions"* is not back-story; it is the audience test, and in the edit that produced this rule it was promoted from inline prose to a bullet of its own rather than cut.
+
+So the rule is not *cut the before-picture*. It is **cut it when nobody was relying on it**, which is always in `Added` and never in the other two.
 
 The reasoning that comes out is usually true, usually good, and already written down where it belongs — in the commit message that made the change, and in the comment beside the code. It is being cut for its audience, not for its accuracy.
 
@@ -130,6 +134,12 @@ The reasoning that comes out is usually true, usually good, and already written 
 Both halves measured on Raven the same afternoon. The chat graph entry went 1334 words to 1127 under an edit that *added* seven sub-bullets. The `raven-deduplicate` entry, restructured just as thoroughly — fifteen bullets to thirty-one — went 1070 to **1073**, three words longer. Its author's reading: "very little-princey already, no non-load-bearing words to remove". A user manual does not get shorter by being written better.
 
 Derived from a real trim rather than from introspection: Raven's chat graph entry, 2026-09-21, where nine of the maintainer's cuts began at exactly this punctuation and every gloss he kept was a consequence rather than a justification. Worth knowing too that the trim removed **16%** while the sub-bullet count went *up*, 26 to 33 — most of the work was splitting walls of text into nested points, and the gloss removal rode along on top.
+
+## Where something can be destroyed, say "destroys"
+
+**Euphemism in a destructive entry is not concision.** *"Deleting a system prompt takes the chats held under it with it"* became *"…**destroys** the chats held under it with it"*, and the difference is whether a reader understands what the button does before pressing it rather than after.
+
+This is the one place an entry is allowed to get **longer** under editing, and in the edit that produced this rule it did: what deletion leaves you looking at, and which case stays refused, were *added* — 272 words to 293. Everything else here trims; a destructive action earns its detail, because the cost of a reader misunderstanding it is not a re-read.
 
 ## An entry is a selection, not an inventory
 
