@@ -118,6 +118,10 @@ Flattening these into siblings would imply they're independent changes; folding 
 
 The reasoning that comes out is usually true, usually good, and already written down where it belongs — in the commit message that made the change, and in the comment beside the code. It is being cut for its audience, not for its accuracy.
 
+**If careful editing does not shorten an entry, the length is not in the writing.** That is a test, and it costs one attempt. Edit it down until every remaining word is structural — *Little Prince mode* — and read what the attempt returns. An entry carrying gloss gives up a sixth of itself. An entry carrying documentation gives up nothing, because editing cannot move content and misplaced content is the only thing wrong with it.
+
+Both halves measured on Raven the same afternoon. The chat graph entry went 1334 words to 1127 under an edit that *added* seven sub-bullets. The `raven-deduplicate` entry, restructured just as thoroughly — fifteen bullets to thirty-one — went 1070 to **1073**, three words longer. Its author's reading: "very little-princey already, no non-load-bearing words to remove". A user manual does not get shorter by being written better.
+
 Derived from a real trim rather than from introspection: Raven's chat graph entry, 2026-09-21, where nine of the maintainer's cuts began at exactly this punctuation and every gloss he kept was a consequence rather than a justification. Worth knowing too that the trim removed **16%** while the sub-bullet count went *up*, 26 to 33 — most of the work was splitting walls of text into nested points, and the gloss removal rode along on top.
 
 ## An entry is a selection, not an inventory
