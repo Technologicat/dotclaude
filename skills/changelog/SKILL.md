@@ -85,6 +85,16 @@ When an entry has detail that *belongs to it* — a caveat, a consequence worth 
 
 Flattening these into siblings would imply they're independent changes; folding them into the parent sentence would bury them. The nesting *is* the information — see the "flat is better than nested, except when nesting carries meaning" rule in `CLAUDE.md`, which applies to prose as much as to code.
 
+**This rule says where detail goes, never whether it should be there**, and that is half a job. It is read at the moment something has just been written and a place is wanted for it, so an urge to include arrives and finds an approved shape waiting. Nesting is for detail that has already survived the section below; a child bullet is not a way of keeping something that did not.
+
+## An entry is a selection, not an inventory
+
+**The entry names what changes what someone does. The other true things about the feature go to the README, or nowhere.** Leaving out a fact that is accurate, user-facing and relevant is the normal state of a good entry, not a defect in it.
+
+This needs saying because every other rule here is a filter against *bad* material — internal detail, back-story, diagnostics — and a feature has a dozen facts about it that pass all of them. Each is true, each is user-facing, none is back-story. Nothing so far licenses dropping one, so the entry becomes their union, and it clears every written rule at three times the length it should be.
+
+The difference this corrects is in where the writing starts. Someone who has just implemented the thing writes from the diff, where all twelve facts are equally in view and equally hard-won. The entry wants the other direction: **start from what a user would notice, which is already a sample**, and add only what they would then need. A reader who wants the twelve is a reader who has decided to use the feature, and they are in the documentation by then.
+
 ## The measure is whether the section is scannable
 
 **The budget being spent is the reader's attention** (Juha, 2026-09-21). Every rule above is a way of spending less of it, and this is the one to apply where they do not reach: a reader arriving at a release section is looking for the two entries that affect them, and everything that makes the other forty easier to skip past is doing the job.
