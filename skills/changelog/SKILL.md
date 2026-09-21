@@ -87,6 +87,30 @@ Flattening these into siblings would imply they're independent changes; folding 
 
 **This rule says where detail goes, never whether it should be there**, and that is half a job. It is read at the moment something has just been written and a place is wanted for it, so an urge to include arrives and finds an approved shape waiting. Nesting is for detail that has already survived the section below; a child bullet is not a way of keeping something that did not.
 
+## Omit the gloss
+
+**An entry reports; it does not persuade.** That is what makes the gloss droppable: a clause arguing that the new behaviour is the right one answers a question the reader never asked, since they are deciding whether this release affects them rather than whether it was well designed.
+
+**So almost always, the clause explaining the sentence can go.** It is the single most reliable cut, and the punctuation is the tell: a comma, dash or semicolon followed by *so*, *because*, *which means*, *instead of*, *rather than*, *where*. Cut there and what remains is nearly always complete.
+
+**A gloss survives when it states a consequence the reader will meet** — a limitation, a guarantee, or what work the feature saves them:
+
+> …the graph covers the subtitles, **so subtitling is not available while the graph is up**
+> …a round of three or more tool results folds into one box, **so a turn that consulted five web pages does not fill the picture with plumbing**
+> …a **…N more** box counts the matches behind it, **so a search result never hides behind one**
+
+**It goes when it justifies the design, narrates the old behaviour, or repeats the point:**
+
+> …it draws a dashed box, ~~because a branch that simply stopped being drawn would read as a branch that ends~~
+> …an attached document shows its file type's icon, ~~so a message that is nothing but attachments no longer reads as an empty one~~
+> …clicking previews and a second click commits. ~~So the whole tree can be explored without committing to anything.~~
+
+**"No longer" and "used to" are tells of their own**, and they are the subtlest of these: a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving. The entry already implies the change by existing.
+
+The reasoning that comes out is usually true, usually good, and already written down where it belongs — in the commit message that made the change, and in the comment beside the code. It is being cut for its audience, not for its accuracy.
+
+Derived from a real trim rather than from introspection: Raven's chat graph entry, 2026-09-21, where nine of the maintainer's cuts began at exactly this punctuation and every gloss he kept was a consequence rather than a justification. Worth knowing too that the trim removed **16%** while the sub-bullet count went *up*, 26 to 33 — most of the work was splitting walls of text into nested points, and the gloss removal rode along on top.
+
 ## An entry is a selection, not an inventory
 
 **The entry names what changes what someone does. The other true things about the feature go to the README, or nowhere.** Leaving out a fact that is accurate, user-facing and relevant is the normal state of a good entry, not a defect in it.
