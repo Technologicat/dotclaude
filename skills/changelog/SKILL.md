@@ -55,10 +55,13 @@ The eras split at **2026-02-05**, when the human-AI collaboration began; `unpyth
 | `unpythonic`, since | 84 | 40 | 189 | 0 |
 | `mcpyrate`, before | 76 | 28 | 321 | 1 |
 | `mcpyrate`, since | 32 | 44 | 190 | 0 |
-| Raven 0.2.8 | 94 | 73 | 394 | 6 |
+| Raven, before (0.2.1–0.2.4) | 17 | 108 | 589 | 3 |
+| Raven, since, through 0.2.8 | 139 | 72 | 394 | — |
 | Raven 0.2.9 | 139 | 100 | 1334 | 14 |
 
-**The fleet's typical entry is 30–45 words.** That is a distribution to recognize, not a limit to enforce — the 768-word entry in the left-hand column is a legitimate one, and the Kolmogorov point above is why. What it does mean is that an entry three times that length is unusual enough to be worth a second look, and a *section* whose median is three times it is describing something other than what changed.
+**A library's typical entry is 30–45 words, and an application's is two to three times that.** Both halves matter. The first is a distribution to recognize rather than a limit to enforce — the 768-word entry in `unpythonic`'s left-hand row is a legitimate one, and the Kolmogorov point above is why. The second is why the number cannot simply be carried across: Raven ran a median of 108 words before the collaboration and 72 during it, so its distance from `unpythonic` is a property of *describing an application*, where a user-facing change has a screen and a gesture in it and a library's has a signature. Compare a section against its own project's history, not against the fleet's smallest number.
+
+**What does transfer is the tail.** In every row above, the long entries are few and hold a large share: three of Raven's seventeen solo entries are 52% of that era's words, four of `unpythonic`'s sixty are 41% of its. That is the normal shape when the long ones are genuinely load-bearing. It becomes the failure above when they are documentation instead, which is what Raven 0.2.9's fourteen are.
 
 **And length hides in a tail, so reviewing from the top finds nothing wrong for a long time.** In Raven 0.2.9, fourteen entries — a tenth of the section — held 35% of its words. Sort by length and read the longest five; that is where the documentation is.
 
