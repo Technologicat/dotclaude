@@ -135,6 +135,20 @@ Both halves measured on Raven the same afternoon. The chat graph entry went 1334
 
 Derived from a real trim rather than from introspection: Raven's chat graph entry, 2026-09-21, where nine of the maintainer's cuts began at exactly this punctuation and every gloss he kept was a consequence rather than a justification. Worth knowing too that the trim removed **16%** while the sub-bullet count went *up*, 26 to 33 — most of the work was splitting walls of text into nested points, and the gloss removal rode along on top.
 
+## A `Fixed` entry answers "did this bite me?"
+
+That question is different from the one `Added` and `Changed` answer, and three things follow from it.
+
+**One entry per fault.** If a reader may have hit one and not the other, one entry cannot answer for both. **The word "Separately," is the tell** that an entry is two — in the edit this came from, a caching bug and a background-thread race shared a heading, and splitting them cost nothing: 814 words to 813, six top-level entries to seven.
+
+**Lead with the symptom; subordinate the mechanism.** The reader's question is *is this the thing that happened to me*, and only the symptom answers it. In that same edit the symptom rose to the top — the cycle advances, the overlay number changes, the image never appears — and the cause dropped a level beneath it, a third level of nesting appearing to hold it.
+
+- **This is a judgement call, not an automatic cut, and it was a close one** (Juha, 2026-09-21). A detailed bug description usually does not belong in a changelog; the diagnostic trail belongs in the commit message. What earns its place here is **detail about the symptom**, because that is what lets a reader match it against what they saw. Detail about the *mechanism* does not, beyond the one line that makes the fix intelligible.
+- The test is therefore: *is this sentence describing what the user saw, or what the code did?* The first is recognition, the second is archaeology.
+- **An explanation of intermittency is symptom detail**, and survives: *"which is why it seemed to come and go — cancel on the frame you started from and nothing went wrong at all"* is what lets somebody recognise a bug they could never reproduce.
+
+**Where a fault could look like data loss, say what was not damaged.** **"No file was ever touched"** is load-bearing: the reader who recognises the symptom immediately wants to know what it cost them. Same principle as saying *destroys* below, pointed the other way — where an entry could alarm, state the bound.
+
 ## Where something can be destroyed, say "destroys"
 
 **Euphemism in a destructive entry is not concision.** *"Deleting a system prompt takes the chats held under it with it"* became *"…**destroys** the chats held under it with it"*, and the difference is whether a reader understands what the button does before pressing it rather than after.
