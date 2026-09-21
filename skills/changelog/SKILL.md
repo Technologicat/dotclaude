@@ -31,6 +31,16 @@ That works out to different lengths per section, because the reader needs differ
 
 What goes in the commit message instead, in both cases: the diagnostic trail, the back-story, and why it was tricky.
 
+## An entry is not documentation
+
+This is what bounds the clause above, which otherwise has no upper end: "a feature entry may well be a paragraph" is true, and it will absorb an entire manual if nothing stops it. **The entry says what is new and what it is for. How to drive it goes in the README or the docs.**
+
+The test is per sentence, and it is quick: *is this telling me something changed, or teaching me to use it?* A list of every key a new view binds, what each of its five box kinds means, which setting tunes its animation — all true, all useful, none of it a description of a change. It belongs where a user looks when they are using the feature, not where they look to find out what happened since the version they have.
+
+The failure is not verbosity for its own sake. It is that the material ends up **only** in the changelog, which is the one document nobody re-reads: the README section that should have carried it never gets written, and the next release's entry has nowhere to point.
+
+Measured on Raven, 2026-09-21, which is what prompted this: a single feature entry had reached 1395 words — longer than the longest entry in `unpythonic`'s entire history (1126) — and the in-progress release section was 20,748 words against 36,033 for the whole file across ten releases. The README already had a section on that feature.
+
 ## Nest subordinate detail; don't flatten it
 
 When an entry has detail that *belongs to it* — a caveat, a consequence worth knowing, an error taxonomy — put it in nested bullets under the entry rather than cramming it into the lead sentence or splitting it into a sibling entry. The lead bullet says what changed from the user's point of view; the children carry what a user of *that* change then needs to know.
