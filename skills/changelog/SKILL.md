@@ -49,4 +49,20 @@ When an entry has detail that *belongs to it* — a caveat, a consequence worth 
 
 Flattening these into siblings would imply they're independent changes; folding them into the parent sentence would bury them. The nesting *is* the information — see the "flat is better than nested, except when nesting carries meaning" rule in `CLAUDE.md`, which applies to prose as much as to code.
 
-**This style is fleet-wide.** What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub.
+## The measure is whether the section is scannable
+
+**The budget being spent is the reader's attention** (Juha, 2026-09-21). Every rule above is a way of spending less of it, and this is the one to apply where they do not reach: a reader arriving at a release section is looking for the two entries that affect them, and everything that makes the other forty easier to skip past is doing the job.
+
+It also says where to **stop**. An item that is a single clause takes a title and nothing else, because splitting it yields a title and a sentence fragment — two lines spent to learn one thing, which is the failure this rule exists to prevent, arrived at from the other side.
+
+### Line breaks
+
+**One line per bullet**, unwrapped, however long it runs. This is what the fleet's changelogs already do — measured 2026-09-21, `unpythonic` 267 long lines against 93 wrapped, `mcpyrate` 106 against 42 — and the reason to keep to it is that a file wrapped in places and not in others makes the mixture visible where neither style alone would be. A bullet that runs long wants **nesting, not wrapping**: see the section above.
+
+### When a section grows past scanning
+
+A release section long enough that a reader scrolls looking for the entry that concerns them wants its entries **titled**: the bold lead on a line of its own, the prose starting on the next line, indented to the item's content column and with no blank line between them. Markdown folds the two back into one paragraph, so this is a shape the source has and the rendered page does not — which is the point, since the source is where the entries are written and rearranged.
+
+Reach for it when the section is long enough to need it. Raven's 0.2.9 is the case that produced the rule: 139 top-level entries across three sections, at which size a lead that runs into its own prose gives a reader nothing to skim.
+
+**This style is fleet-wide.** What *does* vary per project is release mechanics (tag format, the dev-version suffix), and that lives in the `release` skill, along with the post-release stub. Raven additionally groups entries under component headers, since it ships many apps from one repository; that one is in its own `CLAUDE.md`.
