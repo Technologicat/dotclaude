@@ -152,8 +152,10 @@ A titled release draws its name from the project's own well:
     name is. Elsewhere a title is a joke for somebody already reading the changelog. Here it is upgrade
     UX: nobody remembers whether they were running 0.2.9, and everybody remembers a name. So memorable
     and recognizable beat clever — an object a reader has heard of does the job that a deep cut does not.
-  - **A release takes the whole object, so its parts are then spoken for.** Naming a later release after
-    one of the Pleiades would read as a point release of 0.2.9.
+  - **Naming a release after part of an object already used costs a moment's confusion** — one of the
+    Pleiades, after 0.2.9 took the cluster, reads at a glance as a point release of it. Weigh it; do not
+    treat it as a bar. A name that genuinely puns on what the release did beats the tidiness, and Juha
+    expects to overrule this the first time a good candidate turns up inside a cluster already spent.
   - The pun-on-content rule above still governs, and star names pun less readily than quoted lines do —
     so reach for an object whose *story* fits the release, as the Antennae Galaxies (two galaxies
     merging) are being held for the release that makes Librarian and Visualizer reach into each other.
