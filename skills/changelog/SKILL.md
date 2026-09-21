@@ -45,7 +45,20 @@ Measured on Raven, 2026-09-21, which is what prompted this: a single feature ent
 
 **How long an entry should be depends on the feature** (Juha, 2026-09-21): the shortest prose that describes a thing clearly is a property of the thing, so a bound in words would be wrong for half the entries whatever number it took. That is why every rule here is about *what a sentence is doing* rather than how many there are.
 
-What a measurement does say is **where to look**. Across the same four Raven releases, the median entry moved 73 → 72 → 73 → 100 words, which is nearly flat and plausibly just bigger features. The tail did not: entries over 250 words went 0, 1, 6, **14** — and in the last release those 14 entries, a tenth of the section, held **35% of its words**. So the typical entry was never the problem, and reviewing for length by reading from the top finds nothing wrong for a long time. Sort by length and read the longest five; that is where the documentation is hiding.
+What a measurement does say is **what normal looks like**, which is the thing a writer without years of these in their hands does not have. Across the fleet, 2026-09-21:
+
+| corpus | entries | median words | longest | over 250 words |
+|---|---|---|---|---|
+| `unpythonic`, releases up to 2024 | 58 | 32 | 768 | 4 |
+| `unpythonic`, 2025 onward | 86 | 40 | 189 | 0 |
+| `mcpyrate`, up to 2024 | 75 | 27 | 321 | 1 |
+| `mcpyrate`, 2025 onward | 33 | 45 | 190 | 0 |
+| Raven 0.2.8 | 94 | 73 | 394 | 6 |
+| Raven 0.2.9 | 139 | 100 | 1334 | 14 |
+
+**The fleet's typical entry is 30–45 words.** That is a distribution to recognize, not a limit to enforce — the 768-word entry in the left-hand column is a legitimate one, and the Kolmogorov point above is why. What it does mean is that an entry three times that length is unusual enough to be worth a second look, and a *section* whose median is three times it is describing something other than what changed.
+
+**And length hides in a tail, so reviewing from the top finds nothing wrong for a long time.** In Raven 0.2.9, fourteen entries — a tenth of the section — held 35% of its words. Sort by length and read the longest five; that is where the documentation is.
 
 **A related tell, when the writing itself is hard.** The Zen of Python says an implementation that is hard to explain is a bad idea, and one that is easy to explain may be a good one. Generalized beyond implementations — which is our extension and not the original claim — an entry that resists being written compactly is sometimes reporting on the *feature* rather than on the writing: a thing that takes 600 words to describe may be several things, or the wrong shape. Worth a moment's suspicion before concluding the entry simply needs to be long.
 
