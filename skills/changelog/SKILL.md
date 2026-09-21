@@ -112,6 +112,13 @@ Flattening these into siblings would imply they're independent changes; folding 
 - **Cutting the evidence can cut a hedge that was riding on it**, and that is the one way this rule makes an entry *worse*. Losing "observed on that model rather than promised for all of them" left an entry asserting something broader than anybody knew. Before cutting, ask which claims the evidence was *limiting*, not just which it was supporting — and keep those limits in a clause.
 - **A caveat survives on the counterfactual, with the reader as the actor**: would somebody deciding whether to use the feature plausibly assume the wrong thing without it? If yes it steers a real tendency; if no it is a *depleted uranium disclaimer* and goes with the rest. The reader, not the maintainer — what is obvious to somebody who knows how it works is exactly what the entry cannot rely on.
 
+**Cut a specific the code can change without telling you.** A different test from the one above, and it fires on true, useful, non-evidential detail: *"what the GUI receives as fifteen events"* is accurate, concrete, and wrong the next time somebody adds a callback — and nothing will ever recheck it. In the fleet's glossary this is a **Chekhov's landmine**: a claim true when written that decays silently and detonates under a reader who has no reason to doubt it. The tell is a count, a version, a model name, or a *"there is no way to…"*.
+
+- The repair is usually deletion rather than maintenance: *"as events"* says what the sentence needed and cannot rot.
+- **A dated record is not one.** A measurement, a testing history, a stored sample naming what produced it — those are pinned to their moment on purpose, and the pinning is what makes them true.
+
+**When a gloss is cut, do not let an intensifier fill the gap.** *"Analyzed afterwards without hand-rolling a tree walk"* became *"easily analyzed afterwards"*, which drops the one concrete thing the clause was for and keeps only the claim that it is nice. If what is left is *easily*, *simply*, *powerful* or *seamlessly*, the cut took the wrong half.
+
 **Name a thing by the path a reader could use.** `agent.turn` becomes `raven.librarian.agent.turn`. An entry naming an API is read by somebody who wants to go and find it.
 
 **"No longer" and "used to" are tells of their own**, and they are the subtlest of these: a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving. The entry already implies the change by existing.
