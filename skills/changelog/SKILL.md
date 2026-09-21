@@ -47,12 +47,14 @@ Measured on Raven, 2026-09-21, which is what prompted this: a single feature ent
 
 What a measurement does say is **what normal looks like**, which is the thing a writer without years of these in their hands does not have. Across the fleet, 2026-09-21:
 
+The eras split at **2026-02-05**, when the human-AI collaboration began; `unpythonic`'s changelog reaches back to 2018, so its left-hand rows are eight years of one person's judgement.
+
 | corpus | entries | median words | longest | over 250 words |
 |---|---|---|---|---|
-| `unpythonic`, releases up to 2024 | 58 | 32 | 768 | 4 |
-| `unpythonic`, 2025 onward | 86 | 40 | 189 | 0 |
-| `mcpyrate`, up to 2024 | 75 | 27 | 321 | 1 |
-| `mcpyrate`, 2025 onward | 33 | 45 | 190 | 0 |
+| `unpythonic`, before the collaboration | 60 | 32 | 768 | 4 |
+| `unpythonic`, since | 84 | 40 | 189 | 0 |
+| `mcpyrate`, before | 76 | 28 | 321 | 1 |
+| `mcpyrate`, since | 32 | 44 | 190 | 0 |
 | Raven 0.2.8 | 94 | 73 | 394 | 6 |
 | Raven 0.2.9 | 139 | 100 | 1334 | 14 |
 
