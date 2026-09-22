@@ -18,7 +18,8 @@ release section, 56 of them left in one block by a reflow reported as finished w
     check_changelog_format.py CHANGELOG.md --report   # no pass/fail; the shape of each section
 
 Exit 0 when clean, 1 when something is wrapped, 2 when a file cannot be read — the convention the fleet's
-other checkers use, so this one can gate a commit too.
+other checkers use, so this one can gate a commit too. It imports nothing outside the standard library,
+so it runs anywhere a changelog does.
 """
 
 import argparse
