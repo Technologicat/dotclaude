@@ -87,6 +87,30 @@ Flattening these into siblings would imply they're independent changes; folding 
 
 **This rule says where detail goes, never whether it should be there**, and that is half a job. It is read at the moment something has just been written and a place is wanted for it, so an urge to include arrives and finds an approved shape waiting. Nesting is for detail that has already survived the section below; a child bullet is not a way of keeping something that did not.
 
+### A continuation line, and when it should have been a child
+
+An entry's opening bullet may carry a line under it that continues the bold title — the same sentence
+finished, or the next one — rather than a child bullet. That is allowed, and the test is whether the pair
+still reads as **an item and its title**. Once the line is saying something a reader would go looking for
+rather than something that completes the opener, it is a child.
+
+**Firm half: a line naming a switch, a setting, or which apps or versions the change applies to is a child
+bullet, always.** Those are the lines somebody scans for, and a scanner reads bullets. *"`--keep-entities`
+switches this feature off"* and *"this setting lives in `raven.librarian.config`"* are not continuations of
+a title however short they are.
+
+**There is deliberately no length threshold deciding the split, and the temptation to infer one should be
+resisted.** Measured on Raven 0.2.9's own polish pass, where 18 continuation lines became children and 34
+stayed: the converted ones were *shorter* on average (median 22 words against 34) and less often
+multi-sentence. So that file is not a worked example of this rule — it is what prompted writing it — and a
+bound read off it would be backwards.
+
+**What length does give is a ceiling, and it is the title test failing rather than a second rule.** Title
+and continuation together are one thing a reader takes in at a glance, so a pair that overruns a very wide
+editor window is not a title whatever it is doing grammatically (Juha, 2026-09-23). Raven 0.2.9 stays under
+that by itself — its longest pair is 426 characters — which is the useful reading: the ceiling is a sanity
+check on prose that has gone somewhere strange, not a budget to write up to.
+
 ## Omit the gloss
 
 **An entry reports; it does not persuade.** That is what makes the gloss droppable: a clause arguing that the new behaviour is the right one answers a question the reader never asked, since they are deciding whether this release affects them rather than whether it was well designed.
@@ -119,13 +143,49 @@ Flattening these into siblings would imply they're independent changes; folding 
 
 **When a gloss is cut, do not let an intensifier fill the gap.** *"Analyzed afterwards without hand-rolling a tree walk"* became *"easily analyzed afterwards"*, which drops the one concrete thing the clause was for and keeps only the claim that it is nice. If what is left is *easily*, *simply*, *powerful* or *seamlessly*, the cut took the wrong half.
 
+**A frequency adverb is a measurement with the digits filed off.** *"Publishers **routinely** export a
+truncated teaser"*, *"a database export appends one to **most** abstracts"*, *"can need repairing **a
+thousand times over**" — each is a claim about how often, and the only thing behind it is how often it
+happened in the corpus at hand, which is not the reader's. Write the plain version (*sometimes*, *often*,
+or nothing at all) unless the number was actually measured across more than one source, in which case give
+the number. Same rule as *name the shape, not the dataset* in Raven's `CLAUDE.md`, applied to the one place
+it hides: an adverb does not look like a statistic.
+
+**What we tested, we say we tested.** An agentless passive — *"only constructions measured in advance are
+trusted"*, *"Measured on Qwen 3.5, 3.6 and 3.8"* — reads as a property of the world, when what it describes
+is which models somebody here happened to have. *"Only models we have tested"* and *"we have tested Qwen
+3.5, 3.6 and 3.8"* say the same thing at its true scope, and cost two words. The pronoun follows the
+referent as it does everywhere else: *we* for what the project did, *I* for what one agent did.
+
 **Name a thing by the path a reader could use.** `agent.turn` becomes `raven.librarian.agent.turn`. An entry naming an API is read by somebody who wants to go and find it.
+
+- **A setting is named with the module it lives in.** `llm_char_name` becomes *"`llm_char_name`, in
+  `raven.librarian.config`"*. A project with several config modules gives a bare setting name nowhere to be
+  looked up from, and the reader who cares is the one about to go and change it.
+- **A command-line option a reader may type gets a bullet, not the tail of a sentence.** *"…`--keep-entities`
+  switches the whole thing off"* riding at the end of a paragraph is findable only by reading the paragraph.
+  Same argument as the path above, and the same audience: what somebody scans for, they scan for in bullets.
+- **Where an entry says the log reports something, say how to see the log.** *"Every refusal says why in the
+  log"* is only actionable for a reader who knows there is one — and for a GUI app the launching terminal is
+  often a window nobody is looking at. One parenthesis does it: *(in the terminal you started it from, or
+  start with `--log somefile.log`)*.
 
 **"No longer" and "used to" are tells — in an `Added` entry.** There a before-and-after reads as information while being a fact about the *previous* release, which the reader is leaving: nobody was relying on the absence of a feature, so the old picture is decoration and the entry already implies the change by existing.
 
 **In `Changed` and `Fixed` they are the point, and the before-picture is load-bearing.** Somebody *was* relying on the old behaviour — that is what makes it a change rather than an addition — so the old picture is the only thing that tells a reader whether this happened to them. *"Previously the stored system prompt was overwritten at every app start, so a conversation you had last month silently acquired today's instructions"* is not back-story; it is the audience test, and in the edit that produced this rule it was promoted from inline prose to a bullet of its own rather than cut.
 
 So the rule is not *cut the before-picture*. It is **cut it when nobody was relying on it**, which is always in `Added` and never in the other two.
+
+**A before-picture names the release it describes**, rather than saying only *previously*. *"In v0.2.8 they
+were `data.json` and `data.images/`"*, *"up to v0.2.8, every AI message was drawn with the configured
+character's icon"*, *"as of v0.2.9, Raven disbelieves a figure far below its own estimate"*. The reason is
+where the sentence is read from: a changelog is entered in the middle, by somebody upgrading across several
+releases at once or reading an old section years later, and *previously* is relative to a vantage point they
+do not have. A version number is absolute, and it also tells a reader on an older version whether they
+already have the change.
+
+**Write a version as `vX.Y.Z`**, with the `v`, as the tags do — and so a bare number in prose cannot be read
+as something else.
 
 The reasoning that comes out is usually true, usually good, and already written down where it belongs — in the commit message that made the change, and in the comment beside the code. It is being cut for its audience, not for its accuracy.
 
