@@ -106,10 +106,16 @@ multi-sentence. So that file is not a worked example of this rule — it is what
 bound read off it would be backwards.
 
 **What length does give is a ceiling, and it is the title test failing rather than a second rule.** Title
-and continuation together are one thing a reader takes in at a glance, so a pair that overruns a very wide
-editor window is not a title whatever it is doing grammatically (Juha, 2026-09-23). Raven 0.2.9 stays under
-that by itself — its longest pair is 426 characters — which is the useful reading: the ceiling is a sanity
-check on prose that has gone somewhere strange, not a budget to write up to.
+and continuation together are one thing a reader takes in at a glance, so a pair that runs the full width
+of an editor window is not a title whatever it is doing grammatically (Juha, 2026-09-23). The width to
+measure against is a **practical** one: a single column of ~470 characters is unreadable prose regardless,
+while a two-column layout gives about 230 each — and an item filling all of one column already raises
+*couldn't this be shorter?*
+
+So this is a real ceiling rather than a satisfied one. In Raven 0.2.9, 20 of the 34 title-and-continuation
+pairs exceed 230 characters, and 91 of 650 bullet lines do. Read it as where to *look* when scanning a
+section, not as a line to enforce — what those 20 have is a title that stopped being one, and the fix is
+the rest of this section rather than the character count.
 
 ## Omit the gloss
 
