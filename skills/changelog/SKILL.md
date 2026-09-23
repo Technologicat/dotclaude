@@ -105,17 +105,34 @@ stayed: the converted ones were *shorter* on average (median 22 words against 34
 multi-sentence. So that file is not a worked example of this rule — it is what prompted writing it — and a
 bound read off it would be backwards.
 
-**What length does give is a ceiling, and it is the title test failing rather than a second rule.** Title
-and continuation together are one thing a reader takes in at a glance, so a pair that runs the full width
-of an editor window is not a title whatever it is doing grammatically (Juha, 2026-09-23). The width to
-measure against is a **practical** one: a single column of ~470 characters is unreadable prose regardless,
-while a two-column layout gives about 230 each — and an item filling all of one column already raises
-*couldn't this be shorter?*
+#### Length applies to the title line, and not to the body
 
-So this is a real ceiling rather than a satisfied one. In Raven 0.2.9, 20 of the 34 title-and-continuation
-pairs exceed 230 characters, and 91 of 650 bullet lines do. Read it as where to *look* when scanning a
-section, not as a line to enforce — what those 20 have is a title that stopped being one, and the fix is
-the rest of this section rather than the character count.
+**A body line may be as long as its idea is.** Something genuinely intricate takes the words it takes, and
+wrapping it in brevity does the reader no favours. What a *pile of simple ideas* wants is sub-bullets, which
+is the house style for the same reason everything else here is: they can be scanned and a paragraph cannot.
+So the question at a long body line is not "is this too long" but "is this one thing or several".
+
+**The title is what people scan, so that is the line to keep compact** (Juha, 2026-09-23). It is also the
+one where length is the wrong measure, and three of his own examples show why:
+
+> - **Closing an app no longer risks a crash on the way out.** ✔ 60 characters
+> - **Code backgrounds, underlines and code-block borders now appear in text that was hidden when it was drawn** — a collapsed thinking trace once expanded, and a help card's pages past the first. ✔ 194 characters
+> - **The AI's opening greeting could be deleted, rerolled, continued and branched from**, none of which it is supposed to allow — and deleting it **destroys all chats below it**. ✘ 177 characters
+
+The rejected one is the **shorter** line. What separates them is how many claims the title is carrying: the
+second is one claim about one class of thing, with a list inside it and examples after it, and reads in a
+glance; the third chains three — four operations were wrongly permitted, none of them should have been, and
+one of them destroys data — and each needs the previous one held in mind.
+
+**The visible tell is a second bolded run inside the title.** Emphasis marks a claim, so two marked runs is
+an entry announcing that it has two things to say. Split it: one of them is the title and the rest are
+children. Read the line and ask how many claims you would have to remember to restate it — a homogeneous
+list (*backgrounds, underlines and borders*) is one, while *"X happened, which is wrong, and also destroys
+Y"* is three.
+
+For scale rather than as a limit: Raven 0.2.9's 138 entry titles run to a median of 90 characters, with a
+90th percentile of 151 — so past about 175 is where it is worth stopping to count the claims, which is what
+eight of them are doing.
 
 ## Omit the gloss
 
