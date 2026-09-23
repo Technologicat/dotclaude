@@ -1,6 +1,6 @@
 ---
 name: live-gui-testing
-description: How to launch, drive, screenshot and close a running GUI app on the developer's own X session — finding the window, aiming a click at a widget, sending synthetic keystrokes that behave like real ones, confirming an action landed, and shutting the app down again. Use when about to run a GUI app to look at a change, take a screenshot of one, inject keys or clicks with xdotool, compare layout candidates, or exercise how an app behaves when a server it talks to goes down or comes back mid-session. The safety rules that must fire *before* deciding to launch anything live in the project's CLAUDE.md, not here.
+description: How to launch, drive, screenshot, screen-record and close a running GUI app on the developer's own X session — finding the window, aiming a click at a widget, sending synthetic keystrokes that behave like real ones, capturing an animation to a GIF with ffmpeg, confirming an action landed, and shutting the app down again. Use when about to run a GUI app to look at a change, take a screenshot or a screen capture of one for documentation, inject keys or clicks with xdotool, compare layout candidates, or exercise how an app behaves when a server it talks to goes down or comes back mid-session. The safety rules that must fire *before* deciding to launch anything live in the project's CLAUDE.md, not here.
 ---
 
 # Driving a live GUI on a shared desktop
@@ -124,6 +124,47 @@ desktop-freezing pointer grab, as the previous section says. `wmctrl -l` also li
 **When tuning placement or sizing, render the candidates side by side** into one image rather than asking
 about them one at a time. The eye ranks a comparison and cannot rank a sequence, so serial single-shot
 proposals cost a restart per candidate.
+
+## Capturing motion
+
+**Untested as written — a survey rather than a recipe.** Replace it with what actually worked the first
+time it is used, and delete this notice. (Written 2026-09-23 for Raven's documentation pass, where much of
+what the apps do is animation that no still can show.)
+
+`ffmpeg`'s `x11grab` is the tool to reach for, over a GUI recorder such as `peek`, for the reason that
+decides it: it is scriptable, so **you run the capture while the human drives the app**. A recorder that
+needs a rectangle dragged and a button clicked puts both jobs on the person at the keyboard, who is the
+scarce resource in the room.
+
+Geometry comes from `xwininfo`, exactly as for a click — *Absolute upper-left* plus the window size:
+
+```bash
+eval "$(xwininfo -id "$WID" | awk '
+  /Absolute upper-left X/ {print "X="$4}
+  /Absolute upper-left Y/ {print "Y="$4}
+  /Width:/  {print "W="$2}
+  /Height:/ {print "H="$2}')"
+ffmpeg -y -f x11grab -framerate 30 -video_size "${W}x${H}" -i ":0.0+${X},${Y}" -t 12 /tmp/cap.mp4
+```
+
+**Grab above the rate you are capturing.** An app that throttles itself while idle — Raven drops to twelve
+— returns to full speed only while something animates, so a capture pinned at the idle rate aliases
+exactly the motion being recorded. Grab at 25–30 and decimate on the way out.
+
+**Then two passes for the GIF**, because a single-pass encode quantizes per frame and looks it:
+
+```bash
+ffmpeg -i /tmp/cap.mp4 -vf "fps=15,scale=800:-1:flags=lanczos,palettegen" -y /tmp/pal.png
+ffmpeg -i /tmp/cap.mp4 -i /tmp/pal.png \
+       -lavfi "fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse" -y out.gif
+```
+
+**GIF rather than a video file for anything embedded in a README**: a repo-relative `.mp4` is believed not
+to play on GitHub, video embedding being for files uploaded through its own CDN. **That belief is not
+verified** — one pushed test file settles it, and is worth doing before making many.
+
+`gifsicle -O3 --lossy=80` is what to install if a GIF comes out too large after the palette pass. Judge
+from the first capture rather than in advance.
 
 ## Aiming a click
 
@@ -375,4 +416,5 @@ click follows the port opening by 400 ms and the state is whatever you decided i
 
 ## Requirements
 
-`xdotool`, `xclip`, `wmctrl`, and ImageMagick's `import`. X11 — none of this is Wayland-tested.
+`xdotool`, `xclip`, `wmctrl`, ImageMagick's `import`, and `ffmpeg` for the capture section. X11 — none of
+this is Wayland-tested.
