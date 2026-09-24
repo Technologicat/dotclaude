@@ -131,8 +131,9 @@ gdbus call --session --dest org.gnome.Shell.Screenshot --object-path /org/gnome/
 
 The arguments are `include_frame`, `include_cursor`, `flash` and `filename`, and it returns `(true, path)`
 once the file is written. It has **no window argument: it captures the focused window**, so time it for
-when the app has focus — which, while the human is driving it, it does. The output is RGBA; whether the
-rounded corners come out transparent has not been checked on an unmaximized window. `org.Cinnamon`'s own
+when the app has focus — which, while the human is driving it, it does. The output is RGBA, and on an
+unmaximized window the rounded corners come out transparent (verified 2026-09-24: alpha 0 at the corner
+pixel, opaque three pixels in). A maximized window has square corners, so there is nothing to check there. `org.Cinnamon`'s own
 `ScreenshotWindow` does the same but returns before the file exists, so a check straight after it finds
 nothing.
 
