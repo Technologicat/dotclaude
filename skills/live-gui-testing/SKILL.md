@@ -121,50 +121,90 @@ desktop-freezing pointer grab, as the previous section says. `wmctrl -l` also li
 
 **The capture is in client-area coordinates**, which matters for the arithmetic below.
 
+**A still with the window frame — title bar and rounded corners — comes from the desktop's own screenshot
+service**, which `import` cannot reach. On Cinnamon (verified 2026-09-24):
+
+```bash
+gdbus call --session --dest org.gnome.Shell.Screenshot --object-path /org/gnome/Shell/Screenshot \
+      --method org.gnome.Shell.Screenshot.ScreenshotWindow true false false /abs/path/shot.png
+```
+
+The arguments are `include_frame`, `include_cursor`, `flash` and `filename`, and it returns `(true, path)`
+once the file is written. It has **no window argument: it captures the focused window**, so time it for
+when the app has focus — which, while the human is driving it, it does. The output is RGBA; whether the
+rounded corners come out transparent has not been checked on an unmaximized window. `org.Cinnamon`'s own
+`ScreenshotWindow` does the same but returns before the file exists, so a check straight after it finds
+nothing.
+
 **When tuning placement or sizing, render the candidates side by side** into one image rather than asking
 about them one at a time. The eye ranks a comparison and cannot rank a sequence, so serial single-shot
 proposals cost a restart per candidate.
 
 ## Capturing motion
 
-**Untested as written — a survey rather than a recipe.** Replace it with what actually worked the first
-time it is used, and delete this notice. (Written 2026-09-23 for Raven's documentation pass, where much of
-what the apps do is animation that no still can show.)
+The protocol that worked on its first real use (Raven's documentation pass, 2026-09-24, on Cinnamon with
+its compositor): `ffmpeg`'s `x11grab`, run by you while the human drives the app. Being scriptable is what
+decides it over a GUI recorder such as `peek` — a recorder that needs a rectangle dragged and a button
+clicked puts both jobs on the person at the keyboard.
 
-`ffmpeg`'s `x11grab` is the tool to reach for, over a GUI recorder such as `peek`, for the reason that
-decides it: it is scriptable, so **you run the capture while the human drives the app**. A recorder that
-needs a rectangle dragged and a button clicked puts both jobs on the person at the keyboard, who is the
-scarce resource in the room.
-
-Geometry comes from `xwininfo`, exactly as for a click — *Absolute upper-left* plus the window size:
+**Grab the window, not the screen: `-window_id`.** A screen-region grab reads the composited screen, and on
+a compositing desktop it catches frames where the compositor has painted the region *without* the window's
+contents — the wallpaper shows through, whole or in strips. Measured: 17 of 105 frames in one take while
+the app was redrawing, most of them only in a 45 px header strip. A screen grab also records any window
+that passes over the region (a file manager, in the same session). Grabbing by window id had neither, in
+360 frames over two takes. Offset and size are then *relative to the window*, which crops to one panel for
+free:
 
 ```bash
-eval "$(xwininfo -id "$WID" | awk '
-  /Absolute upper-left X/ {print "X="$4}
-  /Absolute upper-left Y/ {print "Y="$4}
-  /Width:/  {print "W="$2}
-  /Height:/ {print "H="$2}')"
-ffmpeg -y -f x11grab -framerate 30 -video_size "${W}x${H}" -i ":0.0+${X},${Y}" -t 12 /tmp/cap.mp4
+WID=$(xdotool search --onlyvisible --name "Raven-librarian" | head -1); [ -n "$WID" ] || exit 1
+cc-toast "● RECORDING — wait..."
+( sleep 2; cc-toast "▶ GO" ) &
+ffmpeg -hide_banner -loglevel error -y -f x11grab -window_id "$WID" -framerate 30 \
+       -video_size 922x784 -i ":0.0+991,7" -t 7 -c:v libx264 -crf 12 -pix_fmt yuv444p cap.mp4
+cc-toast "■ Recording stopped"
 ```
+
+**The human needs a cue, and it has to fire when recording starts.** Without one they cue off whatever the
+terminal happens to show, and when that changes the take is empty — one was: five seconds of a still
+picture. So the toasts go in the same command as `ffmpeg`, as the launch toast goes with a launch.
+
+**Record a lead-in, and trim to equal holds.** A couple of seconds of the resting state lets a viewer
+orient before anything moves. Record it rather than padding a still frame in afterwards: the resting state
+is rarely still (a pulsing keyboard mark, an idle animation), and a frozen frame stops it mid-breath. Then
+trim so the hold after the motion matches the hold before it — unequal holds look odd on a loop. Record a
+little long, so there is enough tail to match.
 
 **Grab above the rate you are capturing.** An app that throttles itself while idle — Raven drops to twelve
-— returns to full speed only while something animates, so a capture pinned at the idle rate aliases
-exactly the motion being recorded. Grab at 25–30 and decimate on the way out.
+— returns to full speed only while something animates, so a capture pinned at the idle rate aliases the
+motion being recorded. Grab at 30, keep the intermediate near-lossless (`-crf 12`, `yuv444p`), decimate on
+the way out.
 
-**Then two passes for the GIF**, because a single-pass encode quantizes per frame and looks it:
+**Check the take before encoding it**, each check with its control:
+
+- **Motion**: count the frames that differ from the first (`compare -metric AE -fuzz 8%`). An empty take and
+  a clean take look alike to every other check; only this tells them apart.
+- **Foreign content**: per-frame brightness of *every* region, header strip included — a check that
+  skipped the top 100 px passed all 17 bad frames above but two. A clean take sits in a narrow band (225–240
+  on a dark Raven panel); a wallpaper frame reads far outside it.
+- **A contact sheet** is the fastest look at the whole take:
+  `ffmpeg -i cap.mp4 -vf "select='not(mod(n\,10))',scale=307:-1,tile=5x3" -frames:v 1 sheet.png`.
+- **Where the motion starts and ends**, for the trim: `-vf "select='gt(scene,0.004)',metadata=print:file=-"`
+  prints each change's timestamp. Find a threshold above whatever pulses at rest.
+
+**Then two passes for the GIF**, because a single-pass encode quantizes per frame and looks it. 20 fps is
+smooth enough for a morph that takes a second; `stats_mode=diff` and `diff_mode=rectangle` spend the
+palette and the bytes on what moves:
 
 ```bash
-ffmpeg -i /tmp/cap.mp4 -vf "fps=15,scale=800:-1:flags=lanczos,palettegen" -y /tmp/pal.png
-ffmpeg -i /tmp/cap.mp4 -i /tmp/pal.png \
-       -lavfi "fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse" -y out.gif
+ffmpeg -y -ss 0.3 -t 6.7 -i cap.mp4 -vf "fps=20,palettegen=stats_mode=diff" pal.png
+ffmpeg -y -ss 0.3 -t 6.7 -i cap.mp4 -i pal.png \
+       -lavfi "fps=20[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" out.gif
 ```
 
-**GIF rather than a video file for anything embedded in a README**: a repo-relative `.mp4` is believed not
-to play on GitHub, video embedding being for files uploaded through its own CDN. **That belief is not
-verified** — one pushed test file settles it, and is worth doing before making many.
-
-`gifsicle -O3 --lossy=80` is what to install if a GIF comes out too large after the palette pass. Judge
-from the first capture rather than in advance.
+**Sizes, for the GIF-or-video decision**: a 922×784 panel for 6.7 s came to 3.1 MB as GIF and 0.34 MB as
+H.264. A repo-relative `.mp4` is believed not to play in a GitHub README, video embedding being for files
+uploaded through its own CDN — **not verified**; one pushed test file settles it. `gifsicle -O3 --lossy=80`
+is the tool if a GIF comes out too large.
 
 ## Aiming a click
 
