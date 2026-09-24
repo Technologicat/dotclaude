@@ -206,7 +206,12 @@ on a scratch branch, in the web UI and the API's rendering alike: a `<video>` ta
 relative `src` or absolute raw URL, and Markdown image syntax pointing at an `.mp4` becomes an `<img>`,
 which Chrome and Firefox show as a broken image. Video plays only from GitHub's own attachment CDN, which
 is not versioned with the repo. The size cost is real — a 922×784 panel for 6.7 s came to 3.1 MB as GIF
-against 0.34 MB as H.264 — and `gifsicle -O3 --lossy=80` is the tool if a GIF comes out too large.
+against 0.34 MB as H.264.
+
+**So finish with `gifsicle -O3 --lossy=30 out.gif -o final.gif`.** Measured on that capture: `-O3` alone
+saved 3%, `--lossy=30` saved 34% with no difference visible at 2× magnification, and 80 and above started
+to speckle the dark background. Dropping the palette pass's dither saved only 5% on its own, so the
+dither can stay. `gifsicle` is in the machine setup's apt line.
 
 ## Aiming a click
 

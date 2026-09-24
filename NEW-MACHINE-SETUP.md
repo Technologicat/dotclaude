@@ -20,7 +20,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 #          screenshot, which costs a couple of thousand tokens against about fifty. Treat it as a fast
 #          check rather than as ground truth: small text on a dark theme misreads often enough that a
 #          surprising answer is a reason to look at the image, not to believe the OCR.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr
+# gifsicle: the last step of turning a screen capture into a GIF for a README (live-gui-testing skill,
+#          "Capturing motion"). `--lossy=30` took a 2.9 MB capture of a GUI animation to 1.9 MB with no
+#          visible difference, which matters because GitHub will not play a repo-relative video.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle
 
 # Python tooling
 sudo apt install python3-pip pipx
