@@ -190,6 +190,20 @@ the way out.
   `ffmpeg -i cap.mp4 -vf "select='not(mod(n\,10))',scale=307:-1,tile=5x3" -frames:v 1 sheet.png`.
 - **Where the motion starts and ends**, for the trim: `-vf "select='gt(scene,0.004)',metadata=print:file=-"`
   prints each change's timestamp. Find a threshold above whatever pulses at rest.
+- **Tearing, at every hard switch.** A window grab has no vsync: it can read the window mid-swap, top half
+  old frame and bottom half new. Seen once in a 90 s take, at the moment a panel switched from one view to
+  another, and invisible anywhere the picture changes gradually. The tell is a strip that should change
+  *once* changing on two consecutive frames — compare each frame's header strip with the previous one
+  (`compare -metric AE -fuzz 10%`) and look at any pair. Extract the clip's frames at the output rate,
+  overwrite the torn one with its predecessor, and encode from the frames:
+  `ffmpeg -framerate 20 -i f%03d.png ...` in place of `-i cap.mp4`. Re-run the check on the result: one
+  change, not two.
+
+**Long takes: run the checks as filters over the video, not on extracted frames.** Extracting every frame of
+a full-window minute as PNG is a couple of gigabytes; a filter chain with `crop` and `select` answers the
+same questions without writing a frame. Recording the whole of a sequence — a question, its tool calls, the
+reply, the avatar speaking it — in one full-window take and cutting clips from it afterwards is cheaper than
+timing short takes, and cheap on disk: 90 s of a 1920×1040 window came to 19 MB.
 
 **Then two passes for the GIF**, because a single-pass encode quantizes per frame and looks it. 20 fps is
 smooth enough for a morph that takes a second; `stats_mode=diff` and `diff_mode=rectangle` spend the
@@ -212,6 +226,16 @@ against 0.34 MB as H.264.
 saved 3%, `--lossy=30` saved 34% with no difference visible at 2× magnification, and 80 and above started
 to speckle the dark background. Dropping the palette pass's dither saved only 5% on its own, so the
 dither can stay. `gifsicle` is in the machine setup's apt line.
+
+**It is slow and single-threaded, and `-j` does not change that.** Measured on a 6 s avatar clip: 31 s at
+one core whether run bare, with `-j` or with `-j16`, and byte-identical output each time — the option
+evidently threads something other than the lossy pass. With several clips, run one `gifsicle` per clip in
+parallel instead.
+
+**A continuously moving subject costs far more than a UI.** A panel of the talking avatar came to 4.6 MB for
+6 s where the chat graph's morph was 1.9 MB for 6.7 s: every frame of the avatar differs everywhere. Keep
+such clips short, a few seconds of what they are there to show. The soft gradient of an avatar's backdrop
+is also where a single 256-colour palette shows its banding.
 
 ## Aiming a click
 
