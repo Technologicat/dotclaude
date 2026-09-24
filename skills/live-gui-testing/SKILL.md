@@ -201,10 +201,12 @@ ffmpeg -y -ss 0.3 -t 6.7 -i cap.mp4 -i pal.png \
        -lavfi "fps=20[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" out.gif
 ```
 
-**Sizes, for the GIF-or-video decision**: a 922×784 panel for 6.7 s came to 3.1 MB as GIF and 0.34 MB as
-H.264. A repo-relative `.mp4` is believed not to play in a GitHub README, video embedding being for files
-uploaded through its own CDN — **not verified**; one pushed test file settles it. `gifsicle -O3 --lossy=80`
-is the tool if a GIF comes out too large.
+**GIF, for anything in a repo's Markdown: GitHub will not play a repo-relative video.** Tested 2026-09-24
+on a scratch branch, in the web UI and the API's rendering alike: a `<video>` tag is stripped whole,
+relative `src` or absolute raw URL, and Markdown image syntax pointing at an `.mp4` becomes an `<img>`,
+which Chrome and Firefox show as a broken image. Video plays only from GitHub's own attachment CDN, which
+is not versioned with the repo. The size cost is real — a 922×784 panel for 6.7 s came to 3.1 MB as GIF
+against 0.34 MB as H.264 — and `gifsicle -O3 --lossy=80` is the tool if a GIF comes out too large.
 
 ## Aiming a click
 
