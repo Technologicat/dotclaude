@@ -98,6 +98,10 @@ WID=$(xdotool search --onlyvisible --name "raven" | head -1)
   exact-case one. Worth knowing because app titles are rarely consistent — in Raven, `raven-cherrypick` is
   lowercase, `Raven-librarian` and `Raven-visualizer` are not, and the xdot viewer is `Raven XDot Viewer`.
 - **`--onlyvisible`**, so a stale or unmapped window cannot answer instead.
+- **For the app's main window, `wmctrl -l` is the safer list**: `WID=$(wmctrl -l | awk '/Raven-visualizer/
+  {print $1; exit}')`. It holds only the window manager's top-level windows, where `xdotool search --name`
+  also matches an app's short-lived popups that share its title — and `head -1` picked one on 2026-09-24,
+  which had closed by the next command: `BadWindow`, then "no window", with the app running fine.
 - **Guard the empty result before *anything* uses it** — not only before injection, which is where this
   warning used to stop. An empty `$WID` does not make the next command fail; it makes it wait, and the two
   ways it waits look like different bugs:
