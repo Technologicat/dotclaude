@@ -349,8 +349,14 @@ Without it, a missed click reads as a pass against whatever the previous step le
 
 **Prefer the window manager: `wmctrl -i -c <window-id>`.** SIGTERM to the correct PID left the process
 running (twice, tens of seconds apart) while `wmctrl -c` shut it down within seconds. It is also the
-graceful path — it runs the app's own shutdown, so state is saved. Reserve a PID kill for a process with no
-window, or one that ignores the close.
+graceful path — it runs the app's own shutdown, which leaves a log you can check for the app's last line.
+Reserve a PID kill for a process with no window, or one that ignores the close.
+
+**Don't give "the app's state would be lost" as the reason by reflex.** Whether an abrupt exit loses
+anything is a property of the app, and changes as the app does: Raven's Librarian has autosaved once a
+minute since 2026-09-15, so a hard kill now costs at most that minute, where it used to cost the session.
+The reasons that hold everywhere are a close that asks lets the app shut itself down, and one that does not
+can leave a process that will not die (below).
 
 **Assume this of any DPG app rather than testing it each time** (Juha, 2026-08-31, after a second app
 behaved identically — `raven-avatar-settings-editor`, still running its render loop some seconds after a
