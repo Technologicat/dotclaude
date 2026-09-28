@@ -51,7 +51,7 @@ PROMPT_FIELDS = ("input_tokens", "cache_creation_input_tokens", "cache_read_inpu
 LONG_CONTEXT_SUFFIX = "[1m]"
 LONG_CONTEXT_WINDOW = 1_000_000
 DEFAULT_WINDOW = 200_000
-KNOWN_WINDOWS = {"claude-opus-5-5": LONG_CONTEXT_WINDOW}  # Juha, 2026-09-28
+KNOWN_WINDOWS = {"claude-opus-5-5": LONG_CONTEXT_WINDOW}  # as of 2026-09-28
 
 def parse_window(text: str) -> int:
     """Parse a window size: a plain count, or one with a `k` or `m` suffix (`200k`, `1m`)."""
