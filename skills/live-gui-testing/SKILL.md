@@ -95,8 +95,9 @@ WID=$(xdotool search --onlyvisible --name "raven" | head -1)
 
 - **`--name` is a regexp and already matches case-insensitively.** There is no `-i`, and passing one is how
   the lookup comes back empty. Measured 2026-08-19: an all-caps pattern returns the same window id as the
-  exact-case one. Worth knowing because app titles are rarely consistent — in Raven, `raven-cherrypick` is
-  lowercase, `Raven-librarian` and `Raven-visualizer` are not, and the xdot viewer is `Raven XDot Viewer`.
+  exact-case one. Worth knowing because a title rarely matches the command's case — in Raven every title is
+  `Raven-<app>` (`Raven-xdot-viewer`, since 2026-09-28), while the command is `raven-xdot-viewer`, so a
+  lookup by the command's name works only because of this.
 - **`--onlyvisible`**, so a stale or unmapped window cannot answer instead.
 - **For the app's main window, `wmctrl -l` is the safer list**: `WID=$(wmctrl -l | awk '/Raven-visualizer/
   {print $1; exit}')`. It holds only the window manager's top-level windows, where `xdotool search --name`
