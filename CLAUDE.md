@@ -389,7 +389,9 @@ cc-context <session-uuid>     # or a path to a .jsonl, for another session
 
 It prints the fill, the percentage, and how old the reading is. The window is read from the model the
 session logged, so it needs no telling; `--window` overrides that, and `-q` prints the bare number for a
-script. The log is a few MB and none of it enters the context — only the line it prints.
+script. **From Opus 5.5 on, the logged model id no longer says the window** (`claude-opus-5-5`, no `[1m]`),
+so the script keeps a table of known ids, and a fill larger than the window it settled on is reported as
+that window being wrong rather than as a percentage over a hundred — which is how a new model shows itself. The log is a few MB and none of it enters the context — only the line it prints.
 
 It is a script rather than the snippet that used to sit here for the reason `ci-watch` is: the mechanism has
 three ways to be silently wrong (which fields to sum, which session to read, which window to divide by), and

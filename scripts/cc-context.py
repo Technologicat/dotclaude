@@ -39,8 +39,10 @@ PROJECTS = pathlib.Path.home() / ".claude" / "projects"
 # script is that this list is easy to get wrong.
 PROMPT_FIELDS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 
-# The window a model id implies. The long-context variants say so in the id itself, as a `[1m]` suffix;
-# everything else is Claude's standard 200k.
+# The window a model id implies. The long-context variants of Opus 5 and earlier say so in the id itself, as a
+# `[1m]` suffix. From Opus 5.5 on the id does not: `claude-opus-5-5` is logged bare, as "Opus 5.5", while the
+# session has a 1M window. So ids whose window is known go in `KNOWN_WINDOWS`, and anything else is assumed to
+# be the standard 200k — which `main` then checks against the fill, since a new model will be missing here.
 #
 # Read this from the *model attachment* record, never from `message.model`: that field carries the id with
 # the suffix stripped (`claude-opus-5`, for a session that is actually `claude-opus-5[1m]`), so a reading
@@ -49,6 +51,7 @@ PROMPT_FIELDS = ("input_tokens", "cache_creation_input_tokens", "cache_read_inpu
 LONG_CONTEXT_SUFFIX = "[1m]"
 LONG_CONTEXT_WINDOW = 1_000_000
 DEFAULT_WINDOW = 200_000
+KNOWN_WINDOWS = {"claude-opus-5-5": LONG_CONTEXT_WINDOW}  # Juha, 2026-09-28
 
 def parse_window(text: str) -> int:
     """Parse a window size: a plain count, or one with a `k` or `m` suffix (`200k`, `1m`)."""
@@ -129,8 +132,11 @@ def window_for(model_id: str | None) -> tuple[int, bool]:
     """Return `(window, derived)` for a model id — `derived` says whether the id actually decided it."""
     if not model_id:
         return DEFAULT_WINDOW, False
-    if model_id.strip().lower().endswith(LONG_CONTEXT_SUFFIX):
+    model_id = model_id.strip().lower()
+    if model_id.endswith(LONG_CONTEXT_SUFFIX):
         return LONG_CONTEXT_WINDOW, True
+    if model_id in KNOWN_WINDOWS:
+        return KNOWN_WINDOWS[model_id], True
     return DEFAULT_WINDOW, True
 
 def describe_age(timestamp: str | None) -> str:
@@ -181,7 +187,14 @@ def main() -> None:
     else:
         source = "assumed; the log named no model"
 
-    print(f"{fill:,} tokens in the prompt  ({100.0 * fill / window:.0f}% of {window_text}, {source})")
+    # A fill larger than the window proves the window wrong, which is how a model missing from
+    # `KNOWN_WINDOWS` shows itself. Say so rather than print a percentage over a hundred.
+    if fill > window:
+        print(f"{fill:,} tokens in the prompt, more than the {window_text} window {source}, so that window is wrong")
+        if args.window is None:
+            print(f"  add '{model_id}' to KNOWN_WINDOWS in {pathlib.Path(__file__).resolve().name}, or pass --window")
+    else:
+        print(f"{fill:,} tokens in the prompt  ({100.0 * fill / window:.0f}% of {window_text}, {source})")
     print(f"  session {log.stem[:8]}{describe_age(timestamp)}")
 
 if __name__ == "__main__":
