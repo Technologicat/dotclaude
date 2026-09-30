@@ -102,6 +102,18 @@ BRANCH_ARGS=()
 
 runs() { gh run list -L 30 "${REPO_ARGS[@]}" "${BRANCH_ARGS[@]}" --json headSha,status,conclusion,name,databaseId "$@"; }
 
+# The API answers the odd call with a 5xx (an HTTP 502 on the `/jobs` endpoint was seen 2026-09-30). Once the
+# run has completed, one lost call would cost the report or turn a pass into a red, so give it a few tries.
+# gh writes its error to stderr and nothing to stdout, so a failed attempt leaves nothing in a capture.
+retry() {
+    local attempt
+    for attempt in 1 2 3; do
+        "$@" && return 0
+        [ "$attempt" -lt 3 ] && { echo "ci-watch: gh call failed, retrying in 5s" >&2; sleep 5; }
+    done
+    return 1
+}
+
 # The name has to be a workflow the repo defines, or the wait below can never end.
 #
 # Checked against the workflow definitions, not against recent runs: runs are narrowed by --branch, and a
@@ -125,12 +137,16 @@ else
 fi
 WAITED=0
 while :; do
-    STATUS=$(runs --jq "$SELECT.status")
-    case "$STATUS" in
-        completed) break ;;
-        null|"") NOTE="no run yet" ;;
-        *) NOTE="$STATUS" ;;
-    esac
+    # A failed poll is only a skipped look — the next one asks again — but it must not read as "no run yet".
+    if STATUS=$(runs --jq "$SELECT.status"); then
+        case "$STATUS" in
+            completed) break ;;
+            null|"") NOTE="no run yet" ;;
+            *) NOTE="$STATUS" ;;
+        esac
+    else
+        NOTE="gh call failed, will ask again"
+    fi
     if [ "$WAITED" -ge "$TIMEOUT" ]; then
         echo "ci-watch: gave up after ${WAITED}s; '$WORKFLOW' on $TARGET is '$NOTE'." >&2
         echo "ci-watch: it may still be running — check https://github.com/$(gh repo view ${REPO:+"$REPO"} --json nameWithOwner --jq .nameWithOwner)/actions" >&2
@@ -141,9 +157,13 @@ while :; do
     WAITED=$((WAITED + POLL))
 done
 
-ID=$(runs --jq "$SELECT.databaseId")
-gh run view "$ID" "${REPO_ARGS[@]}" --json conclusion,jobs \
-    --jq '"RUN: \(.conclusion)", (.jobs[] | "  \(.conclusion)  \(.name)")'
+ID=$(retry runs --jq "$SELECT.databaseId") || { echo "ci-watch: '$WORKFLOW' on $TARGET completed, but its run ID could not be fetched" >&2; exit 1; }
+# The report is for reading and the exit status comes from the conclusion alone, so a report lost to the API
+# does not decide the result.
+retry gh run view "$ID" "${REPO_ARGS[@]}" --json conclusion,jobs \
+    --jq '"RUN: \(.conclusion)", (.jobs[] | "  \(.conclusion)  \(.name)")' \
+    || echo "ci-watch: the job-by-job report could not be fetched; the conclusion follows" >&2
 
-CONCLUSION=$(gh run view "$ID" "${REPO_ARGS[@]}" --json conclusion --jq .conclusion)
+CONCLUSION=$(retry gh run view "$ID" "${REPO_ARGS[@]}" --json conclusion --jq .conclusion) || { echo "ci-watch: run $ID completed, but its conclusion could not be fetched" >&2; exit 1; }
+echo "ci-watch: conclusion '$CONCLUSION'"
 [ "$CONCLUSION" = "success" ]
