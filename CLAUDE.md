@@ -590,15 +590,20 @@ Rules:
 - Items are **removed** when done; no "Done" archive section. Git is authoritative for completed work.
 - Blank line before each `##`.
 
-## Edit files with the edit tools, not with shell text-munging
+## Every edit to a repo file must render as a diff
 
-I review your work **live, from the diffs** as they scroll past. An edit made through the edit/write tools renders as a reviewable diff; an edit made with `sed -i`, `>>`, `cat > file`, `python - <<EOF ... write_text()`, or any other shell redirection does not. It just happens, and the change reaches a commit without ever having been shown to me.
+I review your work **live, from the diffs** as they scroll past. So an edit to a file in the repo has to be one that renders — including the unglamorous ones, a one-word CI workflow tweak, an appended `TODO_DEFERRED.md` item, a version bump, because those are exactly the ones that slip through unreviewed, and "it's only one line" is not a reason I would not want to see it.
 
-So: any change to a tracked file goes through the edit tools. This holds for the unglamorous files too — a one-word CI workflow tweak, an appended `TODO_DEFERRED.md` item, a version bump — because those are exactly the ones that slip through unreviewed, and "it's only one line" is not a reason I would not want to see it.
+**Which edits render is decided by git, not by the tool.** The harness shows what a Bash command changed as a diff, in the same shape as an Edit-tool edit, for any file git can see — tracked or untracked. Probed on 2026-09-30 in this repo, one shape at a time: a new file via `printf >`, a `>>` append, `sed -i`, a Python `write_text`, a `git checkout` revert, and `mv` (shown as a full delete plus a full create) all rendered. The same shapes on a **gitignored** file rendered nothing, as did an edit outside the repo. So:
 
-**The failure this prevents:** a change I never saw, that I believe I reviewed. Silence looks the same whether I read a diff and approved it or the diff was never rendered — so an unreviewed edit is worse than a visible one I object to. (Live case: a CI dependency addition and a deferred-TODO append both went in via shell redirection, and I only noticed afterwards that they had never appeared as diffs.)
+- **Where git can see the file, a shell edit is fine.** Use whichever tool fits the edit.
+- **Where it cannot, use the edit tools.** In most repos an ignored file is one nobody reviews anyway — build output, caches, a venv. **This repo is the exception**: `.gitignore` is an allowlist beginning `/*`, so a new file in a new directory is ignored until the allowlist names it, and a shell edit there happens in silence.
 
-Shell text processing remains right for what it is *for*: reading, searching, counting, and generating scratch files under `/tmp`. The rule is about **mutating files in the repo**, not about using the shell.
+The harness captions this view "a convenience view, not a review or audit of the command", once per session, and that means what it says: the view is the files' before-and-after rather than a reading of the command. It shows what changed where git can see, says nothing of what the command did anywhere else — and **attributes to the command whatever changed meanwhile, whoever changed it.** With two sessions editing one tree, the view mixed their edits to the same TODO list (observed by Juha, 2026-09-30). So where another writer may be touching the same files, the view does not say who made a change. Edit-tool diffs are not known to share this: Juha recalls no mix-up in them over seven months of use, though nobody has tried to provoke one.
+
+Claude Code's auto-mode prompt invites shell edits outright (seen 2026-09-30). Within the boundary above that is fine; where the two disagree, this section wins.
+
+**The failure this prevents:** a change I never saw, that I believe I reviewed. Silence looks the same whether I read a diff and approved it or the diff was never rendered — so an unreviewed edit is worse than a visible one I object to. (Live case, from before the harness rendered shell edits at all: a CI dependency addition and a deferred-TODO append both went in via shell redirection, and I only noticed afterwards that they had never appeared as diffs.)
 
 **Exception: mechanical, content-preserving transforms.** The point of the rule is that I can *review* the change — not that the diff be small. Some transforms invert that: the diff becomes pure noise (every line marked changed, nothing to learn from reading it) while hand-retyping through the edit tools risks corrupting working code. Re-indenting a block, renaming a symbol across many sites, moving a section unchanged, reflowing comments, sorting an `__all__`, a literal find-replace across files — all have this shape.
 
@@ -608,11 +613,9 @@ What qualifies is not the *kind* of edit but three properties together:
 - **Reading the diff would not verify it** — I'd be checking hundreds of lines for an absence of change, which is exactly what humans are bad at.
 - **A mechanical check can prove the invariant.** `diff -w` empty for a re-indent. Every moved item grep-able back out for a move. Counts equal before and after. Tests still green for a rename.
 
-When those hold, do it with a script — and then **say you are doing it, name the invariant, run the check, and show the result.** The check replaces the diff as the thing I review; without it, this is just an unreviewed edit with a justification attached. If no such check exists, the transform is not mechanical: use the edit tools.
+When those hold, do it with a script — and then **say you are doing it, name the invariant, run the check, and show the result.** The script's diff will still scroll past, as the wall of noise it is; the check replaces it as the thing I review. Without the check, this is just an unreviewable edit with a justification attached. If no such check exists, the transform is not mechanical: make the edits one reviewable piece at a time.
 
 The failure this prevents is the mirror of the main rule's: not an unseen change, but a *seen-and-unverifiable* one — a wall of noise that looks reviewed because it scrolled past.
-
-Reportedly an Opus habit from ~4.7 onward — a reflex toward `sed` over the edit tool — so treat it as a live tendency to correct, not a hypothetical.
 
 ## Promote useful investigation code to the test suite
 
