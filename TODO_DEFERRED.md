@@ -1,5 +1,18 @@
 # Deferred TODOs
 
+## Which shell edits does the harness render as diffs?
+
+*Cluster: harness · Cost: S · Gate: none · Filed: 2026-09-24 · See also: `CLAUDE.md` → "Edit files with the edit tools, not with shell text-munging"*
+
+Settle this before deciding whether that rule can go. On 2026-09-24, in a Raven session, a `cat >>` append
+to a tracked file rendered as a diff (it had not a few days earlier), but the harness labels that view "a
+convenience view, not a review or audit". Untested: `sed -i`, a Python `write_text`, a new file, a move,
+anything outside the working directory. One scratch file per shape settles it; then decide whether the
+rendered view is one the maintainer can review from.
+
+Raised by Juha, 2026-09-24, during Raven's screenshot pass; moved here from Raven's Researchers' Night
+sprint notes on 2026-09-30.
+
 ## Whitespace checking fell out of the fleet when it moved to ruff
 
 *Cluster: lint-config · Cost: M · Gate: none — **raised by Juha 2026-08-25**, "needs a solution fleet-wide, soon-ish, but not tonight" · Filed: 2026-08-25*
