@@ -44,6 +44,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+# Claude Code's local copy of the account's synced skills: runtime state written inside `!skills`.
+skills/synced/
+
 # Defense-in-depth: never track these even if the pattern logic above ever slips.
 .credentials.json
 history.jsonl
