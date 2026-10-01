@@ -438,6 +438,15 @@ format — Juha's note when it was written was that other projects would want th
 but that it depends on each README's format, so it is a starting point rather than a
 drop-in.
 
+**Raven has a second, more general one, in CI since 2026-10-01**: `scripts/check_doc_links.py`
+checks anchor links and tables of contents across every tracked Markdown file, including
+links into another document's headings, with per-document configuration of which TOCs are
+meant to be exhaustive — the format dependence above, made explicit. Its sibling
+`check_usage_paths.py` covers part of the docstring-path half: every `python -m raven...`
+in any tracked text must name a module that exists. Both are stdlib-only scripts run from
+the lint job rather than tests, so no test dependency is needed. Probably the better
+starting point for a fleet version than pyan's.
+
 **There are now two copies, which is what makes this worth doing rather than merely
 worth wanting** (2026-09-20). Raven has `scripts/check_doc_links.py`, whose five core
 functions are character-for-character pyan's, deliberately — the eventual shared module
