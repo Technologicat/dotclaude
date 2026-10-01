@@ -445,7 +445,8 @@ meant to be exhaustive — the format dependence above, made explicit. Its sibli
 `check_usage_paths.py` covers part of the docstring-path half: every `python -m raven...`
 in any tracked text must name a module that exists. Both are stdlib-only scripts run from
 the lint job rather than tests, so no test dependency is needed. Probably the better
-starting point for a fleet version than pyan's.
+starting point for a fleet version than pyan's, but compare the two when this is picked up
+(Juha, 2026-10-01).
 
 **There are now two copies, which is what makes this worth doing rather than merely
 worth wanting** (2026-09-20). Raven has `scripts/check_doc_links.py`, whose five core
