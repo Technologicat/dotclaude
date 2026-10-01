@@ -325,6 +325,28 @@ Discovered during the `~/.claude` cloudification (2026-07-13).
 
 ## CI does not catch continuation-indent formatting (we ship broken formatting)
 
+*Cluster: lint · Cost: S per project · Gate: none · Filed: 2026-07-13 · See also: "Whitespace checking fell out of the fleet when it moved to ruff"*
+
+**Raven has done it (2026-10-01, commit `ed1d0327`); the rest of the fleet has not.** What it does, as the
+pattern to copy:
+
+- **A `pycodestyle` step in the lint job**, selecting the E12 codes the house flake8 config enforces:
+  `--select=E121,E122,E123,E124,E125,E128,E129,E131`, which is the whole family less `E126` and `E127`.
+  Wider than the `E128` recommended below, because the house config enforces the rest too. Raven's tree
+  passed it with one fix, and so may the others: a count in August had found 149 violations, but against
+  pycodestyle's defaults, and nearly all of them were `E126`/`E127`.
+- **The codes have to be listed one by one.** Measured: given `--select`, pycodestyle disregards
+  `--ignore`, so `--select=E12 --ignore=E126,E127` still reports `E127`.
+- **A canary**: `scripts/check_lint_canary.py` lints `scripts/lint_canary_fixture.py`, one deliberate
+  violation per rule family plus an `E127` that must stay unreported, with the commands read out of
+  `ci.yml` so it cannot drift from what CI runs. It answers the silently-narrow-config failure, which is
+  how this gap went unnoticed in the first place. Portable as is, apart from the expected code sets.
+- **Ruff's preview E11x rules stay off**: they found nothing in Raven's code and flagged only aligned
+  trailing comments, which is house style.
+
+Left: the other projects' CI, then the `ci-setup` lint step and `project-setup`'s canonical config, as the
+last paragraph below says.
+
 **Priority: sooner rather than later.** Formatting-broken commits are reaching the
 default branch, because ruff — the only linter CI runs — cannot see the problem.
 
