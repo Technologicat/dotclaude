@@ -1,14 +1,21 @@
 ---
 name: monthly-report
-description: Build a monthly (or any date-range) cross-project activity report from Claude Code session logs — scope the window, extract per-project digests, verify releases against git tags, synthesize, archive the digests, export for email. Use when the user says "monthly activity report time", "pull the chatlogs and check what we've been building", or asks for a period summary of work across the fleet.
+description: Build a monthly (or any date-range) cross-project activity report from Claude Code session logs — scope the window, extract per-project digests, verify releases against git tags, synthesize a technical summary, archive the digests, then write the executive summary that goes to the team and export it for email. Use when the user says "monthly activity report time", "pull the chatlogs and check what we've been building", or asks for a period summary of work across the fleet.
 ---
 
 # Writing a monthly activity report
 
-An executive summary of what the whole project fleet built during a period, drafted
-from Claude Code session logs. The audience is colleagues and management who don't
-know the fleet — they read it to see what a month of work produced, so every project
-gets a one-line gloss of what it *is* before any detail about what happened to it.
+What the whole project fleet built during a period, drafted from Claude Code session
+logs, as **two documents for two audiences**:
+
+- **The technical summary** (`activity-report-YYYY-MM-vN.md`) is for the maintainer and
+  the AI co-developer. It is the full record: every active project, the machine split,
+  `substrate-independent`, the cross-cutting themes. Every project still gets a
+  one-line gloss of what it *is*.
+- **The executive summary** (`executive-summary-YYYY-MM.md`) is what goes to the
+  maintainer's manager and team, who don't know the fleet. It is written from the
+  technical one, after the maintainer has reviewed that. See *The executive summary*
+  below for what it leaves out.
 
 Extraction mechanics (invocation, options, model stamps) are in the `cc-log-extract`
 skill; this skill owns the report pipeline around them.
@@ -203,7 +210,8 @@ suffix is for the digests" is the failure: a generic name is a generic name what
 inside it.
 
 **That gives the layout its invariant: everything in `YYYY-MM/` is per-machine and
-merges by suffix; the report-dir root holds the synthesized report and nothing else.**
+merges by suffix; the report-dir root holds the synthesized documents — the technical
+summary and the executive summary, with their exports — and nothing else.**
 So a *partial* report — one machine drafting from its own digests before the sets are
 merged — belongs in the folder too, as
 `activity-report-YYYY-MM-$(hostname).md`. No `vN`: it is input to the report, not a
@@ -292,11 +300,59 @@ Assume no fleet knowledge. Spell out what a project is, what a component does, a
 a release mattered. Identifiers in backticks are fine — the audience is technical, just
 not familiar with these particular repos.
 
+**Matter-of-fact, no marketing angle, in both documents.** Report what was done, and
+don't oversell it — the team is Finnish, and that is the register the maintainer wants
+for them. Concretely:
+
+- **No dramatizing a fix.** "CI fixes — a lint failure, the workflow renamed, …" rather
+  than "its own CI was red on every run since it was introduced". The second is true
+  and is the framing of a story.
+- **No upgrading a partial result.** Where a feature only half-solves its problem, say
+  which half: a status row saying the server is down is useful, and does not mean the
+  app recovers from the outage. Claims like "fully keyboard-operable" need a source
+  that says *fully*.
+- **No "for the first time", "significantly", "major".** The numbers, where there are
+  any, carry the weight.
+
+**Check the previous report before calling something new.** Work from one month often
+*ships* in the next, and a digest describing a feature does not say when it was built.
+A tool that first appeared in last month's report is, this month, at most "first
+released" — and a September fix to it is a fix, not a launch. (Live case 2026-09: two
+bibliography tools and a CLI option were nearly reported as new; both were August's.)
+
+## The executive summary
+
+Written after the technical summary has been reviewed, from its content — never
+straight from the digests. Format follows what the maintainer has actually sent
+before (`executive-summary-*.odt` in the report dir is the reference): nested bullets
+only, no headings, no coverage line, short items with a sub-bullet where a caveat or an
+example belongs. English is fine; earlier ones were in Finnish. First person singular
+for the maintainer ("the projects I maintain"), since it goes out under their name.
+Exported with plain `pandoc` to `.odt` beside the `.md`.
+
+**What it leaves out:**
+
+- **`substrate-independent`.** Always.
+- **Which machine did what.** Irrelevant to this audience.
+- **Engineering-practice detail** — checkers, test discipline, how a bug was diagnosed —
+  unless the maintainer asks for it. Keep the result, drop the method.
+- **Work for a collaboration not yet ready to report** (e.g. a research study whose
+  tooling is still growing). Ask.
+
+**Cross-cutting themes are decided per case — ask before writing.** After the
+technical summary is reviewed, list its themes with a recommendation for each: include
+as a theme, fold into a project's bullets (a deadline that framed the month usually
+opens that project's block), reduce to one line under *All projects*, or leave out.
+Let the maintainer decide; the defaults above do not settle these.
+
 ## Versioning
 
 `activity-report-YYYY-MM-vN.md` at the report-dir root, starting at `v0` for the draft.
 Later versions are the user's own edits; write `v0` and stop there unless asked to
 revise. Exports sit beside the `.md` with the same stem.
+
+The executive summary is `executive-summary-YYYY-MM.md` beside it, unversioned: review
+comments are applied to it in place.
 
 A per-machine partial drafted before the digest sets are merged is *not* a version of
 this: it is `activity-report-YYYY-MM-$(hostname).md` inside `YYYY-MM/`, and it never
