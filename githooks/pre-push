@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# Run the repository's own pre-push checks, if it has any: an executable `scripts/pre-push` at its root.
+#
+# Why a dispatcher here rather than a hook in each repository: `core.hooksPath` is set globally to this
+# directory (for `commit-msg`), and git then never looks in a repository's own `.git/hooks`. Setting
+# `core.hooksPath` per repository instead would switch the global `commit-msg` off there. So the global
+# hook hands over, and a repository opts in by having the script; one without it is untouched.
+#
+# The script gets the hook's arguments and stdin as git gave them. `git push --no-verify` skips it, as it
+# skips every `pre-push` hook.
+
+set -euo pipefail
+
+hook="$(git rev-parse --show-toplevel)/scripts/pre-push"
+[ -x "$hook" ] || exit 0
+exec "$hook" "$@"
