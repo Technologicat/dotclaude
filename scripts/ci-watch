@@ -101,6 +101,10 @@ TARGET=${BRANCH:-$SHORT}
 # trail a tag run by minutes. Releasing pyan v2.9.0 (2026-10-06), the filtered list said "no run yet" for
 # two minutes after the tag run had finished, while the unfiltered list already showed it. Thirty runs
 # reach back far enough for a run just pushed, which is the one this is for.
+#
+# TODO: a run older than the thirty newest is out of reach, by ref or by SHA alike, and reads as "no run
+# yet" until the timeout. Watching an old run is not what this is for, so the window stays; should it ever
+# bite, the remedy is to fall back to the filtered query for a target the window does not hold.
 runs() { gh run list -L 30 "${REPO_ARGS[@]}" --json headSha,headBranch,status,conclusion,name,databaseId "$@"; }
 
 # The API answers the odd call with a 5xx (an HTTP 502 on the `/jobs` endpoint was seen 2026-09-30). Once the
