@@ -27,6 +27,17 @@ That works out to different lengths per section, because the reader needs differ
 
   > `unpythonic.misc.timer` / `unpythonic.timeutil.ETAEstimator`: switched from `time.monotonic()` to `time.perf_counter()`. Latent Windows-only bug: `monotonic` is backed by a ~16 ms tick counter on Windows, so microsecond-scale `with timer() as t: ...` blocks recorded `t.dt = 0.0` and downstream divisions raised `ZeroDivisionError`. POSIX unaffected.
 
+  **Short is not the same as one paragraph, though: the lead bullet carries the headline and nothing else, and the trigger, the mechanism and any further affected cases go in sub-bullets beneath it** (Juha, 2026-10-06). A reader scanning the section reads the headlines; one that wants the detail descends into it. So even a two-sentence fix splits at the sentence boundary:
+
+  ```markdown
+  - **A call chain with several lambdas no longer aborts with `ValueError: Unknown scope`** (#142).
+    - In `x.do(lambda: ...).do(lambda a: a.do(lambda: ...))`, pyan numbered the two outer lambdas in the
+      opposite order to Python, so the inner lambda was looked up under the wrong one and not found.
+    - The same applied to a lambda called directly with a lambda argument.
+  ```
+
+  The example above it predates this and is kept as a sample of the *content* a fix entry needs, not of its shape.
+
 - **`New`** runs longer, legitimately. A reader has to learn *what the thing is* before they can tell whether they want it — so a feature entry may well be a paragraph, with nested bullets for the caveats and consequences that come with it. That isn't verbosity; it's the minimum that does the job.
 
 What goes in the commit message instead, in both cases: the diagnostic trail, the back-story, and why it was tricky.
