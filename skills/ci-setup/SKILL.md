@@ -183,12 +183,13 @@ network anyway, so you may as well have asked `gh`.
 Canonical ruff, cython-lint, and flake8 configs (and the rationale behind
 each ignore) live in the `project-setup` skill under "Lint and
 style configuration". That skill is the single source of truth for lint
-rules. CI just runs `ruff check .` and `cython-lint` against the configs in
-each project's `pyproject.toml`.
+rules. CI runs `ruff check .` and `cython-lint` against the configs in
+each project's `pyproject.toml`, and `pycodestyle` for the continuation-line
+rules ruff lacks (see the next section).
 
 Note that `cython-lint` is only needed for Cython projects.
 
-The only CI-specific detail is the **two-pass lint step** (blocking pass +
+One CI-specific detail is the **two-pass lint step** (blocking pass +
 advisory pass for `SIM103`):
 
 ```yaml
@@ -209,6 +210,57 @@ The first ruff step fails the build on real errors. The second shows
 autofix-unsafe for multi-guard patterns. `cython-lint` runs non-blocking
 due to a known false positive on relative cimports. See the
 `project-setup` skill for the full rationale.
+
+### Continuation-line indentation: a `pycodestyle` step and its canary
+
+**Ruff does not check continuation-line indentation at all**, so a ruff-only CI passes code that the house
+flake8 config rejects. As of 0.15.6 ruff implements `E101` and `E111`–`E117` (the latter preview-gated); the
+whole `E12x` family is absent, ruff treating it as the formatter's job. So CI runs `pycodestyle` beside it,
+in the lint job:
+
+```yaml
+- name: Install linters
+  run: pip install ruff pycodestyle
+
+# Continuation-line indentation, which ruff does not implement. The E12 codes the house keeps, listed
+# one by one: given `--select`, pycodestyle disregards `--ignore`, so E126 and E127 cannot be dropped
+# from a wider selection. The excludes are ruff's.
+- name: Lint continuation lines with pycodestyle
+  run: python -m pycodestyle --select=E121,E122,E123,E124,E125,E128,E129,E131 --exclude=<ruff's excludes>,lint_canary_fixture.py .
+```
+
+- **The code list is fleet policy**: the `E12x` family less `E126` (overhanging indent) and `E127`
+  (over-indented for visual indent), the two the house flake8 config ignores. Copy it verbatim; a project
+  differs only in its `--exclude`.
+- **The codes must be listed one by one.** Measured: given `--select`, pycodestyle disregards `--ignore`,
+  so `--select=E12 --ignore=E126,E127` still reports `E127`, flagging code the house style deliberately
+  writes.
+- **Excludes**: whatever ruff excludes — vendored code, version-specific syntax fixtures, analysis inputs
+  that are deliberately odd — plus the canary fixture below.
+- **A checker, never a rewriter.** `ruff format --check` was rejected: it enforces Black's whole style and
+  would fight the house style everywhere. `autopep8 --select=<the same codes> --in-place` is the local
+  remedy for a failure, not the gate — a CI log reads better as a line number than as a diff.
+
+**And a canary, because a lint config can be narrower than it looks and nothing says so.** A clean run looks
+the same whether the tree is clean or the rule is off — which is how this gap went unnoticed, behind a
+`select = ["E", ...]` that reads as covering pycodestyle's rules and enables none of the indentation family.
+So each project carries:
+
+- **`scripts/lint_canary_fixture.py`**: one deliberate violation per rule family CI relies on, plus an `E127`
+  that must stay unreported. Never imported or run, and excluded from the ordinary lint steps.
+- **`scripts/check_lint_canary.py`**, run as a CI step: lints the fixture with the commands *read out of
+  `ci.yml`*, retargeted at the fixture, and fails unless every expected code is reported and the allowed
+  one is not. Reading the workflow rather than repeating the commands is what keeps it from drifting from
+  what CI runs.
+
+**Reference copy: Raven** (`scripts/check_lint_canary.py`, `scripts/lint_canary_fixture.py`, and the lint
+job in `.github/workflows/ci.yml`, since 2026-10-01). Both files port as they are, apart from two things.
+Where CI runs the linters under `pdm run`, the `_COMMANDS` regexes must accept that prefix; pyan's copy
+does. And the expected code sets in `EXPECTED` have to match the rules the project's ruff config actually
+enables — check
+with one run before trusting it, since a canary expecting a code the project does not select fails on day
+one. **Ruff's preview `E11x` rules stay off**: on Raven they found nothing and flagged only aligned trailing
+comments, which are house style.
 
 **Legacy flake8** config is not per-project. It is active at `~/.config/flake8`, which is a
 symlink to `~/.spacemacs.d/flake8` — version-controlled and public at

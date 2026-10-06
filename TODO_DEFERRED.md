@@ -323,87 +323,36 @@ in the file may matter independently of count.
 
 Discovered during the `~/.claude` cloudification (2026-07-13).
 
-## CI does not catch continuation-indent formatting (we ship broken formatting)
+## Port the `pycodestyle` continuation-line check to the rest of the fleet
 
 *Cluster: lint · Cost: S per project · Gate: none · Filed: 2026-07-13 · See also: "Whitespace checking fell out of the fleet when it moved to ruff"*
 
-**Raven has done it (2026-10-01, commit `ed1d0327`); the rest of the fleet has not.** What it does, as the
-pattern to copy:
+Ruff implements none of pycodestyle's `E12x` continuation-line rules, so a ruff-only CI passes what the house
+flake8 config rejects, and broken formatting reaches the default branch. The remedy — a check-only
+`pycodestyle` step with the code list, and a canary proving the step still runs — is the `ci-setup` skill's
+"Continuation-line indentation" section.
 
-- **A `pycodestyle` step in the lint job**, selecting the E12 codes the house flake8 config enforces:
-  `--select=E121,E122,E123,E124,E125,E128,E129,E131`, which is the whole family less `E126` and `E127`.
-  Wider than the `E128` recommended below, because the house config enforces the rest too. Raven's tree
-  passed it with one fix, and so may the others: a count in August had found 149 violations, but against
-  pycodestyle's defaults, and nearly all of them were `E126`/`E127`.
-- **The codes have to be listed one by one.** Measured: given `--select`, pycodestyle disregards
-  `--ignore`, so `--select=E12 --ignore=E126,E127` still reports `E127`.
-- **A canary**: `scripts/check_lint_canary.py` lints `scripts/lint_canary_fixture.py`, one deliberate
-  violation per rule family plus an `E127` that must stay unreported, with the commands read out of
-  `ci.yml` so it cannot drift from what CI runs. It answers the silently-narrow-config failure, which is
-  how this gap went unnoticed in the first place. Portable as is, apart from the expected code sets.
-- **Ruff's preview E11x rules stay off**: they found nothing in Raven's code and flagged only aligned
-  trailing comments, which is house style.
+**Done: Raven** (2026-10-01, `ed1d0327`) and **pyan** (2026-10-06, `537779e`). **Left: mcpyrate, unpythonic,
+chandra, pylu, pydgq, wlsqm, and this repo**, whose CI runs ruff under `pdm run`. Per project:
 
-Left: the other projects' CI, then the `ci-setup` lint step and `project-setup`'s canonical config, as the
-last paragraph below says.
+- Run the step's `pycodestyle` command over the tree first and fix what it finds, so the step lands green.
+  pyan's tree was clean; Raven's needed one fix.
+- Copy the canary pair from the reference copy, and set `EXPECTED` to codes the project's ruff config
+  actually enables: pyan's ignores `F401` and `W605`, so its canary cannot expect them.
+- In the Cython projects the step covers the `.py` files; `.pyx` is `cython-lint`'s.
 
-**Priority: sooner rather than later.** Formatting-broken commits are reaching the
-default branch, because ruff — the only linter CI runs — cannot see the problem.
+**Priority: sooner rather than later**, since each project without it can ship the defect today.
 
-Demonstration:
+## A fleet check that the `pycodestyle` code list agrees across repos
 
-```python
-result = some_function(arg_one,
-    arg_two)                        # E128, continuation line under-indented
-```
+*Cluster: lint · Cost: S · Gate: tentative — worth building only if the list is ever found to have drifted · Filed: 2026-10-06 · See also: "Port the `pycodestyle` continuation-line check to the rest of the fleet"*
 
-`ruff check --select E` reports **"All checks passed!"** on that file.
-
-**The plan recorded in the `project-setup` skill is not achievable as written.** It
-says a future pass should "re-enable E128 and similar continuation-indent rules"
-in ruff. Ruff has no such rules: as of 0.15.6 it implements `E101` and `E111`–`E117`
-(and the latter are preview-gated), and the entire `E12x` continuation-line family
-is simply absent — not disabled, not preview, not there. flake8/pycodestyle caught
-these; ruff never ported them, treating them as the formatter's job.
-
-The hard constraint: **no auto-rewriting.** `ruff format` is Black-shaped and would
-reformat the fleet against the house style, which is not acceptable. We want a
-*check*, not a rewriter.
-
-**Select `E128`, not the whole `E12` family.** The house style *deliberately ignores*
-two continuation rules — the global flake8 config ignores `E126` (overhanging indent)
-and `E127` (continuation line over-indented). Verified 2026-07-13: `pycodestyle
---select E12` fires `E127` on code the house style intentionally permits, so a blanket
-`E12` gate would fight the very style it exists to protect. `--select E128` flags only
-the under-indent, which is the actual bug. If more of the family is ever wanted, add
-codes individually (`E122`, `E125`, `E131`) — never `E126`/`E127`.
-
-Both viable options were tested on the sample above (2026-07-13). Neither rewrites
-the file:
-
-1. **`pycodestyle --select E128`** — the recommended gate. Output is standard linter
-   form (`file:2:5: E128 continuation line under-indented for visual indent`), exit 1.
-   It is a checker, not a fixer, so it cannot rewrite anything even by accident.
-2. **`autopep8 --select E128 --diff --exit-code`** — prints the corrective diff and
-   exits 2. Better as the *local fix* companion (drop `--diff`, add `--in-place`)
-   than as the CI gate, since a diff is noisier to read in a CI log than a line
-   number.
-3. `ruff format --check` — **rejected.** Check-only, yes, but it enforces Black's
-   entire style, not just continuation indents, and would fight the house style
-   everywhere.
-
-So: `pycodestyle --select E128` as a blocking CI step alongside ruff; `autopep8
---select E128 --in-place` as the fix. Cost is a second linter in CI, which is the
-price of ruff not having ported these rules.
-
-Both tools are already installed (`~/.local/bin`) and autopep8 is already in the
-dev-dependency baseline, so this is a CI-config change, not a new dependency.
-
-Whatever is chosen goes into the two-pass lint step in `ci-setup` and the canonical
-config in `project-setup`, and the skill's "Deferred: ruff formatting checks"
-paragraph gets replaced with what was actually done.
-
-Discovered during the `~/.claude` cloudification (2026-07-13).
+The `--select` list in each repo's `ci.yml` is fleet policy pasted into every copy, and nothing compares the
+copies: each project's canary checks its own workflow against its own fixture, not against the fleet. A
+script here that reads every fleet repo's workflow and reports any list that differs from the `ci-setup`
+skill's would close that. Not built, because the list has changed once, and a sweep comparing a handful of
+files catches a drift as well as a script would; the decision was to file it rather than build it
+(2026-10-06).
 
 ## Three projects disagree with the lockfile policy
 
