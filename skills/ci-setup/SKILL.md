@@ -254,10 +254,10 @@ So each project carries:
   what CI runs.
 
 **Reference copy: Raven** (`scripts/check_lint_canary.py`, `scripts/lint_canary_fixture.py`, and the lint
-job in `.github/workflows/ci.yml`, since 2026-10-01). Both files port as they are, apart from two things.
-Where CI runs the linters under `pdm run`, the `_COMMANDS` regexes must accept that prefix; pyan's copy
-does. And the expected code sets in `EXPECTED` have to match the rules the project's ruff config actually
-enables — check
+job in `.github/workflows/ci.yml`, since 2026-10-01; pyan carries the same script). The script ports as it
+is — it accepts a `pdm run` prefix on the CI commands, and runs `python` as its own interpreter, which a
+Windows job needs — apart from the expected code sets in `EXPECTED`, which have to match the rules the
+project's ruff config actually enables — check
 with one run before trusting it, since a canary expecting a code the project does not select fails on day
 one. **Ruff's preview `E11x` rules stay off**: on Raven they found nothing and flagged only aligned trailing
 comments, which are house style.
