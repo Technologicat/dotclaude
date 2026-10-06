@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: House style for writing CHANGELOG.md entries — changelogs are for users (not a commit log), they cover only changes since the last tagged release, and entries are compact (one sentence, two at most). Use whenever adding or editing an entry in a CHANGELOG.md, writing up a bugfix for users, deciding whether a fix even belongs in the changelog, or reviewing changelog wording. Applies while fixing the bug, not only at release time.
+description: House style for writing CHANGELOG.md entries — changelogs are for users (not a commit log), they cover only changes since the last tagged release, and entries are compact and scannable — a headline lead with detail in sub-bullets, as long as the change needs and no longer. Use whenever adding or editing an entry in a CHANGELOG.md, writing up a bugfix for users, deciding whether a fix even belongs in the changelog, or reviewing changelog wording. Applies while fixing the bug, not only at release time.
 ---
 
 # Writing changelog entries
@@ -27,16 +27,7 @@ That works out to different lengths per section, because the reader needs differ
 
   > `unpythonic.misc.timer` / `unpythonic.timeutil.ETAEstimator`: switched from `time.monotonic()` to `time.perf_counter()`. Latent Windows-only bug: `monotonic` is backed by a ~16 ms tick counter on Windows, so microsecond-scale `with timer() as t: ...` blocks recorded `t.dt = 0.0` and downstream divisions raised `ZeroDivisionError`. POSIX unaffected.
 
-  **Short is not the same as one paragraph, though: the lead bullet carries the headline and nothing else, and the trigger, the mechanism and any further affected cases go in sub-bullets beneath it** (Juha, 2026-10-06). A reader scanning the section reads the headlines; one that wants the detail descends into it. So even a two-sentence fix splits at the sentence boundary:
-
-  ```markdown
-  - **A call chain with several lambdas no longer aborts with `ValueError: Unknown scope`** (#142).
-    - In `x.do(lambda: ...).do(lambda a: a.do(lambda: ...))`, pyan numbered the two outer lambdas in the
-      opposite order to Python, so the inner lambda was looked up under the wrong one and not found.
-    - The same applied to a lambda called directly with a lambda argument.
-  ```
-
-  The example above it predates this and is kept as a sample of the *content* a fix entry needs, not of its shape.
+  That example is a sample of the *content* a fix entry needs. For its shape, see the next section's headline rule.
 
 - **`New`** runs longer, legitimately. A reader has to learn *what the thing is* before they can tell whether they want it — so a feature entry may well be a paragraph, with nested bullets for the caveats and consequences that come with it. That isn't verbosity; it's the minimum that does the job.
 
@@ -93,6 +84,16 @@ When an entry has detail that *belongs to it* — a caveat, a consequence worth 
     Befunge file (`#` is a real Befunge command, so comments inside the body aren't
     supported).
 ```
+
+**The lead bullet is a headline, in every section, and an entry with only two sentences still splits.** The lead says what changed and nothing else; the trigger, the mechanism and any further affected cases go beneath it. A reader scanning the section reads the headlines and descends only into the one that concerns them, so detail inlined into the lead turns every entry into a wall of text they have to read to skip (Juha, 2026-10-06). Short entries are where this goes wrong, because "a sentence or two" looks like it needs no structure:
+
+```markdown
+- **A call chain with several lambdas no longer aborts with `ValueError: Unknown scope`** (#142).
+  - In `x.do(lambda: ...).do(lambda a: a.do(lambda: ...))`, pyan numbered the two outer lambdas in the opposite order to Python, so the inner lambda was looked up under the wrong one and not found.
+  - The same applied to a lambda called directly with a lambda argument.
+```
+
+*The measure is whether the section is scannable*, below, says where to stop: a lead that is a single clause takes no children.
 
 Flattening these into siblings would imply they're independent changes; folding them into the parent sentence would bury them. The nesting *is* the information — see the "flat is better than nested, except when nesting carries meaning" rule in `CLAUDE.md`, which applies to prose as much as to code.
 
