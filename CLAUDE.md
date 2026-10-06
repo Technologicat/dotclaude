@@ -28,6 +28,15 @@ General rules that apply across all my projects, on top of the Zen of Python.
 - **Flat is better than nested — except when nesting carries meaning.** Two levels of `if` are fine when they represent two distinct decisions.
   - **This applies to prose and lists, not just code.** Nested lists are welcome wherever the content genuinely is hierarchical — in changelogs, docs, `CLAUDE.md`, PR text, commit messages. When two items are *siblings under a shared idea*, say so with a parent bullet and indentation; flattening them into a sequence makes the second read as a gloss on the first, and a reader (or an agent) will conflate them. Don't reach for the reflex that nesting is bad style. The test is the same as for code: does the structure mirror the meaning?
 - **Don't rewrite working code to satisfy a linter.** If the code is clear to a human, a `# noqa` is cheaper than a refactor that exists only to appease tooling.
+- **A continuation line must not land on the indentation of the block it opens; where it would, indent it eight.** The case that comes up is `if (`: its four characters put a continuation aligned under the paren exactly at the body's indent, and the condition and the body then read as one block. `elif (` and `while (` align past the body and need nothing.
+
+  ```python
+  if (n3.namespace is not None and n3.defined and
+          _has_import_to(visitor, n, n3.namespace)):
+      new_uses_edges.append((n, n3))
+  ```
+
+  This is pycodestyle's E129, which the house flake8 config enforces and ruff does not check at all — so a ruff-clean tree can still have it, and only flake8, or a `pycodestyle` CI step, will say so.
 - **Declare public APIs with `__all__`.** Every module that exposes public symbols should have an `__all__` list (PEP 8). When adding a new public function or class, add it to `__all__`; when creating a new module, include `__all__` from the start. Corollary: `from submodule import *` (with `# noqa: F403`) is the standard way to re-export a submodule's public API in `__init__.py`.
   - **`__all__` ordering mirrors the file.** List names in roughly the same order the implementations appear in the source — the reader should know what ordering to expect. Minor helpers (e.g. `iscurried`) may be grouped under the concept they belong to (`curry`).
   - **Line breaks in `__all__` are load-bearing.** Use them to visually group related names — they signal thematic clusters to the reader.
