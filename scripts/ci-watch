@@ -97,10 +97,11 @@ SHORT=${SHA:0:7}
 TARGET=${BRANCH:-$SHORT}
 [ -n "$BRANCH" ] && [ -n "$SHA" ] && TARGET="$BRANCH@$SHORT"
 
-BRANCH_ARGS=()
-[ -n "$BRANCH" ] && BRANCH_ARGS=(--branch "$BRANCH")
-
-runs() { gh run list -L 30 "${REPO_ARGS[@]}" "${BRANCH_ARGS[@]}" --json headSha,status,conclusion,name,databaseId "$@"; }
+# The ref is matched here, on `headBranch`, rather than by `gh run list --branch`: GitHub's branch filter can
+# trail a tag run by minutes. Releasing pyan v2.9.0 (2026-10-06), the filtered list said "no run yet" for
+# two minutes after the tag run had finished, while the unfiltered list already showed it. Thirty runs
+# reach back far enough for a run just pushed, which is the one this is for.
+runs() { gh run list -L 30 "${REPO_ARGS[@]}" --json headSha,headBranch,status,conclusion,name,databaseId "$@"; }
 
 # The API answers the odd call with a 5xx (an HTTP 502 on the `/jobs` endpoint was seen 2026-09-30). Once the
 # run has completed, one lost call would cost the report or turn a pass into a red, so give it a few tries.
@@ -116,9 +117,9 @@ retry() {
 
 # The name has to be a workflow the repo defines, or the wait below can never end.
 #
-# Checked against the workflow definitions, not against recent runs: runs are narrowed by --branch, and a
-# tag pushed a moment ago has none yet, so a runs-based check found no names at all and exited before the
-# run it was started for had even been queued.
+# Checked against the workflow definitions, not against recent runs: a tag pushed a moment ago has no run
+# yet, so a runs-based check narrowed to it found no names at all and exited before the run it was started
+# for had even been queued.
 NAMES=$(gh workflow list "${REPO_ARGS[@]}" --json name --jq '.[].name' 2>/dev/null) || { echo "ci-watch: could not list workflows (is gh authenticated?)" >&2; exit 2; }
 if ! printf '%s\n' "$NAMES" | grep -qx "$WORKFLOW"; then
     echo "ci-watch: no workflow named '$WORKFLOW' in this repo. These exist:" >&2
@@ -128,13 +129,12 @@ fi
 
 echo "ci-watch: waiting for '$WORKFLOW' on $TARGET (timeout ${TIMEOUT}s, polling every ${POLL}s)"
 
-# `gh run list --branch` has already narrowed to the ref when one was given, so only pin the SHA when it
-# is doing the selecting. Pinning both is harmless but says the same thing twice.
-if [ -n "$SHA" ]; then
-    SELECT='[.[] | select(.headSha[0:7]=="'"$SHORT"'" and .name=="'"$WORKFLOW"'")][0]'
-else
-    SELECT='[.[] | select(.name=="'"$WORKFLOW"'")][0]'
-fi
+# Select by ref when one was given, by SHA otherwise; both when both were given.
+SELECT='.name=="'"$WORKFLOW"'"'
+[ -n "$BRANCH" ] && SELECT="$SELECT"' and .headBranch=="'"$BRANCH"'"'
+[ -n "$SHA" ] && SELECT="$SELECT"' and .headSha[0:7]=="'"$SHORT"'"'
+SELECT='[.[] | select('"$SELECT"')][0]'
+
 WAITED=0
 while :; do
     # A failed poll is only a skipped look — the next one asks again — but it must not read as "no run yet".
