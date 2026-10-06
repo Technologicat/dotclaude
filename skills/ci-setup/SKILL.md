@@ -262,6 +262,10 @@ with one run before trusting it, since a canary expecting a code the project doe
 one. **Ruff's preview `E11x` rules stay off**: on Raven they found nothing and flagged only aligned trailing
 comments, which are house style.
 
+There is deliberately no template copy of the canary in this repo. A copy that no CI runs could drift
+unnoticed, while the live copies are checked on every push; that is chandra's role as the setup reference,
+applied here (decided 2026-10-06).
+
 **Legacy flake8** config is not per-project. It is active at `~/.config/flake8`, which is a
 symlink to `~/.spacemacs.d/flake8` — version-controlled and public at
 [Technologicat/spacemacs.d](https://github.com/Technologicat/spacemacs.d/blob/master/flake8), which is the authoritative copy. Don't duplicate it into project-level files: per-project copies drift,
