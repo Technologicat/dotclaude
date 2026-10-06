@@ -316,7 +316,13 @@ commented for a reason — the `pytest-cov` note is what stops someone "fixing" 
 `pdm install` — and a single `pdm add -dG dev <pkg>` silently deletes all of it while the diff looks like
 an ordinary one-line addition. Either edit the table by hand, or check `git diff pyproject.toml` after
 and restore what went missing. (Observed on PDM 2.26, adding `py-spy` to Raven: one line added, ten
-deleted.)
+deleted. Again on PDM 2.28, adding `pycodestyle` to pyan.)
+
+**After a hand edit, relock with `pdm lock --update-reuse`.** A plain `pdm lock` re-resolves every
+package and takes whatever is newest, so a one-line dependency change arrives with a lockfile full of
+unrelated upgrades. `--update-reuse` keeps every existing pin and resolves only what changed. (pyan,
+2026-10-06: plain `pdm lock` moved `build` 1.4.3 → 1.6.1 among a thousand changed lines; `--update-reuse`
+changed only the content hash, `pycodestyle` being locked already as a transitive dependency.)
 
 Cython projects add on top:
 
