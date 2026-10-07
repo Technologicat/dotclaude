@@ -581,7 +581,9 @@ Use this canonical structure across the fleet:
 ````markdown
 # Deferred TODOs
 
-Optional intro paragraph if the project wants one.
+Optional intro, one paragraph or several.
+
+<!-- New items go below this line. -->
 
 ## Short section title for the item
 
@@ -596,7 +598,11 @@ Rules:
 - Title: `# Deferred TODOs`.
 - One `##` heading per item — short and descriptive. **No item codes** (`D1`, `D2`, ...) — git log is the history, item codes just rot.
 - **Every item carries the metadata line**, directly under its heading. Estimate from what you already know — `?` is a fine answer for any field, and going off to measure one defeats the point of deferring. It is what makes the backlog sortable instead of a pile: `Cluster` is what a dehydration pass groups by, `Cost` and `Gate` are what a release triage reads.
+- **New items go at the top, directly below the `<!-- New items go below this line. -->` marker**, which ends the intro. Present whether or not there is an intro, so an insertion always has one exact anchor.
+  - The failure it prevents: "insert at the top" anchored on the intro's *first* paragraph lands the item in the middle of a longer intro, and removing that item later cuts the rest of the intro along with it. Both happened in one session (Raven, 2026-10-07). Raven's `scripts/check_todo_structure.py` reports a `##` heading above the marker.
+  - Top rather than bottom because with both ends in use, the halves of one session's findings end up a thousand lines apart (Raven, until 2026-07-27).
 - Items are **removed** when done; no "Done" archive section. Git is authoritative for completed work.
+- **Work considered and rejected goes under `## Declined`**, at the bottom: one bullet per entry, with the reason and `(Declined YYYY-MM-DD.)`. The reason is the point — an undocumented discard gets re-added by the next person who has the same thought. Shipped work never goes there, since that would record a decision that was never taken.
 - Blank line before each `##`.
 
 ## Every edit to a repo file must render as a diff
