@@ -25,7 +25,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 #          visible difference, which matters because GitHub will not play a repo-relative video.
 # pandoc: document conversion both ways — reading an .odt/.docx into plain text an agent can use, and
 #          exporting a Markdown draft (e.g. a monthly activity report) to .odt/.docx for email.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc
+# zbar-tools: `zbarimg file.png` decodes a QR code or barcode from an image, for checking that an
+#          exported code (e.g. `python -m raven.common.gui.qroverlay out.png`) scans before it is
+#          sent on. Reads PNG and SVG alike. For manual use; nothing tests against it.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools
 
 # Python tooling
 sudo apt install python3-pip pipx
