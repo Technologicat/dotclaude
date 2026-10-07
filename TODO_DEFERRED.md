@@ -1,5 +1,7 @@
 # Deferred TODOs
 
+<!-- New items go below this line. -->
+
 ## Whitespace checking fell out of the fleet when it moved to ruff
 
 *Cluster: lint-config · Cost: M · Gate: none — **raised by Juha 2026-08-25**, "needs a solution fleet-wide, soon-ish, but not tonight" · Filed: 2026-08-25*
@@ -92,6 +94,8 @@ violation.
 
 ## Add `~/.spacemacs.d` to the fleet, after the personal machine's reinstall
 
+*Cluster: personal-machine-reinstall · Cost: S · Gate: the personal machine's OS reinstall · Filed: 2026-08-03*
+
 `Technologicat/spacemacs.d` is checked out at `~/.spacemacs.d` on both machines and
 belongs in the project list on the same reasoning that put `dotclaude` there: config
 that lives outside `~/Documents/koodit`, is on GitHub, and silently drifts between
@@ -136,6 +140,8 @@ anything uses it, then either note the reason in the setup doc or drop it from t
 Noticed while bringing the personal machine's packages up to the setup doc (2026-09-16).
 
 ## Python 3.15: a cleanup pass once it goes final
+
+*Cluster: python-3.15 · Cost: mechanical · Gate: CPython 3.15 final, a ruff that parses PEP 798, SciPy `cp315` wheels · Filed: 2026-08-14*
 
 **The support pass is done and released, 2026-08-18.** Every project that can take 3.15 has it,
 and everything that ships to PyPI has shipped:
@@ -183,6 +189,8 @@ Raised while merging the cibuildwheel 4.2.0 Dependabot PRs (2026-08-14).
 
 ## Sweep the ruff excludes once ruff supports PEP 798
 
+*Cluster: python-3.15 · Cost: S · Gate: a ruff that parses PEP 798 · Filed: 2026-08-18*
+
 ruff 0.15.10 cannot *parse* comprehension unpacking — it reports `invalid-syntax: Iterable
 unpacking cannot be used in a comprehension` — and a syntax error cannot be suppressed with
 `# noqa`. So every 3.15 test fixture needs its directory excluded in `[tool.ruff]`. `pyan` has
@@ -196,6 +204,8 @@ prompt anyone to check whether ruff has caught up.
 Split out of the Python 3.15 pass, which is otherwise done (2026-08-18).
 
 ## Evaluate pyan's extra ruff rules for the rest of the fleet
+
+*Cluster: lint · Cost: M · Gate: none · Filed: 2026-07-14*
 
 pyan selects `E, W, F, I, B, C4, UP, ARG, SIM`; raven, unpythonic, mcpyrate and chandra
 select only `E, W, F, SIM`. So `I` (isort), `B` (bugbear), `C4` (comprehensions), `UP`
@@ -232,6 +242,8 @@ across the fleet as part of this evaluation.
 Discovered during the `~/.claude` cloudification (2026-07-14).
 
 ## Design a study: does CLAUDE.md rule count degrade rule-following?
+
+*Cluster: claude-md · Cost: L · Gate: none · Filed: 2026-07-14*
 
 `CLAUDE.md` currently holds ~66 top-level bullets and 9 sub-rules; discounting the
 project list (reference data, not rules) that is roughly **56 behavioural rules**, and
@@ -356,6 +368,8 @@ files catches a drift as well as a script would; the decision was to file it rat
 
 ## Three projects disagree with the lockfile policy
 
+*Cluster: packaging · Cost: S · Gate: a policy decision · Filed: 2026-07-13*
+
 The policy (in the `project-setup` skill): libraries don't commit `pdm.lock`, apps
 do, dual-use library+CLI projects count as apps.
 
@@ -460,6 +474,8 @@ linter checks a claim against reality. Machine checks buy the easy half.
 Discovered during the `~/.claude` cloudification (2026-07-13).
 
 ## PyPy: done, apart from a version that does not exist yet
+
+*Cluster: pypy · Cost: S · Gate: a stable PyPy implementing Python newer than 3.11 · Filed: 2026-08-17*
 
 **Resolved 2026-08-18.** Every fleet project that can run on PyPy now has a `pypy-3.11` job:
 `mcpyrate` and `unpythonic` already did, and `chandra` was added (242 tests pass on PyPy
