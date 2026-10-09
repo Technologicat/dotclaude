@@ -353,6 +353,68 @@ A path plus a version means the config above will work. Empty output means the l
 
 npx package names drift over time. If `open-meteo-mcp-server` ever stops resolving, that's the first thing to check when copying this config to a new machine after a long gap: run the `npx -y -p …` line directly in a terminal and watch for a resolution failure. From LM Studio's side the symptom is silent — the server just never comes up.
 
+#### The current set
+
+Four servers, set up 2026-10 to give a local model (Qwen) something to work with. Two need an install step first; the other two are fetched by npx on first launch, as above.
+
+**Filesystem — [mark3labs/mcp-filesystem-server](https://github.com/mark3labs/mcp-filesystem-server).** Not the official `@modelcontextprotocol/server-filesystem`: this one has `search_within_files`. The alternative was the official server plus mcollina's `mcp-ripgrep` for search, and that pairing had an open CVE (as of 2026-10).
+
+It is a Go binary. `go install` would work, but Go is not otherwise needed here, so use the release tarball instead:
+
+```bash
+# From https://github.com/mark3labs/mcp-filesystem-server/releases, the linux_amd64 tarball.
+# It extracts to a subdirectory; symlink the binary out of it, as with PyPy and Zotero above.
+mkdir -p ~/.local/bin/mcp-filesystem-server_linux_amd64
+tar -xzf mcp-filesystem-server_*linux_amd64*.tar.gz -C ~/.local/bin/mcp-filesystem-server_linux_amd64
+ln -sfn mcp-filesystem-server_linux_amd64/mcp-filesystem-server ~/.local/bin/mcp-filesystem-server
+```
+
+Its arguments are the directories it may access — here one dedicated sandbox, `~/Documents/lmstudio_mcp`.
+
+**Shell — [hdresearch/mcp-shell](https://github.com/hdresearch/mcp-shell).** Run from a clone rather than through npx. The npm package of the same name names no source repository, so the clone is the copy that can be read:
+
+```bash
+git clone https://github.com/hdresearch/mcp-shell ~/Documents/koodit/mcp-shell
+cd ~/Documents/koodit/mcp-shell && npm install    # `prepare` runs the TypeScript build
+```
+
+To update, `git pull` and `npm install` again.
+
+**Browser — [Playwright MCP](https://github.com/microsoft/playwright-mcp)**, for testing HTML. Fetched live by npx, and pointed at the system Chromium.
+
+The `mcp.json` for all four:
+
+```json
+{
+  "mcpServers": {
+    "open-meteo": {
+      "command": "bash",
+      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb npx -y -p open-meteo-mcp-server open-meteo-mcp-server"]
+    },
+    "filesystem": {
+      "command": "bash",
+      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb mcp-filesystem-server $HOME/Documents/lmstudio_mcp"]
+    },
+    "playwright": {
+      "command": "bash",
+      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb npx -y @playwright/mcp --browser chromium --executable-path $(which chromium)"]
+    },
+    "shell": {
+      "command": "bash",
+      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb node $HOME/Documents/koodit/mcp-shell/build/index.js"]
+    }
+  }
+}
+```
+
+#### LM Studio stops in its terminal when a turn begins
+
+With the filesystem or Playwright server enabled, `lmstudio` started from a terminal stops as if Ctrl+Z had been pressed when an AI turn begins, and needs `fg`, several times over. Something in those servers' startup signals the terminal it should not. Running LM Studio under `script`, which gives it a pseudo-terminal of its own, blocks that and still shows the log in colour. In `~/.bashrc`:
+
+```bash
+alias lmstudio='script -qc "lmstudio" /dev/null'
+```
+
 ## Spacemacs
 
 ```bash
