@@ -357,7 +357,7 @@ npx package names drift over time. If `open-meteo-mcp-server` ever stops resolvi
 
 Four servers, set up 2026-10 to give a local model (Qwen) something to work with. Two need an install step first; the other two are fetched by npx on first launch, as above.
 
-**Filesystem — [mark3labs/mcp-filesystem-server](https://github.com/mark3labs/mcp-filesystem-server).** Not the official `@modelcontextprotocol/server-filesystem`: this one has `search_within_files`. The alternative was the official server plus mcollina's `mcp-ripgrep` for search, and that pairing had an open CVE (as of 2026-10).
+**Filesystem — [mark3labs/mcp-filesystem-server](https://github.com/mark3labs/mcp-filesystem-server).** Not the official `@modelcontextprotocol/server-filesystem`: this one has `search_within_files`. The alternative was the official server plus mcollina's `mcp-ripgrep` for search, and `mcp-ripgrep` had an open CVE (as of 2026-10).
 
 It is a Go binary. `go install` would work, but Go is not otherwise needed here, so use the release tarball instead:
 
@@ -389,19 +389,19 @@ The `mcp.json` for all four:
   "mcpServers": {
     "open-meteo": {
       "command": "bash",
-      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb npx -y -p open-meteo-mcp-server open-meteo-mcp-server"]
+      "args": ["-lc", "npx -y -p open-meteo-mcp-server open-meteo-mcp-server"]
     },
     "filesystem": {
       "command": "bash",
-      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb mcp-filesystem-server $HOME/Documents/lmstudio_mcp"]
+      "args": ["-lc", "mcp-filesystem-server $HOME/Documents/lmstudio_mcp"]
     },
     "playwright": {
       "command": "bash",
-      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb npx -y @playwright/mcp --browser chromium --executable-path $(which chromium)"]
+      "args": ["-lc", "npx -y @playwright/mcp --browser chromium --executable-path $(which chromium)"]
     },
     "shell": {
       "command": "bash",
-      "args": ["-lc", "CI=1 NO_COLOR=1 TERM=dumb node $HOME/Documents/koodit/mcp-shell/build/index.js"]
+      "args": ["-lc", "node $HOME/Documents/koodit/mcp-shell/build/index.js"]
     }
   }
 }
@@ -414,6 +414,8 @@ With the filesystem or Playwright server enabled, `lmstudio` started from a term
 ```bash
 alias lmstudio='script -qc "lmstudio" /dev/null'
 ```
+
+The cause is not pinned down. Separately, keep anything that touches the terminal — a `stty -ixon`, say — below `~/.bashrc`'s "if not running interactively" guard: every server here starts through `bash -lc`, which runs whatever sits above it, and an `stty` there puts an `Inappropriate ioctl for device` into each server's log.
 
 ## Spacemacs
 
