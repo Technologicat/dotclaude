@@ -57,6 +57,7 @@ whatever else that machine was running — it is not a fact about your session.
 
 ```bash
 LOG=/tmp/.../app.log
+: > "${LOG:?}"   # empty it, so the previous run's ready line cannot satisfy the wait below
 nohup <app> --log-level INFO --log "$LOG" >/dev/null 2>&1 &
 # Bounded, like the shutdown loop below: an app that dies during startup writes no ready line ever, and an
 # unbounded wait on one is indistinguishable from a slow boot until somebody asks what is taking so long.
@@ -69,6 +70,13 @@ one; the alternative is polling for the window, which appears before the app is 
 
 Note the loop tests a *file*, so it cannot match itself — unlike the `pgrep -f` shape, which finds the shell
 running it and waits forever.
+
+**Empty the log before launching, even where the app truncates it on startup.** Raven's `logsetup` does,
+but only once the app has got as far as configuring logging; until then the old file still holds the
+previous run's ready line, and the wait returns at once. **Truncate rather than delete** — `: > "${LOG:?}"`,
+not `rm -f "$LOG"`. A relaunch loop builds the path from variables, and an `rm` on a path that an empty
+variable has shortened deletes something outside the scratchpad; Claude Code flags exactly that shape
+(2026-10-09). Truncating cannot remove anything, and `:?` stops the command if the variable is empty.
 
 ## Testing together: you launch, they drive
 

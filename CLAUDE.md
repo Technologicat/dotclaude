@@ -1147,6 +1147,13 @@ the reason to reach for it less often than the fingers want to.
 ## Filesystem
 
 - **`/tmp` is a ramdisk on both my machines** — it lives in RAM and is wiped at every boot (not just cleared of old files; gone). Fine for scratch: probes, dry-run copies, intermediate artifacts that only matter within the session. **Never** treat it as durable storage: don't stash a backup, a generated report, or anything I'd want after a reboot there. Anything worth keeping goes in the repo (committed), a project file, or `~`. (This is also why investigation code that captured a real invariant must be promoted to the test suite — see "Promote useful investigation code to the test suite" — rather than left in `/tmp`.)
+- **A destructive command on a path built from variables gets a guard: `${VAR:?}`, or a way that cannot
+  delete.** An empty variable shortens the path rather than failing, so `rm -f "$DIR/$name.log"` with `DIR`
+  unset deletes `/.log`, and in the worse shapes a directory. Write `"${DIR:?}/$name.log"`, which stops the
+  command instead. Where the intent is "start this file empty", truncate with `: > "${LOG:?}"`, which removes
+  nothing at all. The trigger is any `rm`, `mv` onto or truncation of a path that has a `$` in it — typically
+  inside a loop that relaunches something. (Claude Code warns on exactly this shape; the warning arrived after
+  the command was written, 2026-10-09, which is why the habit has to be the first line of defence.)
 
 ## Python environments
 
