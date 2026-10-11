@@ -2,6 +2,33 @@
 
 <!-- New items go below this line. -->
 
+## Pin LM Studio's npx-fetched MCP servers
+
+*Cluster: lmstudio-mcp · Cost: S · Gate: after the vacation week · Filed: 2026-10-11*
+
+Two of the four servers in `~/.lmstudio/mcp.json` are fetched by npx unpinned: `open-meteo-mcp-server`
+(one individual maintainer) and `@playwright/mcp` (Microsoft). On a cache miss npx runs whatever version
+is current, with the user's permissions, so a poisoned release reaches the machine with no install step to
+notice it at. The other two are already fixed artifacts: the filesystem server is a release binary, and
+mcp-shell is a clone built against upstream's committed `package-lock.json`.
+
+The fix is the one `NEW-MACHINE-SETUP.md` already names under "LM Studio MCP servers":
+`npm install -g <pkg>@<version>` and point `command` at the installed binary. Vet the version first, then
+do it on both machines and update the doc's `mcp.json` to match.
+
+Found while reviewing `npm audit` for mcp-shell on maia. The audit's six findings were judged not
+exploitable here — five are DoS bugs in the `lint-staged` devDependency, and the SDK's DNS-rebinding
+advisory concerns the HTTP transport, where mcp-shell uses stdio.
+
+## mcp-shell is on MCP SDK 0.6.0, and upstream has gone quiet
+
+*Cluster: lmstudio-mcp · Cost: ? · Gate: tentative — only if the port is small · Filed: 2026-10-11*
+
+`hdresearch/mcp-shell` depends on `@modelcontextprotocol/sdk` ^0.6.0; current is 1.x, a breaking bump.
+Nothing known is exploitable through it today (stdio transport only), but an SDK that old will drift out
+of step with clients eventually, and the repo's last commit is 2025-12-15. If upstream stays quiet, the
+port may become ours — as a PR, or a fork. Worth doing only if it turns out small; size it first.
+
 ## Whitespace checking fell out of the fleet when it moved to ruff
 
 *Cluster: lint-config · Cost: M · Gate: none — **raised by Juha 2026-08-25**, "needs a solution fleet-wide, soon-ish, but not tonight" · Filed: 2026-08-25*
