@@ -363,7 +363,8 @@ It is a Go binary. `go install` would work, but Go is not otherwise needed here,
 
 ```bash
 # From https://github.com/mark3labs/mcp-filesystem-server/releases, the linux_amd64 tarball.
-# It extracts to a subdirectory; symlink the binary out of it, as with PyPy and Zotero above.
+# It unpacks flat (binary, LICENSE, README), so give it a directory of its own and symlink
+# the binary out of it, as with PyPy and Zotero above.
 mkdir -p ~/.local/bin/mcp-filesystem-server_linux_amd64
 tar -xzf mcp-filesystem-server_*linux_amd64*.tar.gz -C ~/.local/bin/mcp-filesystem-server_linux_amd64
 ln -sfn mcp-filesystem-server_linux_amd64/mcp-filesystem-server ~/.local/bin/mcp-filesystem-server
