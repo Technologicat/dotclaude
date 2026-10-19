@@ -595,7 +595,7 @@ GitHub provides two Dependabot features:
 **Version updates** (opt-in, needs config):
 - We auto-update GitHub Actions versions, and project dependencies only in Raven
   - **Raven's Dependabot also bumps the exact pins in `.github/workflows/requirements-ci.txt`**, and those
-    PRs are not done when merged. The pin, the `pyproject.toml` floor and the (gitignored) `pdm.lock` move
+    PRs are not done when merged. The pin, the `pyproject.toml` floor and `pdm.lock` move
     together, in an order with a local test run in it, closed by `scripts/check_dependency_versions.py`.
     The loop is in Raven's `CLAUDE.md`, under "Dependency versions: CI moves first, the floors follow a
     green local run" — **read it before acting on those PRs.** A fleet sweep runs from outside the repo, so
