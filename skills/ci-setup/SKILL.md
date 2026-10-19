@@ -593,7 +593,13 @@ GitHub provides two Dependabot features:
 - To enable on private repos: Settings → Code security and analysis → Dependabot alerts
 
 **Version updates** (opt-in, needs config):
-- We only auto-update GitHub Actions versions, not project dependencies
+- We auto-update GitHub Actions versions, and project dependencies only in Raven
+  - **Raven's Dependabot also bumps the exact pins in `.github/workflows/requirements-ci.txt`**, and those
+    PRs are not done when merged. The pin, the `pyproject.toml` floor and the (gitignored) `pdm.lock` move
+    together, in an order with a local test run in it, closed by `scripts/check_dependency_versions.py`.
+    The loop is in Raven's `CLAUDE.md`, under "Dependency versions: CI moves first, the floors follow a
+    green local run" — **read it before acting on those PRs.** A fleet sweep runs from outside the repo, so
+    that `CLAUDE.md` is not loaded and nothing else will say so (found 2026-10-19, after the bump).
 - Requires `.github/dependabot.yml`:
   ```yaml
   version: 2
