@@ -143,7 +143,7 @@ plus a drift test parked behind some *other* module's `importorskip`.
 - **Steps:** checkout → setup-python → install deps → ruff lint → pytest
 - Use `actions/checkout` and `actions/setup-python` — **SHA-pinned** (see "Pin GitHub Actions to commit SHAs"), like every action
 - **Top-level `permissions: contents: read`** (after `on:`, before `jobs:`) — least-privilege `GITHUB_TOKEN` (see "Least-privilege `GITHUB_TOKEN` permissions")
-- For pre-release Python versions: `allow-prereleases: true`
+- `allow-prereleases: true` on `setup-python`, permanently: a no-op for stable versions, and what lets a Python at rc resolve at all
 - **Install deps by whichever of the three patterns fits** (see above). In a raw-pip job, install pytest alongside the build deps; in a `pdm install` job it comes from `[dependency-groups].dev` for free. Either way, **don't use `[project.optional-dependencies].test`** — pytest is dev tooling, not a published library feature (see "Test dependencies in CI" below).
 - Install ruff and cython-lint separately in the lint job — they're CI tools, not project test deps. (They also live in `[dependency-groups].dev` so local dev has them.)
 - **Cython extensions on Windows:** add an `ilammy/msvc-dev-cmd` step (SHA-pinned, like every action) before the build step, conditional on `runner.os == 'Windows'`. Without it, meson picks up MinGW-w64 gcc and the resulting `.pyd` files link to DLLs that aren't on the runtime search path. See "Windows CI for Cython extensions: force MSVC" below for the full story.
@@ -393,10 +393,13 @@ belongs in the same commit; each item was missed at least once during the 3.15 p
   the newest *stable* version while the new one is at rc — those are spot-checks, and pinning them
   to a prerelease buys nothing. Say "newest stable" in the surrounding comment so the next reader
   knows it is deliberate.
-- **`allow-prereleases: true`** on the `setup-python` step, for as long as the version is at
-  alpha/beta/rc. The manifest marks prereleases unstable, so a bare `"3.15"` resolves to *nothing*
-  without it — the job fails at setup, before any of your code runs. It is a no-op for versions
-  that have a stable release, so it can stay until the cleanup pass.
+- **`allow-prereleases: true`** on the `setup-python` step — which should already be there, since
+  the fleet keeps it permanently. The manifest marks prereleases unstable, so a bare `"3.16"`
+  resolves to *nothing* without it, and the job fails at setup before any of your code runs. It
+  is a no-op for versions that have a stable release, so it stays in rather than being added
+  and removed around each new Python (decided 2026-10-19), and nobody has to remember it. Its
+  comment describes the flag in general; one naming the version currently at rc goes stale at
+  that version's final release, which is what happened fleet-wide with 3.15.
 - **The coverage job**, per the section above.
 - **cibuildwheel's build list** (`[tool.cibuildwheel] build`, or `CIBW_BUILD`), for projects that
   publish wheels. Nothing adds a target implicitly — cibuildwheel builds what the selector names.
