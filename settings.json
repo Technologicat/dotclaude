@@ -92,5 +92,6 @@
       "Reading and editing under a fleet repo's own tree — source, skills, scripts, CLAUDE.md, briefs, deferred-TODO files — is routine development activity"
     ]
   },
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "idleCompaction": false
 }
