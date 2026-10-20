@@ -662,7 +662,7 @@ This installs `llmster` into `~/.lmstudio/` and puts `lms` on PATH via `~/.lmstu
 **Per-model settings** — load settings and any chat-template override — are saved under `~/.lmstudio/.internal/user-concrete-model-default-config/PUBLISHER/MODEL/`, one JSON file per GGUF. They come along with a copy of `~/.lmstudio`, so check them before applying them on a new machine:
 
 - **Keep thinking retention on for Qwen 3.8, so no `{%- set preserve_thinking = false %}` line in a template override.** The model is trained with retention on, and its stock template keeps every earlier turn's thinking unless that variable is set false. With retention on, it builds on its earlier reasoning instead of restarting its solution each turn, and writes less new thinking per turn, since much of the material is already in context (observed 2026-10-20). An override written to save context did the opposite.
-- Qwen 3.6's template strips earlier thinking by default, and `preserve_thinking` is opt-in there. Read the template before assuming which way a model goes.
+- The runtime decides as much as the template. Qwen 3.6's template strips earlier thinking unless `preserve_thinking` is set, but LM Studio's runtime sets it by default for any template that has such a switch (its server log says so at load: `chat template supports preserving reasoning, it is enabled by default`). So on LM Studio 3.6 keeps it too, unless an override sets it false. A template with no switch, as Qwen 3.5's, strips regardless. Raven's `investigations/thinking-retention/` has the measurements.
 
 **Web search** comes from a Hub plugin, not an MCP server:
 
