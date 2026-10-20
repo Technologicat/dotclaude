@@ -659,6 +659,11 @@ This installs `llmster` into `~/.lmstudio/` and puts `lms` on PATH via `~/.lmstu
 
 **Models** live under `~/.lmstudio/models/PUBLISHER/MODEL/` (GGUF format) — e.g. `~/.lmstudio/models/lmstudio-community/Qwen2.5-14B-Instruct-GGUF/`. Transfer from an existing machine via Warpinator (preserve the two-level directory structure) or download through the LM Studio GUI. MCP server configuration is covered above under "LM Studio MCP servers" in the Node.js section.
 
+**Per-model settings** — load settings and any chat-template override — are saved under `~/.lmstudio/.internal/user-concrete-model-default-config/PUBLISHER/MODEL/`, one JSON file per GGUF. They come along with a copy of `~/.lmstudio`, so check them before applying them on a new machine:
+
+- **Keep thinking retention on for Qwen 3.8, so no `{%- set preserve_thinking = false %}` line in a template override.** The model is trained with retention on, and its stock template keeps every earlier turn's thinking unless that variable is set false. With retention on, it builds on its earlier reasoning instead of restarting its solution each turn, and writes less new thinking per turn, since much of the material is already in context (observed 2026-10-20). An override written to save context did the opposite.
+- Qwen 3.6's template strips earlier thinking by default, and `preserve_thinking` is opt-in there. Read the template before assuming which way a model goes.
+
 **Web search** comes from a Hub plugin, not an MCP server:
 
 ```bash
