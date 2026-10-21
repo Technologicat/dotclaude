@@ -127,7 +127,25 @@ and know what you are accepting.
 read-only and writable sequence `view`s, and `mogrify`. `fup`/`slicing` do functional (copy-on-write)
 updates: `fupdate`, and the `fup(seq)[idx] << value` surface syntax. `env` is the namespace object
 the fleet uses; `assignonce` is its write-once sibling, and is **not recommended** — the macro layer
-supports `env` far more thoroughly, so `assignonce` is the one you give up when you want the rest. `dynassign` provides `dyn`, dynamic
+supports `env` far more thoroughly, so `assignonce` is the one you give up when you want the rest.
+
+**What an `env` supports, since the fleet passes them everywhere** (Raven's `llm_settings` is one).
+Probed against unpythonic 2.5.0 on 2026-10-21; the class docstring has the rest.
+
+- **It is a `MutableMapping`**: `isinstance(e, collections.abc.MutableMapping)` is true, and the mapping
+  methods are its own — `get(k, default=None)`, `keys`/`values`/`items`, `in`, `len`, iteration over
+  names, `e["x"]` reads and writes, `pop`, `popitem`, `setdefault`, `update`, `clear`. So `dict(e)` and
+  `**e` work, and `e == {"x": 1}` compares by bindings.
+- **Names must be identifiers**, subscripted ones included; `e["not valid"]` raises `ValueError`.
+- **`with env(...) as e:` clears every binding on exit.** Easy to mistake for a no-op context manager.
+- **`e.set("x", v)` and `e << ("x", v)` only rebind**: an unbound name raises `AttributeError`. They
+  exist for expression contexts; `<<` returns the env, so it chains.
+- **`e.finalize()` stops new bindings and deletions**, while existing names stay rebindable. Returns
+  the env since 2.3.1.
+- **`copy.copy` gives independent bindings to the same values**, as `dict.copy` does, and `deepcopy`
+  and `pickle` work. Not hashable, and not JSON-serializable: go through `dict(e)`.
+
+`dynassign` provides `dyn`, dynamic
 (thread-local, dynamically-scoped) variables. `symbol` gives interned `sym` and uninterned `gensym`.
 `singleton` is a `Singleton` base/mixin. `llist` is cons cells and linked lists, with the full
 `car`/`cdr`/`caar`…`cddddr` accessor set.
