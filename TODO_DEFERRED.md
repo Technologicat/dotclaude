@@ -2,6 +2,22 @@
 
 <!-- New items go below this line. -->
 
+## A type checker, fleet-wide
+
+*Cluster: ? · Cost: ? (a measuring run first is S) · Gate: the corpus filter's v1, being built · Filed: 2026-10-22*
+
+Wanted only if the type system works *for* us rather than against us, the fleet being dynamically typed by
+preference (maintainer, 2026-10-22). The motive is call signatures: a positional argument passed to a
+keyword-only parameter is caught today only at run time, and a checker would catch it before. Adopted fleet-wide
+in one sweep where it applies; the Cython modules are out of scope.
+
+Start by measuring rather than adopting: one permissive run (mypy or pyright, defaults rather than strict)
+over the largest codebase, Raven, with the errors counted by kind, to see whether they are findings or noise.
+Whether the defaults really leave unannotated code alone, as recalled, is part of what to check.
+
+In numerics a classic type system says little, every argument being a `float` or an array; keyword-only
+parameters are what tell those apart, and units or shapes would be the type system worth having there.
+
 ## Pin LM Studio's npx-fetched MCP servers
 
 *Cluster: lmstudio-mcp · Cost: S · Gate: after the vacation week · Filed: 2026-10-11*
