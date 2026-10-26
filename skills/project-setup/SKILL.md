@@ -318,11 +318,27 @@ an ordinary one-line addition. Either edit the table by hand, or check `git diff
 and restore what went missing. (Observed on PDM 2.26, adding `py-spy` to Raven: one line added, ten
 deleted. Again on PDM 2.28, adding `pycodestyle` to pyan.)
 
-**After a hand edit, relock with `pdm lock --update-reuse`.** A plain `pdm lock` re-resolves every
-package and takes whatever is newest, so a one-line dependency change arrives with a lockfile full of
-unrelated upgrades. `--update-reuse` keeps every existing pin and resolves only what changed. (pyan,
-2026-10-06: plain `pdm lock` moved `build` 1.4.3 → 1.6.1 among a thousand changed lines; `--update-reuse`
-changed only the content hash, `pycodestyle` being locked already as a transitive dependency.)
+**A lock moves for one reason at a time: an edit, or an upgrade.**
+
+- **After a dependency edit** — a package added or removed, a floor changed — relock with
+  `pdm lock --update-reuse`. A plain `pdm lock` re-resolves every package and takes whatever is newest,
+  so a one-line dependency change arrives with a lockfile full of unrelated upgrades. `--update-reuse`
+  keeps every existing pin and resolves only what changed. (pyan, 2026-10-06: plain `pdm lock` moved
+  `build` 1.4.3 → 1.6.1 among a thousand changed lines; `--update-reuse` changed only the content hash,
+  `pycodestyle` being locked already as a transitive dependency.)
+- **Upgrading the tree is an act of its own**: a plain `pdm lock`, on purpose, as a pass with its own
+  test run, and never folded into a commit that does something else. Small and frequent beats large and
+  rare — the total breakage is about the same either way, but a batch of a week's upstream releases is
+  a short list to bisect when something does break. Where Dependabot already forces a test run per weekly
+  batch, the full re-lock rides on that run at no extra cost; Raven's `CLAUDE.md` has that loop, under
+  "Dependency versions: CI moves first".
+
+Both halves serve attribution, which lands in one of two places:
+
+- **Where the lock is committed**, in the diff: the review of a one-line change should not have to wade
+  through a thousand lines of upgrades, and an upgrade pass's diff doubles as its bisection list.
+- **Where it is not** — libraries, and Raven while its lock is gitignored — in the environment: after a
+  relock that mixed the two, a break in the local run cannot be pinned on the edit or on the upgrades.
 
 Cython projects add on top:
 
