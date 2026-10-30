@@ -89,6 +89,11 @@ usage() {
     echo "usage: fleet-pull.sh [-n|--dry-run] [project ...]"
 }
 
+# "s" unless the count is exactly one, for agreeing a regular noun with it.
+plural_s() {
+    [ "$1" -eq 1 ] || echo "s"
+}
+
 # Record the outcome of one project, for the summary at the end.
 # Levels: OK (nothing to do), CHANGED (pulled or cloned), SKIP (deliberately
 # left alone), ALERT (needs a human).
@@ -209,14 +214,14 @@ sync_project() {
 
     if [ "$behind" -eq 0 ]; then
         if [ "$ahead" -gt 0 ]; then
-            record SKIP "$dir" "up to date, but $ahead local commit(s) not pushed"
+            record SKIP "$dir" "up to date, but $ahead local commit$(plural_s "$ahead") not pushed"
         else
             record OK "$dir" "up to date"
         fi
         return
     fi
     if [ "$ahead" -gt 0 ]; then
-        record ALERT "$dir" "diverged: $ahead local commit(s) vs $behind upstream; resolve by hand"
+        record ALERT "$dir" "diverged: $ahead local commit$(plural_s "$ahead") vs $behind upstream; resolve by hand"
         return
     fi
 
@@ -225,9 +230,9 @@ sync_project() {
 
     if $DRY_RUN; then
         if $dirty; then
-            record SKIP "$dir" "would stash local changes, fast-forward $behind commit(s), then pop"
+            record SKIP "$dir" "would stash local changes, fast-forward $behind commit$(plural_s "$behind"), then pop"
         else
-            record SKIP "$dir" "would fast-forward $behind commit(s)"
+            record SKIP "$dir" "would fast-forward $behind commit$(plural_s "$behind")"
         fi
         return
     fi
@@ -260,16 +265,16 @@ sync_project() {
     local head
     head=$(git -C "$path" log -1 --format='%h %s')
     if ! $stashed; then
-        record CHANGED "$dir" "fast-forwarded $behind commit(s), now at $head"
+        record CHANGED "$dir" "fast-forwarded $behind commit$(plural_s "$behind"), now at $head"
         return
     fi
 
     # A conflicting pop keeps the stash entry, so nothing is lost — the working
     # tree has the conflict markers and the stash is still on the stack.
     if git -C "$path" stash pop --index; then
-        record CHANGED "$dir" "fast-forwarded $behind commit(s), local changes reapplied, now at $head"
+        record CHANGED "$dir" "fast-forwarded $behind commit$(plural_s "$behind"), local changes reapplied, now at $head"
     else
-        record ALERT "$dir" "fast-forwarded $behind commit(s), but local changes conflict; resolve in $path, then 'git stash drop'"
+        record ALERT "$dir" "fast-forwarded $behind commit$(plural_s "$behind"), but local changes conflict; resolve in $path, then 'git stash drop'"
     fi
 }
 
@@ -289,7 +294,8 @@ print_summary() {
     done
 
     if [ "$alerts" -gt 0 ]; then
-        printf '\n%s%d project(s) need your attention.%s\n' "$C_RED" "$alerts" "$C_RESET"
+        # Count behind a label, so that no verb has to agree with it.
+        printf '\n%sProjects needing your attention: %d%s\n' "$C_RED" "$alerts" "$C_RESET"
         return 1
     fi
     return 0

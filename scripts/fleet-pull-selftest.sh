@@ -136,7 +136,7 @@ echo "assertions:"
 
 expect_summary 'OK +unpythonic +up to date'                  "current repo reported up to date"
 
-expect_summary 'CHANGED +pylu +fast-forwarded 1 commit'      "clean repo fast-forwarded"
+expect_summary 'CHANGED +pylu +fast-forwarded 1 commit,'      "clean repo fast-forwarded"
 expect_file    pylu/a.txt "a UPSTREAM"                       "clean repo has the upstream edit"
 
 expect_summary 'CHANGED +pydgq .*local changes reapplied'    "dirty repo stashed, pulled, popped"
@@ -158,7 +158,7 @@ fi
 expect_summary 'ALERT +mcpyrate +diverged'                   "diverged repo reported as an alert"
 expect_file    mcpyrate/b.txt "b LOCAL"                      "diverged repo left untouched"
 
-expect_summary 'CHANGED +dotclaude +fast-forwarded 1 commit' "repo outside the fleet root fast-forwarded"
+expect_summary 'CHANGED +dotclaude +fast-forwarded 1 commit,' "repo outside the fleet root fast-forwarded"
 expect_file    dotclaude/a.txt "a UPSTREAM"                  "repo outside the fleet root has the upstream edit"
 
 expect_summary 'CHANGED +pyan +cloned'                       "missing repo cloned"
