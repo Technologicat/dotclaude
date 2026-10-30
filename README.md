@@ -50,6 +50,7 @@ Runtime state (`projects/`, `sessions/`, `memory/`, caches) is *not* synced. Eac
 | [`NEW-MACHINE-SETUP.md`](NEW-MACHINE-SETUP.md) | Sysadmin checklist for bringing up a new Linux dev box. Baseline only — nothing machine-specific. |
 | [`GAMING-SETUP.md`](GAMING-SETUP.md) | Steam/Proton, the Input Remapper udev fix, CRT post-processing. Opt-in: not part of baseline setup. |
 | [`VKBASALT-SETUP.md`](VKBASALT-SETUP.md) | The vkBasalt build recipe that `GAMING-SETUP.md` leans on. Nontrivial to re-derive; archived deliberately. |
+| [`STRATA-SETUP.md`](STRATA-SETUP.md) | Strata MoE inference server: where each default actually lives across its four config files, the API key, and how to check the live defaults. |
 | [`settings.json`](settings.json) | Claude Code settings: permission allowlist, statusline, effort level. |
 | [`statusline.sh`](statusline.sh) | Custom status line — venv, host, cwd, model, effort, context usage. |
 | [`skills/`](skills/) | On-demand reference material (see below). |
