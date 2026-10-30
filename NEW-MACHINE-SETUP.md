@@ -496,7 +496,7 @@ That installs `githooks/commit-msg` for **every** repo on the machine, freshly c
 
 Note this *replaces* per-repo `.git/hooks/` rather than adding to it. No fleet repo had a hook installed when this went in (checked 2026-08-26), so nothing was displaced — but a project that later wants its own hooks has to put them here, or override `core.hooksPath` locally.
 
-Put the five bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
+Put the six bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
 
 ```bash
 ln -s ~/.claude/scripts/em ~/.local/bin/em
@@ -504,16 +504,17 @@ ln -s ~/.claude/scripts/api-inventory.py ~/.local/bin/api-inventory
 ln -s ~/.claude/scripts/cc-toast ~/.local/bin/cc-toast
 ln -s ~/.claude/scripts/ci-watch ~/.local/bin/ci-watch
 ln -s ~/.claude/scripts/cc-context.py ~/.local/bin/cc-context
+ln -s ~/.claude/scripts/fleet-pull.sh ~/.local/bin/fleet-pull
 ```
 
 The `api-inventory` and `cc-context` symlinks drop the `.py` because that is the name `CLAUDE.md` and the `code-exploration` skill invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
 
-**Five of the eleven scripts, and which five is decided by how they are invoked.** These are the ones `CLAUDE.md` and the skills tell an agent to type as a bare command mid-task, so a missing symlink surfaces as a command not found in the middle of unrelated work. The other six — `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull.sh`, `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` — are named by path everywhere they appear, and `run-on-internal-gpu.sh` is `source`d, which needs a path regardless. Adding a script to `scripts/` is therefore not automatically a reason to symlink it; being told to type its bare name in `CLAUDE.md` or a skill is.
+**Six of the eleven scripts, and which six is decided by how they are invoked.** Five are the ones `CLAUDE.md` and the skills tell an agent to type as a bare command mid-task, so a missing symlink surfaces as a command not found in the middle of unrelated work. The sixth, `fleet-pull`, is one a human types, on sitting down at either machine. The other five — `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` — are named by path everywhere they appear, and `run-on-internal-gpu.sh` is `source`d, which needs a path regardless. Adding a script to `scripts/` is therefore not automatically a reason to symlink it; being typed by its bare name, by an agent or by you, is.
 
-**A machine set up before one of them existed will be missing it, silently.** The list has grown — `ci-watch` and `cc-toast` arrived after the first two, and `cc-context` after those — and nothing re-runs this section on a machine that is already up. Worth checking on every machine when a script is added here:
+**A machine set up before one of them existed will be missing it, silently.** The list has grown — `ci-watch` and `cc-toast` arrived after the first two, `cc-context` after those, and `fleet-pull` last — and nothing re-runs this section on a machine that is already up. Worth checking on every machine when a script is added here:
 
 ```bash
-ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch,cc-context}
+ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch,cc-context,fleet-pull}
 ```
 
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
