@@ -25,6 +25,11 @@
 
 set -e
 
+# The fixture's commits are scaffolding, so keep the user's git hooks out of them:
+# a global core.hooksPath would otherwise apply its policy (e.g. a commit-msg check)
+# to every throwaway commit made below.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null
+
 W="${TMPDIR:-/tmp}/fleet-pull-selftest"
 rm -rf "$W"
 mkdir -p "$W/remotes" "$W/seed" "$W/fleet"
