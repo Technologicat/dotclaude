@@ -157,6 +157,12 @@ sync_project() {
 
     printf '\n%s==> %s%s\n' "$C_BOLD" "$dir" "$C_RESET"
 
+    # `-e` follows symlinks, so a dangling one would otherwise count as missing.
+    if [ -L "$path" ] && [ ! -e "$path" ]; then
+        record ALERT "$dir" "is a symlink to $(readlink "$path"), which does not exist; left alone"
+        return
+    fi
+
     if [ ! -e "$path" ]; then
         if $DRY_RUN; then
             record SKIP "$dir" "missing; would clone from $url"

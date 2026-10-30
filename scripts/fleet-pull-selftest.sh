@@ -98,8 +98,12 @@ rm -rf "$W/fleet/pyan"
 make_repo dotclaude dotclaude                   # reached by explicit path, not through FLEET_ROOT
 upstream_commit dotclaude
 
+make_repo raven raven                           # symlink whose target has gone away
+rm -rf "$W/fleet/raven"
+ln -s "$W/elsewhere/raven" "$W/fleet/raven"
+
 set +e
-output=$("$W/fleet-pull.sh" unpythonic pylu pydgq wlsqm mcpyrate pyan dotclaude 2>&1)
+output=$("$W/fleet-pull.sh" unpythonic pylu pydgq wlsqm mcpyrate pyan dotclaude raven 2>&1)
 status=$?
 
 failures=0
@@ -162,6 +166,13 @@ if [ -d "$W/fleet/pyan/.git" ]; then
     report pass "cloned repo is a working checkout"
 else
     report fail "cloned repo is a working checkout"
+fi
+
+expect_summary 'ALERT +raven +is a symlink to .*does not exist' "dangling symlink reported as an alert"
+if [ -L "$W/fleet/raven" ] && [ ! -e "$W/elsewhere/raven" ]; then
+    report pass "dangling symlink left in place, nothing cloned behind it"
+else
+    report fail "dangling symlink left in place, nothing cloned behind it"
 fi
 
 if [ "$status" -eq 1 ]; then
