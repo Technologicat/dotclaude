@@ -7,9 +7,13 @@
 # Usage:
 #   cpu-powercap [enable [PL1_W [PL2_W]]]
 #   cpu-powercap disable
+#   cpu-powercap watch [INTERVAL_S]
 #
 # PL1 is the long-term (sustained) limit, PL2 the short-term (burst) one.
 # `disable` restores whatever the limits were before the first `enable`.
+# `watch` prints the limits, then the measured package power, busy % and
+# clock every INTERVAL_S seconds (default 2) until Ctrl+C. Run it under
+# load to see whether a cap actually holds.
 #
 # RAPL is exposed through two interfaces, each with its own limits, and the
 # lower of the two is the one enforced. So we write both, where both exist.
@@ -91,7 +95,12 @@ elif [ "$action" = "disable" ]; then
     done < "$SNAPSHOT"
     rm -f "$SNAPSHOT"
     show_limits
+elif [ "$action" = "watch" ]; then
+    echo "Current limits:"
+    show_limits
+    # The energy counters turbostat reads are root-only.
+    exec sudo turbostat --quiet --show PkgWatt,Busy%,Bzy_MHz -i "${2:-2}"
 else
-    echo -ne "Unknown action '$action'; valid: 'enable', 'disable'.\n"
+    echo -ne "Unknown action '$action'; valid: 'enable', 'disable', 'watch'.\n"
     exit 2
 fi
