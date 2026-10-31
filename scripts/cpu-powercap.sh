@@ -10,6 +10,8 @@
 #   cpu-powercap watch [INTERVAL_S]
 #
 # PL1 is the long-term (sustained) limit, PL2 the short-term (burst) one.
+# PL1 defaults to 35 W and PL2 to PL1: a steady load gains nothing from a burst
+# allowance, and PL1 alone takes up to its ~56 s averaging window to bite.
 # `disable` restores whatever the limits were before the first `enable`.
 # `watch` prints the limits, then the measured package power, busy % and
 # clock every INTERVAL_S seconds (default 2) until Ctrl+C. Run it under
@@ -70,7 +72,7 @@ show_limits() {
 
 if [ "$action" = "enable" ]; then
     pl1="${2:-35}"
-    pl2="${3:-45}"
+    pl2="${3:-$pl1}"
     # Only the first `enable` since boot (or since the last `disable`) takes the
     # snapshot, so trying another wattage does not save the previous cap as "factory".
     if [ ! -f "$SNAPSHOT" ]; then
