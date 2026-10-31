@@ -76,7 +76,7 @@ if [ $# -ge 1 ]; then
 fi
 
 # Detect eGPU
-if [ $(nvidia-smi -L | wc -l) -ge 2 ]; then
+if [ "$(nvidia-smi -L | wc -l)" -ge 2 ]; then
     HAVE_EGPU=1
 else
     HAVE_EGPU=0
