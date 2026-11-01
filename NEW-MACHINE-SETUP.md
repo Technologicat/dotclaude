@@ -74,9 +74,14 @@ sudo apt install libenchant-2-voikko libvoikko1 voikko-fi
 # WordNet (for Spacemacs define-word)
 sudo apt install wordnet wordnet-base
 
-# GitHub CLI — see https://cli.github.com/packages if these instructions become stale
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+# GitHub CLI — see https://github.com/cli/cli/blob/trunk/docs/install_linux.md if these instructions become stale.
+# That page lists the signing-key fingerprints; check them against `gpg --show-keys` on the downloaded keyring.
+# The signing key has an expiry date (the 2022 one expired on 2026-09-05), and `apt update` then fails with EXPKEYSIG:
+# re-download the keyring with the first three lines below, and the sources list can stay as it is.
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 sudo apt update
 sudo apt install gh
 gh auth login
