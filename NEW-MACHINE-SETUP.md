@@ -28,7 +28,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # zbar-tools: `zbarimg file.png` decodes a QR code or barcode from an image, for checking that an
 #          exported code (e.g. `python -m raven.common.gui.qroverlay out.png`) scans before it is
 #          sent on. Reads PNG and SVG alike. For manual use; nothing tests against it.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools
+# libimage-exiftool-perl: `exiftool`, the reference reader for image metadata (EXIF, IPTC, XMP).
+#          chandra's test suite checks with it that the XMP chandra writes reads back as the standard
+#          IPTC properties, and skips that test where exiftool is absent.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl
 
 # Python tooling
 sudo apt install python3-pip pipx
