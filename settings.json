@@ -93,5 +93,6 @@
     ]
   },
   "agentPushNotifEnabled": true,
-  "idleCompaction": false
+  "idleCompaction": false,
+  "cleanupPeriodDays": 36500
 }
