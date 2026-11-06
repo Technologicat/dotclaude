@@ -527,6 +527,14 @@ The `api-inventory`, `cc-context` and `cc-log-extract` symlinks drop the `.py` b
 ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch,cc-context,cc-log-extract,fleet-pull,nvidia-underclock,cpu-powercap}
 ```
 
+**On the work machine, archive the session logs to the personal machine**, whose home-folder backup then picks them up. `cleanupPeriodDays` in `settings.json` already stops Claude Code deleting them; the copy guards against the next surprise of that kind. An hourly crontab entry, installed with `crontab -e`:
+
+```
+17 * * * * SSH_AUTH_SOCK= rsync -a -e 'ssh -o BatchMode=yes -o ConnectTimeout=10' "$HOME/.claude/projects/" <personal-machine>:Documents/cc-logs/<work-machine>/ 2>>"$HOME/.cache/cc-log-archive.log"
+```
+
+No `--delete`, so the archive keeps what this side loses. `SSH_AUTH_SOCK=` makes an interactive test run the way cron will, with no agent, so it needs a key with no passphrase. A run that fails because the other machine is off leaves one line in the log, and the next run catches up. It is a push because the logs belong to the work machine: if the backup target ever moves, this crontab is the one place to change. The actual hostnames are in `SECRET-SAUCE.md`.
+
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
 ### Adopting an existing `~/.claude` into the repo
