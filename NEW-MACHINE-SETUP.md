@@ -527,13 +527,44 @@ The `api-inventory`, `cc-context` and `cc-log-extract` symlinks drop the `.py` b
 ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch,cc-context,cc-log-extract,fleet-pull,nvidia-underclock,cpu-powercap}
 ```
 
-**On the work machine, archive the session logs to the personal machine**, whose home-folder backup then picks them up. `cleanupPeriodDays` in `settings.json` already stops Claude Code deleting them; the copy guards against the next surprise of that kind. An hourly crontab entry, installed with `crontab -e`:
+**On the work machine, archive the session logs to the personal machine**, whose home-folder backup then picks them up. `cleanupPeriodDays` in `settings.json` already stops Claude Code deleting them; the copy guards against the next surprise of that kind. A daily systemd user timer — `~/.config/systemd/user/cc-log-archive.service`:
 
-```
-17 * * * * SSH_AUTH_SOCK= rsync -a -e 'ssh -o BatchMode=yes -o ConnectTimeout=10' "$HOME/.claude/projects/" <personal-machine>:Documents/cc-logs/<work-machine>/ 2>>"$HOME/.cache/cc-log-archive.log"
+```ini
+[Unit]
+Description=Archive Claude Code session logs to <personal-machine>, whose home-folder backup picks them up
+
+[Service]
+Type=oneshot
+# No agent under systemd anyway; unset it so an interactive `systemctl --user start` behaves the same.
+UnsetEnvironment=SSH_AUTH_SOCK
+# No --delete, so the archive keeps whatever this machine loses.
+ExecStart=/usr/bin/rsync -a -e "ssh -o BatchMode=yes -o ConnectTimeout=10" %h/.claude/projects/ <personal-machine>:Documents/cc-logs/<work-machine>/
 ```
 
-No `--delete`, so the archive keeps what this side loses. `SSH_AUTH_SOCK=` makes an interactive test run the way cron will, with no agent, so it needs a key with no passphrase. A run that fails because the other machine is off leaves one line in the log, and the next run catches up. It is a push because the logs belong to the work machine: if the backup target ever moves, this crontab is the one place to change. The actual hostnames are in `SECRET-SAUCE.md`.
+and `cc-log-archive.timer` beside it:
+
+```ini
+[Unit]
+Description=Daily archive of Claude Code session logs
+
+[Timer]
+OnCalendar=daily
+# Run at the next login or wake if the machine was off or asleep at midnight.
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now cc-log-archive.timer
+systemctl --user start cc-log-archive.service      # one run now, to check
+journalctl --user -u cc-log-archive                # failures land here
+```
+
+A timer rather than a crontab entry: anacron catches up only the root jobs in `/etc/anacrontab`, so a user crontab entry missed during sleep is simply skipped, where `Persistent=true` runs it at the next opportunity. It runs only while the user is logged in (no lingering), which suits a laptop. The key must have no passphrase, there being no agent. It is a push because the logs belong to the work machine: if the backup target ever moves, this unit is the one place to change. The actual hostnames are in `SECRET-SAUCE.md`.
 
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
 
