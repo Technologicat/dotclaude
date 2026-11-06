@@ -33,18 +33,17 @@ per-turn-range breakdown + raw API strings).
 
 The script lives in the **substrate-independent** repo (it has its own test
 suite there — `scripts/tests/test_cc_log_extract.py`); do not fork or copy it,
-just call it where it lives:
+just call it where it lives. It is symlinked onto PATH as `cc-log-extract`:
 
 ```
-~/Documents/koodit/substrate-independent/scripts/cc-log-extract.py
+cc-log-extract SESSION.jsonl [MORE.jsonl ...] -o out.md [options]
 ```
 
-If that path is missing (repo not cloned on this machine), say so rather than
-reimplementing.
-
-```
-python3 .../cc-log-extract.py SESSION.jsonl [MORE.jsonl ...] -o out.md [options]
-```
+The symlink points at
+`~/Documents/koodit/substrate-independent/scripts/cc-log-extract.py`, so a
+`git pull` there updates the command. If it is not found, the symlink or the
+clone is missing on this machine (setup in `NEW-MACHINE-SETUP.md`); say so
+rather than reimplementing.
 
 Key options:
 - `--tools summary` (default) one-liner per tool call · `edits` show Edit/Write
@@ -100,21 +99,21 @@ sessions at once.
 - **Ethnography / field notes** — `--no-tools` for pure HUMAN↔CC dialogue; the model
   stamps let you attribute behavior to a specific model version.
 
-  **Copy the `.jsonl` beside the digest, at extraction time.** Claude Code clears old
-  sessions on a period set by `cleanupPeriodDays` — about a month by default, and unset
-  in this fleet's settings, so the default is what applies. Extraction alone therefore
-  puts a deadline on the raw material without saying so.
+  **The transcript is the source; the digest is lossy *by design*.** `thinking`
+  blocks, tool result bodies and consecutive-turn boundaries are gone, and the tool
+  detail is whatever `--tools` was set to on the day. Re-running at a different
+  setting, or reaching for something the extractor dropped, needs the `.jsonl`.
 
-  It matters because the digest is lossy *by design*: `thinking` blocks, tool result
-  bodies and consecutive-turn boundaries are gone, and the tool detail is whatever
-  `--tools` was set to on the day. Re-running at a different setting, or reaching for
-  something the extractor dropped, needs the transcript — which is the half that
-  expires. The digest survives and cannot be regenerated, and nothing announces the
-  loss; you find out months later when you go looking.
+  Since 2026-11-06 the transcripts are kept: `cleanupPeriodDays` is `36500` in the
+  tracked `settings.json`, against Claude Code's default of about a month. Before that
+  date the default applied, so sessions older than roughly 2026-10-07 survive only
+  where someone copied them out — two in `substrate-independent`'s `00_stuff/`, for
+  one, which no longer exist under `~/.claude/projects/`.
 
-  Observed 2026-09-10 in `substrate-independent`'s `00_stuff/`: two of the transcripts
-  held there no longer exist under `~/.claude/projects/` at all. Both were saved by
-  somebody copying them in time rather than by any mechanism.
+  **A project's `.claude/settings.json` setting `cleanupPeriodDays` would override
+  this for the whole machine**, the sweep walking every project directory with the
+  merged cutoff (reported in a bug report, not verified here). So if a project's
+  logs ever vanish early, grep the repos' `.claude/` folders first.
 
   The stamp groups by `family-major-minor`, folding a bare identifier
   (`claude-opus-4-7`) together with a dated pin of the same version

@@ -113,37 +113,29 @@ sections is neither one-to-one nor stable. Resolve it before extracting:
 - **Dirs that are not projects.** Scratchpad and `/tmp` working directories appear
   alongside the real ones. Skip them.
 
-Run `cc-log-extract.py` once per project, that project's sessions in chronological
+Run `cc-log-extract` once per project, that project's sessions in chronological
 order, `--timestamps`, default `--tools summary`. Subagent transcripts live at
 `<session-uuid>/subagents/agent-*.jsonl`; include or skip them deliberately.
 
-The script lives in the **substrate-independent** repo, not in this one:
+The command is a symlink into the **substrate-independent** repo, where the script
+lives, so a fix to it lands there — pulling `~/.claude` does not bring it. The
+`cc-log-extract` skill has the options and the model-stamp semantics.
 
-```
-~/Documents/koodit/substrate-independent/scripts/cc-log-extract.py
-```
+**Session logs are kept from 2026-11-06 on, and older months are partly gone.** Claude
+Code prunes `~/.claude/projects/` at startup, by `cleanupPeriodDays` — about a month by
+default. Until 2026-11-06 the default applied; since then the tracked `settings.json`
+sets `36500`. Juha's reasons: both machines are single-user, the logs hold nothing
+secret, and the ethnography and humour that end up in reports and talks happen
+interleaved with daily work, in the sessions themselves. (An earlier decision, 2026-08-12,
+had kept the default on the grounds that the logs are large and never re-read once the
+digests exist; reversed.) For months before the change:
 
-So a fix to it lands there — pulling `~/.claude` does not bring it. The `cc-log-extract`
-skill has the options and the model-stamp semantics.
-
-**Session logs expire, so extraction is the step with a deadline.** Claude Code prunes
-`~/.claude/projects/` on a rolling window — observed at 30 days, with no retention key
-set in `settings.json`. Consequences, all of which bite quietly:
-
-- **A month cannot be re-drafted from logs once it ages out.** Past the window the
-  archived digests in `YYYY-MM/` are not backing detail, they are the only record. This
-  is what makes step 5 load-bearing rather than tidy.
-- **An empty scan is not an idle period.** Finding no sessions in a stretch older than
-  the window means the logs are gone, not that nothing happened. Say which of the two
-  it is, or say you cannot tell — a coverage line that implies an idle fortnight is a
-  claim the evidence does not support.
-- **Extract before drafting, not while drafting.** If a report slips a few weeks, run
-  step 2 anyway on whatever is still there; the digests keep, the logs do not.
-
-**The default retention is deliberate** — considered on 2026-08-12 and left alone. The
-logs are large and in practice never read again once a report is done, so the digests are
-the artifact worth keeping and the raw logs are not. Don't propose raising the window as a
-fix for the above; extract on time instead.
+- **Past the old window, the archived digests in `YYYY-MM/` are the only record.**
+  Sessions earlier than about 2026-10-07 survive only where the sweep had not run yet —
+  the personal machine, started less often, still held logs from 2026-08-21 on the day of the change.
+- **An empty scan of that period is not an idle period.** It can mean the logs are gone.
+  Say which of the two it is, or say you cannot tell — a coverage line that implies an
+  idle fortnight is a claim the evidence does not support.
 
 ### 3. Verify the releases against git
 
