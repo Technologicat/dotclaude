@@ -326,6 +326,7 @@ pipx install mcpyrate --python python3.11 --suffix 3.11
 pipx install mcpyrate --python python3.12 --suffix 3.12
 pipx install mcpyrate --python python3.13 --suffix 3.13
 pipx install mcpyrate --python python3.14 --suffix 3.14
+pipx install mcpyrate --python python3.15 --suffix 3.15   # supported since mcpyrate 4.3.0
 
 # ...and a bare `macropython` pointing at a current one, so tooling and docs can
 # rely on the unsuffixed name existing. Cleaning __pycache__ (macropython -C) is
