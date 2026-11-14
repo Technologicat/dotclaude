@@ -34,7 +34,9 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # kitty: the terminal Claude Code runs in, on every machine. Installing it also provides the
 #          `xterm-kitty` terminfo, which a host needs before anyone can SSH into it from Kitty
 #          (the alternative is `kitten ssh`, which carries the terminfo along).
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty
+# htop, nvtop: process and GPU monitors. nvtop ("Neat Videocard TOP") covers AMD and Intel GPUs as
+#          well as NVIDIA, so it is the GPU monitor on every machine.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty htop nvtop
 
 # Python tooling
 sudo apt install python3-pip pipx
