@@ -206,30 +206,35 @@ Worth re-testing after a major OS upgrade. This arrangement was settled against 
 
 The panel applet `multicore-sys-monitor@ccadeptic23` reads the CPU temperature from one literal file
 path: Configure → "Path to the system file used to check the CPU temperature". Its default,
-`/sys/class/thermal/thermal_zone1/temp`, is not the CPU on any of these machines, so set it by hand.
-The file holds thousandths of a degree Celsius.
+`/sys/class/thermal/thermal_zone1/temp`, is not the CPU on any of these machines. The file holds
+thousandths of a degree Celsius.
 
-**Intel:** use the thermal zone whose type is `x86_pkg_temp`, the CPU package sensor. Its number
-differs per machine:
+Where the CPU sensor lives differs by vendor, and on neither is its path stable:
 
-```bash
-for z in /sys/class/thermal/thermal_zone*; do echo "$z $(cat $z/type)"; done
-```
+- **Intel:** the thermal zone of type `x86_pkg_temp`, the CPU package sensor. Its zone number differs
+  per machine (6 on one laptop, 8 on the other).
+- **AMD:** there may be no thermal zones at all, since they come from the ACPI firmware, and the AI
+  server's BIOS exposes none. The CPU sensor is the `k10temp` driver's `temp1_input` (label `Tctl`)
+  under `/sys/class/hwmon/`, and the hwmon index depends on the order the drivers load in.
 
-**AMD:** there may be no thermal zones at all; they come from the ACPI firmware, and the AI server's
-BIOS exposes none. The CPU sensor is the `k10temp` driver's `temp1_input` (label `Tctl`) under
-`/sys/class/hwmon/`. The hwmon index depends on the order the drivers load in, so it is not stable
-across boots, and the applet takes no glob. A udev rule gives it a fixed name each time `k10temp`
-registers:
+The applet takes no glob, so a udev rule links whichever sensor exists to `/run/cpu-temp` each time
+its driver registers. One rules file serves every machine, because only the line that matches fires:
 
 ```bash
-echo 'ACTION=="add", SUBSYSTEM=="hwmon", ATTR{name}=="k10temp", RUN+="/bin/ln -sfn /sys%p/temp1_input /run/k10temp-tctl"' | sudo tee /etc/udev/rules.d/90-k10temp-symlink.rules
-sudo udevadm trigger --action=add -s hwmon --attr-match=name=k10temp   # now; at boot it happens by itself
-cat /run/k10temp-tctl
+sudo tee /etc/udev/rules.d/90-cpu-temp-symlink.rules >/dev/null <<'EOF'
+# Link the CPU temperature sensor to /run/cpu-temp, for the panel applet. Only one line matches per machine.
+ACTION=="add", SUBSYSTEM=="thermal", ATTR{type}=="x86_pkg_temp", RUN+="/bin/ln -sfn /sys%p/temp /run/cpu-temp"
+ACTION=="add", SUBSYSTEM=="hwmon", ATTR{name}=="k10temp", RUN+="/bin/ln -sfn /sys%p/temp1_input /run/cpu-temp"
+EOF
+# Create the link now; at boot it happens by itself. Intel:
+sudo udevadm trigger --action=add -s thermal --attr-match=type=x86_pkg_temp
+# AMD:
+sudo udevadm trigger --action=add -s hwmon --attr-match=name=k10temp
+cat /run/cpu-temp
 ```
 
-Then point the applet at `/run/k10temp-tctl`. Note the `--action=add`: `udevadm trigger` sends `change`
-events by default, which this rule does not match, so without it the link silently fails to appear.
+Then point the applet at `/run/cpu-temp`. Note the `--action=add`: `udevadm trigger` sends `change`
+events by default, which these rules do not match, so without it the link silently fails to appear.
 
 ## Home LAN name resolution
 
