@@ -31,7 +31,10 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # libimage-exiftool-perl: `exiftool`, the reference reader for image metadata (EXIF, IPTC, XMP).
 #          chandra's test suite checks with it that the XMP chandra writes reads back as the standard
 #          IPTC properties, and skips that test where exiftool is absent.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl
+# kitty: the terminal Claude Code runs in, on every machine. Installing it also provides the
+#          `xterm-kitty` terminfo, which a host needs before anyone can SSH into it from Kitty
+#          (the alternative is `kitten ssh`, which carries the terminfo along).
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty
 
 # Python tooling
 sudo apt install python3-pip pipx
