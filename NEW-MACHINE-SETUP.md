@@ -44,11 +44,19 @@ sudo apt install python3-pip pipx
 # OOM: earlyoom. These machines run without swap, and even so the kernel can thrash before its
 # OOM killer fires: under memory pressure it evicts file-backed pages (code included) and keeps
 # re-reading them, so the desktop freezes for minutes rather than a process being killed.
-# earlyoom kills the largest process early instead; its defaults are fine. Mint does not run
-# systemd-oomd (inactive on a fresh 22.3 install), so nothing else covers this.
+# earlyoom kills the largest process early instead. Mint does not run systemd-oomd (inactive on a
+# fresh 22.3 install), so nothing else covers this.
 # Remove the installer's swapfile too: `sudo swapoff /swapfile`, delete its line in /etc/fstab,
 # then `sudo rm /swapfile`.
 sudo apt install earlyoom
+# Then replace its default threshold. That default is SIGTERM at <= 10% available memory and
+# SIGKILL at <= 5%. With no swap the swap condition always holds, so memory alone decides, and a
+# local LLM that legitimately leaves ~6% free (a large model on the work machine, or GPU memory
+# on the AI server) would be killed as soon as it loads. Use absolute sizes instead: SIGTERM at
+# 2 GiB, SIGKILL at 1 GiB. `-M` replaces the percentage default rather than adding to it.
+sudo sed -i 's/^EARLYOOM_ARGS=.*/EARLYOOM_ARGS="-r 3600 -M 2097152,1048576"/' /etc/default/earlyoom
+sudo systemctl restart earlyoom
+journalctl -u earlyoom -n 3 --no-pager   # check the "sending SIGTERM when mem <= ..." line
 
 # Deadsnakes PPA (multiple Python versions)
 sudo add-apt-repository ppa:deadsnakes/ppa
