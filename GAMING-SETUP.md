@@ -2,7 +2,10 @@
 
 **Opt-in.** This is not part of baseline machine setup. Apply only when separately requested — nothing here should be blanket-applied to a new box.
 
-Prerequisite from baseline setup: the NVIDIA driver must come from the graphics-drivers PPA, so that `libnvidia-gl-XXX:i386` is present. See "NVIDIA driver" in `NEW-MACHINE-SETUP.md`. Without the i386 GL libs, 32-bit games fall back to software rendering (Vulkan → llvmpipe) or black-screen outright, and everything below is moot.
+Prerequisite: 32-bit GL and Vulkan drivers. Without them, 32-bit games fall back to software rendering (Vulkan → llvmpipe) or black-screen outright, and everything below is moot.
+
+- **NVIDIA:** the driver must come from the graphics-drivers PPA, so that `libnvidia-gl-XXX:i386` is present. See "NVIDIA driver" in `NEW-MACHINE-SETUP.md`.
+- **AMD (Mesa):** install Steam as `sudo apt install steam-installer mesa-vulkan-drivers:i386`, with the i386 architecture enabled (`dpkg --print-foreign-architectures`). `steam-installer` depends on the 32-bit Mesa GL driver but only *recommends* the 32-bit Vulkan one, hence naming it explicitly.
 
 ## Input Remapper phantom gamepad
 
@@ -68,7 +71,7 @@ The in-kernel `hid-logitech` module drives the G29 but plays only the constant-f
 
 **The G29's mode switch must be in the PS3 position** — that is the mode the driver supports.
 
-Installed through DKMS, so it is rebuilt automatically for each new kernel. DKMS installs it *as* `hid-logitech` under `updates/dkms/`, which takes precedence over the in-tree module of the same name. Nothing else is configured: no modprobe options, no udev rules. Secure Boot is disabled on this machine, so the module needs no signing.
+Installed through DKMS, so it is rebuilt automatically for each new kernel. DKMS installs it *as* `hid-logitech` under `updates/dkms/`, which takes precedence over the in-tree module of the same name. Nothing else is configured: no modprobe options, no udev rules. Secure Boot is disabled on the machines that run it (the personal machine, and the AI server in the living room), so the module needs no signing. Version 0.5.0 builds and installs cleanly on kernel 7.0 (checked 2026-11-15).
 
 The checkout lives at `~/Documents/koodit/new-lg4ff`. Given a directory, `dkms install` copies the source to `/usr/src/new-lg4ff-<version>` by itself (without `.git`), taking the version from `dkms.conf`:
 
