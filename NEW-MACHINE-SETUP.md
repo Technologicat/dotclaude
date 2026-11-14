@@ -36,6 +36,15 @@ sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0
 # Python tooling
 sudo apt install python3-pip pipx
 
+# OOM: earlyoom. These machines run without swap, and even so the kernel can thrash before its
+# OOM killer fires: under memory pressure it evicts file-backed pages (code included) and keeps
+# re-reading them, so the desktop freezes for minutes rather than a process being killed.
+# earlyoom kills the largest process early instead; its defaults are fine. Mint does not run
+# systemd-oomd (inactive on a fresh 22.3 install), so nothing else covers this.
+# Remove the installer's swapfile too: `sudo swapoff /swapfile`, delete its line in /etc/fstab,
+# then `sudo rm /swapfile`.
+sudo apt install earlyoom
+
 # Deadsnakes PPA (multiple Python versions)
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
