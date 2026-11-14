@@ -199,6 +199,29 @@ Worth re-testing after a major OS upgrade. This arrangement was settled against 
 
 - **Systray calendar (Cinnamon):** Set start of week to Monday (not the default Sunday). Right-click the clock → Settings.
 
+## Home LAN name resolution
+
+On the home LAN, machines reach each other by bare hostname (`ssh hostname`), served by the router's DNS.
+Set up 2026-11-14. The pattern works on any router that can do DHCP reservations with hostnames; only the
+menu locations differ (on the current ASUS router: LAN → DHCP Server):
+
+- **Domain name** `home.arpa` (RFC 8375). Not `.local`, which belongs to mDNS.
+- **Manual assignment** enabled: a fixed IP plus a hostname for each machine, keyed by its Wi-Fi MAC.
+- **Router DNS fields** left empty, and "advertise router's IP" on, so that clients use the router as their
+  DNS server and it answers for the names.
+
+mDNS (`hostname.local`, via Avahi) keeps working alongside this.
+
+**Adding a machine:** add a reservation, taking the MAC from the router's client list. If NetworkManager
+randomizes the MAC for that network, the reservation will not match, so switch that off for the home
+network. Reconnect, then check with `getent hosts <name>`.
+
+**Replacing a machine:** update or delete its old entry. A stale MAC still holding a name or an IP
+misroutes silently.
+
+**Replacing the router:** redo the above. The old router's config backup is in the rolling backup, for
+reference.
+
 ## Core dumps
 
 `systemd-coredump` saves every segfault with no preparation, which is why chasing one starts with reading
@@ -613,15 +636,47 @@ git status --ignored --short        # ?? and !! lines are both leftovers
 
 Anything that is neither runtime state nor one of the two private files is a superseded copy; diff it against whatever replaced it, then delete it. Machine-local Claude Code settings do not belong back in the tracked `settings.json` — put them in `settings.local.json`, which the deny-all already ignores.
 
-### Kitty terminal workaround
+### Kitty terminal workaround (currently not needed)
 
-Claude Code may leave the terminal in raw mode on exit. Add to `~/.bashrc`:
+Older Claude Code versions left the terminal in raw mode on exit, which this wrapper repaired:
 
 ```bash
-alias claude='command claude; reset'
+claude() { command claude "$@"; reset; }
 ```
 
-## Bashrc additions for project commands
+Not seen recently on any machine, so it is commented out as of 2026-11-15. If a terminal comes back
+garbled after quitting Claude Code, re-enable it. The `fix` alias below repairs a terminal by hand.
+
+## Bashrc additions
+
+Merge these into the distribution's fresh `~/.bashrc` rather than copying an old one over it.
+
+**Before the "If not running interactively" guard**, so a non-interactive `ssh host '<cmd>'` gets them too.
+That is the `PATH` line plus the wrappers and aliases below:
+
+```bash
+export PATH=/home/jje/.local/bin/:$PATH
+
+alias fix='reset; stty sane; tput rs1; clear; echo -e "\033c"'
+alias gg='git log --oneline --abbrev-commit --all --graph --decorate --color'
+alias gl='git log --pretty=oneline'
+alias grip='grip -b'
+alias lmstudio='script -qc "lmstudio" /dev/null'
+```
+
+**After the guard**, the interactive-only settings:
+
+```bash
+# disable XON/XOFF
+stty -ixon
+```
+
+Then, in the template's own lines: uncomment `shopt -s globstar`; add `export LESS="-R"` after the
+`lesspipe` line; and add `xterm-kitty` to the color-prompt case
+(`xterm-color|*-256color|xterm-kitty) color_prompt=yes;;`). Kitty sets `TERM=xterm-kitty`, which the
+stock pattern does not match, so without that the prompt stays uncolored.
+
+### Project commands
 
 Several projects need venv activation and environment setup before their CLI entry points work. These shell wrappers go in `~/.bashrc` and handle the ceremony in a subshell so the caller's environment stays clean.
 
@@ -640,7 +695,7 @@ chandra() {
 }
 ```
 
-**Raven** (NLP/scientific apps): each command activates the Raven venv and sources `env.sh` (CUDA library paths). `raven-server` additionally sources `run-on-internal-gpu.sh` (to pin to the internal dGPU on multi-GPU machines) and `no-hammer-hf.sh` (to skip HuggingFace network hits at startup, once models are cached).
+**Raven** (NLP/scientific apps): each command activates the Raven venv and sources `env.sh` (CUDA library paths). `raven-server` additionally sources `run-on-internal-gpu.sh` (to pin to the internal dGPU on multi-GPU machines; NVIDIA only, so leave it out on an AMD machine, where it would fail for lack of `nvidia-smi`) and `no-hammer-hf.sh` (to skip HuggingFace network hits at startup, once models are cached).
 
 ```bash
 raven-arxiv-download() {
