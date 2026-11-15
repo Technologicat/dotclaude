@@ -36,7 +36,8 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 #          (the alternative is `kitten ssh`, which carries the terminfo along).
 # htop, nvtop: process and GPU monitors. nvtop ("Neat Videocard TOP") covers AMD and Intel GPUs as
 #          well as NVIDIA, so it is the GPU monitor on every machine.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty htop nvtop
+# nethogs: network bandwidth per process, top-style. Needs root: `sudo nethogs <interface>`.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty htop nvtop nethogs
 
 # Python tooling
 sudo apt install python3-pip pipx
