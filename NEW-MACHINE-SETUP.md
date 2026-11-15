@@ -884,6 +884,69 @@ pip install matplotlib scikit-image onnxruntime-gpu
 
 **Running:** `cd ~/ComfyUI && source venv/bin/activate && python main.py` — opens a web UI on `http://127.0.0.1:8188`.
 
+## AMD ROCm
+
+AMD's compute stack, the counterpart of CUDA. Set up on the AI server (Strix Halo APU, gfx1151) with
+ROCm 10.1.0 in November 2026; the authoritative instructions are AMD's
+[install page](https://rocm.docs.amd.com/en/latest/install/rocm.html), and for Strix Halo also its
+[system optimization page](https://rocm.docs.amd.com/en/latest/how-to/system-optimization/strixhalo.html).
+
+**Kernel first.** gfx1151 needs two KFD fixes. AMD's support table lists Ubuntu 24.04 HWE
+≥ 6.17.0-19.19, OEM ≥ 6.14.0-1018, Ubuntu 26.04, or any other distribution on Linux ≥ 6.18.4; check the
+table for the ROCm version at hand. Mint 22.3's HWE kernel 7.0 is in range. (The install page also says
+Ryzen APUs "require the OEM kernel 6.14", which contradicts the table; the table is the more specific of
+the two.)
+
+**Ryzen APUs use the kernel's own `amdgpu` driver**, so no DKMS driver package. A discrete Radeon or
+Instinct card is different: see the kernel-driver step on AMD's install page.
+
+Take a Timeshift snapshot first, as before an NVIDIA driver change (and see "Restoring a snapshot when X
+won't start" under "NVIDIA driver" if it comes to that).
+
+```bash
+sudo apt install libatomic1 libquadmath0
+# /dev/kfd, the compute device, belongs to group render and gets no desktop-session ACL,
+# unlike the render node that OpenGL and Vulkan use. Takes effect at the next login.
+sudo usermod -a -G render,video $LOGNAME
+
+sudo mkdir --parents --mode=0755 /etc/apt/keyrings
+wget https://stable.repo.amd.com/rocm/gpg/packages.gpg -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/amdrocm.gpg > /dev/null
+sudo tee /etc/apt/sources.list.d/amdrocm-stable.sources <<'EOF'
+X-Repo-Id: amdrocm-stable
+Types: deb
+URIs: https://stable.repo.amd.com/rocm/core/packages/ubuntu2404/
+Suites: stable
+Components: main
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/amdrocm.gpg
+Enabled: yes
+EOF
+sudo apt update
+sudo apt install amdrocm10.1 amdrocm10.1-gfx1151   # ~7 GB download, ~19 GB on disk
+```
+
+**GPU memory on an APU.** The GPU gets a fixed BIOS carve-out (VRAM) plus GTT, which is ordinary RAM
+the GPU may map, capped by default at half of RAM. AMD recommends a small carve-out and a raised GTT
+cap. The cap is the `ttm` module's `pages_limit`, in 4 KiB pages; it is a ceiling, not a reservation.
+On the AI server, 116 GiB of 123 GiB visible, with a 2 GiB carve-out:
+
+```bash
+echo "options ttm pages_limit=$((116 * 1024 * 1024 / 4))" | sudo tee /etc/modprobe.d/ttm.conf
+```
+
+AMD's `amd-ttm --set <GB>` writes the same file; it is not needed. Mind earlyoom's threshold when
+raising this (see the earlyoom note under "System packages").
+
+Reboot, then verify:
+
+```bash
+id | grep -o render                                  # group membership is live
+cat /sys/module/ttm/parameters/pages_limit           # the new cap
+rocminfo | grep -m1 -o 'gfx1151'                     # the GPU is visible to ROCm
+amd-smi version                                      # ROCm version
+sudo dmesg | grep -iE 'amdgpu|kfd' | grep -iE 'error|fail|timeout'   # expect nothing
+```
+
 ## NVIDIA driver
 
 Use the **graphics-drivers PPA**, on every machine:
