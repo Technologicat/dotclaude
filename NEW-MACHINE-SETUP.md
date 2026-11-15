@@ -997,7 +997,7 @@ podman run --rm --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
   ghcr.io/gufo-org/toolboxes/gufo-runtime:0.34.0 gufo diagnose
 ```
 
-`diagnose` does not check the firmware version. It reports the GPU as "20 CUs": that is HIP's
+As of 0.34.0, `diagnose` does not check the firmware version, and it reports the GPU as "20 CUs" (reported upstream as gufo-org/gufo#1235): that is HIP's
 `multiProcessorCount`, which counts workgroup processors (two CUs each) when the GPU runs in WGP
 mode, as here. `rocminfo` shows the 40 CUs.
 
