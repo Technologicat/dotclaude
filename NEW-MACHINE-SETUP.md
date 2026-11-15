@@ -170,6 +170,23 @@ sudo apt install cheese gnome-video-effects-frei0r gnome-video-effects-extra
 sudo apt install meson ninja-build
 ```
 
+## Filesystem (ext4 root on an SSD)
+
+Two changes to the installer's defaults:
+
+- **Reserved blocks: 1% instead of 5%.** ext4 reserves 5% for root by default, which on a 2 TB disk is
+  ~100 GB held back. 1% is plenty on a modern disk.
+- **`noatime`** instead of the default `relatime`, so that reading a file never causes a write.
+
+```bash
+ROOTDEV=$(findmnt -no SOURCE /)
+sudo tune2fs -l "$ROOTDEV" | grep -i 'reserved block count'   # before
+sudo tune2fs -m 1 "$ROOTDEV"
+# In /etc/fstab, add noatime to the root line's options: errors=remount-ro → noatime,errors=remount-ro
+sudo mount -o remount /
+findmnt -no OPTIONS /                                          # expect noatime
+```
+
 ## Input methods
 
 ```bash
@@ -512,6 +529,7 @@ The cause is not pinned down. Separately, keep anything that touches the termina
 ## Spacemacs
 
 ```bash
+sudo apt install emacs     # Ubuntu's package; 29.3 on Mint 22.x
 git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 git clone git@github.com:Technologicat/spacemacs.d.git ~/.spacemacs.d
 ```
@@ -652,7 +670,7 @@ journalctl --user -u cc-log-archive                # failures land here
 
 A timer rather than a crontab entry: anacron catches up only the root jobs in `/etc/anacrontab`, so a user crontab entry missed during sleep is simply skipped, where `Persistent=true` runs it at the next opportunity. It runs only while the user is logged in (no lingering), which suits a laptop. The key must have no passphrase, there being no agent. It is a push because the logs belong to the work machine: if the backup target ever moves, this unit is the one place to change. The actual hostnames are in `SECRET-SAUCE.md`.
 
-The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. All are in the Essentials block above.
+The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. The first three are in the Essentials block above; `emacsclient` comes with Emacs, under "Spacemacs".
 
 ### Adopting an existing `~/.claude` into the repo
 
