@@ -961,6 +961,60 @@ amd-smi version                                      # ROCm version
 sudo dmesg | grep -iE 'amdgpu|kfd' | grep -iE 'error|fail|timeout'   # expect nothing
 ```
 
+### gufo (Strix Halo only)
+
+[gufo](https://github.com/gufo-org/gufo) is an inference engine written for exactly one chip, the Strix
+Halo (gfx1151) with 128 GiB: one supported model per use case, kernels tuned for that GPU. On the AI
+server it serves Qwen 3.8 Flash-Next. Run it from its container image, which carries its own runtime:
+the `.deb` is built for Debian 13, not for Mint's Ubuntu 24.04 base.
+
+**Host preparation**, once:
+
+```bash
+sudo apt install podman crun       # rootless podman needs crun for --group-add keep-groups
+echo -e '* soft memlock unlimited\n* hard memlock unlimited' | sudo tee /etc/security/limits.d/99-gufo.conf
+# then log out and back in; `ulimit -l` should say unlimited
+```
+
+The user also needs groups `render` and `video`, as for ROCm above. gufo's
+[host configuration guide](https://github.com/gufo-org/toolboxes/blob/main/docs/host-configuration.md)
+asks for kernel >= 6.18.4 and `linux-firmware` >= 20260110 (and to avoid 20251125). It also suggests
+`amdgpu.gttsize=65536`; skip that if GTT is already raised through `ttm` as above.
+
+**Pin the image version.** gufo releases every day or two, so pull a numbered tag rather than `latest`,
+and move it deliberately:
+
+```bash
+podman pull ghcr.io/gufo-org/toolboxes/gufo-runtime:0.34.0
+```
+
+**Check the setup** (expect `Overall Status : [PASS]`):
+
+```bash
+podman run --rm --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
+  --device /dev/kfd --device /dev/dri --device /dev/accel/accel0 --ulimit memlock=-1 \
+  ghcr.io/gufo-org/toolboxes/gufo-runtime:0.34.0 gufo diagnose
+```
+
+`diagnose` does not check the firmware version. It reports the GPU as "20 CUs": that is HIP's
+`multiProcessorCount`, which counts workgroup processors (two CUs each) when the GPU runs in WGP
+mode, as here. `rocminfo` shows the 40 CUs.
+
+**Models live on the host**, outside the container, so that upgrading gufo means pulling a new image and
+nothing else. Each model page in gufo's docs names the exact files and Hugging Face revision it was
+validated against. For Flash-Next (~107 GiB: 103.7 GiB of UD-Q4_K_XL weights, the MTP head, the image
+projector), with `hf` from `pipx install huggingface_hub`:
+
+```bash
+hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision d96201194f103c906994f283f504209dc8d2a10c \
+  --include "UD-Q4_K_XL/*" --include "MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf" --include "mmproj-BF16.gguf" \
+  --local-dir ~/models/flash-next
+```
+
+and mount `~/models` read-only into the container (`-v ~/models:/models:ro`). At 103.7 GiB of weights,
+Flash-Next leaves about 9 GiB of a 116 GiB GTT cap for its KV cache, at ~27.5 KiB per token with MTP: one
+session at the full 256 Ki, or more at shorter contexts.
+
 ## NVIDIA driver
 
 Use the **graphics-drivers PPA**, on every machine:
