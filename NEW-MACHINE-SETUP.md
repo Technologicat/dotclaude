@@ -37,7 +37,9 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # htop, nvtop: process and GPU monitors. nvtop ("Neat Videocard TOP") covers AMD and Intel GPUs as
 #          well as NVIDIA, so it is the GPU monitor on every machine.
 # nethogs: network bandwidth per process, top-style. Needs root: `sudo nethogs <interface>`.
-sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty htop nvtop nethogs
+# powertop: wakeups and CPU usage per process, plus power tunables. Needs root. On AMD it shows no
+#          wattage, but the events/s view still finds what keeps a machine from idling.
+sudo apt install git wget jq xclip xdotool wmctrl ripgrep graphviz libturbojpeg0-dev espeak-ng shellcheck tesseract-ocr gifsicle pandoc zbar-tools libimage-exiftool-perl kitty htop nvtop nethogs powertop
 
 # Python tooling
 sudo apt install python3-pip pipx
