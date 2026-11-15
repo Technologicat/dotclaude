@@ -98,6 +98,11 @@ ssh-keygen -t ed25519
 # Spellchecking
 sudo apt install hunspell-en-us hunspell-en-gb
 sudo apt install libenchant-2-voikko libvoikko1 voikko-fi
+# Spacemacs's config (`~/.spacemacs.d/config.el`) runs ispell/flyspell through ~/.local/bin/enchant,
+# so link the enchant-2 binaries there under their unversioned names. Without these, flyspell fails
+# at startup with "Searching for program No such file or directory ~/.local/bin/enchant".
+ln -s /usr/bin/enchant-2 ~/.local/bin/enchant
+ln -s /usr/bin/enchant-lsmod-2 ~/.local/bin/enchant-lsmod
 
 # WordNet (for Spacemacs define-word)
 sudo apt install wordnet wordnet-base
