@@ -806,11 +806,25 @@ pdm install -G cuda
 
 ## Local AI stack
 
-LM Studio (LLM inference) and ComfyUI (image generation) form the local AI stack. Both require an NVIDIA GPU with current drivers.
+LM Studio (LLM inference) and ComfyUI (image generation) form the local AI stack. On the NVIDIA machines both use CUDA with current drivers. LM Studio also runs on the AI server's AMD APU, through its Vulkan or ROCm runtime (tested November 2026); ComfyUI there is untried.
 
 ### LM Studio
 
-Two separate installs: the headless CLI daemon (`lms`/`llmster`) and the desktop GUI app.
+**The GUI app is enough on a desktop machine.** It ships `lms`: its first-run wizard offers to add `~/.lmstudio/bin` to `PATH`, and appends the same block to `~/.bashrc` that the CLI installer writes. The separate CLI install below is for a machine without the GUI.
+
+**Runtimes.** LM Studio downloads the llama.cpp builds it thinks fit, and on an AMD machine that included a useless CUDA one. List, add, select and remove them with `lms runtime`:
+
+```bash
+lms runtime get --list                                   # what is available
+lms runtime get -y llama.cpp-linux-x86_64-amd-rocm-avx2  # e.g. the ROCm build (~1.7 GB)
+lms runtime select <engine>@<version>
+lms runtime remove -y <engine>@<version>                 # without -y it waits at a confirmation
+lms runtime survey                                       # the GPU and memory the selected engine sees
+```
+
+On an APU, the two AMD runtimes see different memory: ROCm reports the GTT ceiling (116 GiB on the AI server), while Vulkan reports what RADV reports (78.67 GiB there). LM Studio's guardrails go by the selected runtime's figure.
+
+**MTP heads are used automatically.** If a model's folder holds an MTP head (`mtp-*.gguf`, as in Unsloth's Qwen 3.8 repos), LM Studio uses it for speculative decoding without being told, and `lms ls` lists the head (plus the `mmproj`) as if it were another quant of the model. Don't load that entry by itself. The server log shows `creating MTP draft context` at load and the draft acceptance per request.
 
 **CLI daemon:**
 
