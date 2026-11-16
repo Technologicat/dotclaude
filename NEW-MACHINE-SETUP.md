@@ -471,7 +471,7 @@ npx package names drift over time. If `open-meteo-mcp-server` ever stops resolvi
 
 #### The current set
 
-Four servers, set up 2026-10 to give a local model (Qwen) something to work with. Two need an install step first; the other two are fetched by npx on first launch, as above.
+Four servers, set up 2026-10 to give a local model (Qwen) something to work with. The filesystem and shell servers are for LM Studio only — pi has its own file and shell tools — while Playwright is in pi's `mcp.json` too. Two need an install step first; the other two are fetched by npx on first launch, as above.
 
 **Filesystem — [mark3labs/mcp-filesystem-server](https://github.com/mark3labs/mcp-filesystem-server).** Not the official `@modelcontextprotocol/server-filesystem`: this one has `search_within_files`. The alternative was the official server plus mcollina's `mcp-ripgrep` for search, and `mcp-ripgrep` had an open CVE (as of 2026-10).
 
@@ -486,7 +486,7 @@ tar -xzf mcp-filesystem-server_*linux_amd64*.tar.gz -C ~/.local/bin/mcp-filesyst
 ln -sfn mcp-filesystem-server_linux_amd64/mcp-filesystem-server ~/.local/bin/mcp-filesystem-server
 ```
 
-Its arguments are the directories it may access — here one dedicated sandbox, `~/Documents/lmstudio_mcp`.
+Its arguments are the directories it may access — here one dedicated sandbox, `~/Documents/lmstudio_mcp`. Installed version: 0.11.1 on all three machines (2026-11-16); the binary has no `--version`, but its reply to an MCP `initialize` request names it in `serverInfo`.
 
 **Shell — [hdresearch/mcp-shell](https://github.com/hdresearch/mcp-shell).** Run from a clone rather than through npx. The npm package of the same name names no source repository, so the clone is the copy that can be read:
 
