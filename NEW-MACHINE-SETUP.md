@@ -12,6 +12,7 @@ Based on setting up a new dev machine (2026-03-25). Assumes Ubuntu/Debian-based 
 # xdotool: drives a GUI app from the shell - activate a window, inject keystrokes. With xclip, this
 #          is how a GUI feature gets verified end-to-end (press the hotkey, read the clipboard back)
 #          rather than only through unit tests. Needed for live testing of the DPG apps in Raven.
+# ripgrep: `rg`, the first choice in Spacemacs's `dotspacemacs-search-tools` (falls back to ag/pt/ack/grep).
 # shellcheck: linter for the bash scripts in ~/.claude/scripts/. Bash fails quietly - an unquoted
 #          expansion or a typo'd variable produces a wrong result rather than an error - so a linter
 #          catches things a test run does not.
@@ -397,6 +398,8 @@ c.InteractiveShellApp.extensions = ["mcpyrate.repl.iconsole"]
 
 Node/npm/npx are managed entirely in userspace via nvm (Node Version Manager) — never via apt or a NodeSource repo. nvm clones itself into `~/.nvm` (a git checkout) and appends a load block to `~/.bashrc`. npm and npx come bundled inside each Node install; they are never installed or upgraded separately — a new Node gives you matching npm/npx for free.
 
+**Needed by:** pi (below, under "Local AI stack"), LM Studio's `npx`-based MCP servers, the Playwright MCP server, and JS development generally — modding JS software, and the planned Raven-avatar JS client. Nothing in the base setup fails without it, so a skipped step here goes unnoticed until one of those is first used.
+
 ```bash
 # Bootstrap nvm — pin the tag, don't curl-pipe an unpinned/master URL.
 # Check https://github.com/nvm-sh/nvm/releases for the current version if this is stale.
@@ -430,7 +433,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 ```
 
-This is sourced by interactive shells only — so **GUI apps launched outside an interactive shell don't see nvm's node/npx on PATH**. Bites anything that spawns an MCP server or build tool from a desktop-launched app (see LM Studio below). nvm itself rarely needs upgrading; re-run the bootstrap with a newer tag to bump it. The literal original install command tends to age out of `~/.bash_history` — don't bother trying to recover it, the recipe above reproduces the same end state.
+**Move the first two lines above `~/.bashrc`'s "If not running interactively" guard** (see "Bashrc additions" below); the `bash_completion` line stays where the installer put it. The installer appends the block at the end, below the guard, so as installed it is sourced by interactive shells only: a `bash -lc` — which is how the MCP servers here are launched — returns at the guard and never reaches it, and neither does a non-interactive `ssh host '<cmd>'`. Check with `env -i HOME=$HOME bash -lc 'which npx'`, which prints a path once the move is done and nothing before. nvm itself rarely needs upgrading; re-run the bootstrap with a newer tag to bump it. The literal original install command tends to age out of `~/.bash_history` — don't bother trying to recover it, the recipe above reproduces the same end state.
 
 ### LM Studio MCP servers
 
@@ -447,7 +450,7 @@ This is sourced by interactive shells only — so **GUI apps launched outside an
 }
 ```
 
-Why `-lc` works on Ubuntu: a login shell sources `~/.profile`, and Ubuntu's stock `~/.profile` in turn sources `~/.bashrc` when running under bash — so the nvm block (which the installer wrote to `.bashrc`) gets loaded. On a setup *without* that `.profile`→`.bashrc` bridge, npx won't resolve; use `-ic` (interactive, sources `.bashrc` directly) or add an explicit `source ~/.bashrc` to `.profile`.
+Why `-lc` works on Ubuntu: a login shell sources `~/.profile`, and Ubuntu's stock `~/.profile` in turn sources `~/.bashrc` when running under bash. The shell is still non-interactive, so `.bashrc` returns at its "If not running interactively" guard, and only what sits above the guard is loaded — hence moving the nvm lines there (Node.js section above). With LM Studio started from a terminal, its servers would inherit that terminal's PATH and find npx regardless; the move is what makes the config work however LM Studio was launched.
 
 Notes on the npx invocation, for future debugging:
 - First launch is slow — npx fetches `open-meteo-mcp-server` from the registry into `~/.npm/_npx/` (a content-hash-keyed cache) and runs the binary from there. Subsequent launches hit the cache.
@@ -726,10 +729,14 @@ garbled after quitting Claude Code, re-enable it. The `fix` alias below repairs 
 Merge these into the distribution's fresh `~/.bashrc` rather than copying an old one over it.
 
 **Before the "If not running interactively" guard**, so a non-interactive `ssh host '<cmd>'` gets them too.
-That is the `PATH` line plus the wrappers and aliases below:
+That is the `PATH` line, nvm's two load lines (moved up from the end of the file, where its installer
+appends them; see the Node.js section), plus the wrappers and aliases below:
 
 ```bash
 export PATH=/home/jje/.local/bin/:$PATH
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
 alias fix='reset; stty sane; tput rs1; clear; echo -e "\033c"'
 alias gg='git log --oneline --abbrev-commit --all --graph --decorate --color'
@@ -878,6 +885,24 @@ lms get npacker/web-tools
 Then enable and configure it in the LM Studio GUI. It bundles web search, image search, visit-website and fetch-images. Hub page: https://lmstudio.ai/npacker/web-tools
 
 **Install by exact slug.** `web-tools` has a cloud of near-identical forks on the Hub (`rezet`, `webbrain`, `vanily123`, `altra`, …); `npacker/web-tools` is the maintained, widely-used one (a few thousand downloads, updated within the last month, as of mid-2026). The slug matters more than it looks, because the Hub's browse surface went dead around June 2026 — the `/plugins` index page vanished — so you can't eyeball the forks apart in a browser; grabbing by exact slug sidesteps the question.
+
+### pi
+
+[pi](https://pi.dev) is a terminal coding agent, pointed here at local models. Its whole managed install lives in `~/.pi/agent/`: config (`settings.json`, `models.json`, `keybindings.json`, `mcp.json`, `AGENTS.md`), extensions and packages (`extensions/`, `git/`, `npm/`), chatlogs (`sessions/`), and the release itself (`install/releases/<version>/`). So moving it to a new machine is a copy:
+
+```bash
+# From the old machine; skip releases other than the one in install/current-version
+rsync -a --exclude 'install/releases/<old-version>/' ~/.pi/ newhost:.pi/
+# On the new machine
+ln -sfn ../../.pi/agent/bin/pi ~/.local/bin/pi
+pi --version
+```
+
+- **It needs Node** (nvm, above). The release's entry point is `#!/usr/bin/env node`; the launcher would also put the pi installer's own Node (`~/.local/share/pi-node`) on PATH, but our machines have none, so nvm's has to be there.
+- **Chatlogs are filed by the directory pi was started in**, encoded in the subdirectory name under `sessions/` (`--home-jje-Documents-lmstudio_mcp--`). A copied session belongs with that same path, so create the directories on the new machine if they are not there yet.
+- **`models.json` names endpoints by host.** A `localhost` provider means the new machine's own LM Studio, which may not be serving yet.
+
+How the original install was made is not recorded here yet.
 
 ### ComfyUI
 
