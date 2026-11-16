@@ -1107,6 +1107,41 @@ and ~1,580 at 128 Ki; generation ~30 tok/s without MTP; with MTP ~63 tok/s on fr
 the MTP head can copy from context. Under sustained load the APU draws ~100 W in BIOS Balance mode and
 settles around 66–71 °C.
 
+**Wrappers.** On the AI server, `gufo-serve` and `open-webui-serve` (below) wrap these commands as
+`start [--lan]`, `stop`, `status` and `logs`. They live in that machine's setup repo
+(`~/Documents/<hostname>`, local git, no remote), symlinked into `~/.local/bin`; the commands here are
+enough to recreate them.
+
+### Open WebUI (chat front end)
+
+[Open WebUI](https://github.com/open-webui/open-webui) is a browser chat UI for any OpenAI-compatible
+server, gufo included. Run it in podman too, pinned to a release:
+
+```bash
+podman pull ghcr.io/open-webui/open-webui:v0.13.3
+podman run -d --rm --name open-webui --network host \
+  -v open-webui:/app/backend/data \
+  -e HOST=127.0.0.1 -e PORT=3000 \
+  -e WEBUI_SECRET_KEY_FILE=/app/backend/data/.webui_secret_key \
+  -e OPENAI_API_BASE_URL=http://127.0.0.1:8080/v1 -e OPENAI_API_KEY=none \
+  -e ENABLE_OLLAMA_API=false \
+  ghcr.io/open-webui/open-webui:v0.13.3
+```
+
+Then open `http://127.0.0.1:3000`; the first account created becomes the admin. Notes on the options:
+
+- **Port 3000, not its default 8080**, which gufo already uses: with host networking the two share the
+  host's ports.
+- **`HOST=0.0.0.0`** instead serves it to the LAN. Open WebUI has its own logins, but the gufo server
+  behind it has none.
+- **All state lives in the volume `open-webui`** (accounts, chats, settings), so upgrading means pulling a
+  new tag and nothing else.
+- **`WEBUI_SECRET_KEY_FILE` puts the session signing key into that volume too.** Its default is
+  `.webui_secret_key` relative to the working directory `/app/backend`, outside the volume, so a fresh
+  container would generate a new key on every start and log everyone out.
+- **`OPENAI_API_KEY` is a placeholder**: gufo takes no key, but Open WebUI wants a non-empty one.
+- The first start takes a minute or two while it sets up its database.
+
 ## NVIDIA driver
 
 Use the **graphics-drivers PPA**, on every machine:
