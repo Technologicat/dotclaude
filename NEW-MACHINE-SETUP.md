@@ -1037,9 +1037,39 @@ hf download unsloth/Qwen3.8-Flash-Next-GGUF --revision d96201194f103c906994f283f
   --local-dir ~/models/flash-next
 ```
 
-and mount `~/models` read-only into the container (`-v ~/models:/models:ro`). At 103.7 GiB of weights,
-Flash-Next leaves about 9 GiB of a 116 GiB GTT cap for its KV cache, at ~27.5 KiB per token with MTP: one
-session at the full 256 Ki, or more at shorter contexts.
+and mount `~/models` read-only into the container (`-v ~/models:/models:ro`).
+
+**Serve** (tested November 2026 on the AI server; loads in ~20 s when the files are in the page cache):
+
+```bash
+podman run --rm --name gufo --network host \
+  --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
+  --device /dev/kfd --device /dev/dri --device /dev/accel/accel0 --ulimit memlock=-1 \
+  -v "$HOME/models:/models:ro" \
+  ghcr.io/gufo-org/toolboxes/gufo-runtime:0.34.0 \
+  gufo serve llm --served-model-name flash-next \
+    --model /models/flash-next/UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf \
+    --speculative mtp --mtp-model /models/flash-next/MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf \
+    --sessions 3 --context 262144
+```
+
+It serves an OpenAI-compatible API on `http://127.0.0.1:8080/v1` (model ID `flash-next`). To serve the LAN,
+bind to all interfaces with `--host 0.0.0.0`, a server option, so it goes between `serve` and `llm`
+(`gufo serve --host 0.0.0.0 llm ...`; `--port` sits there too). gufo has no authentication, so anyone who can
+reach the port can use the model. `--sessions` is the number of parallel requests, each with its own preallocated
+context of `--context` tokens.
+
+**Memory, as measured** (F16 KV cache, the only kind gufo 0.34.0 offers): a fixed ~85 GiB of GPU memory for
+the weights and buffers, which is less than the 103.7 GiB file size, plus 6.93 GiB per 256 Ki session
+(27.7 KiB per token, matching gufo's docs). Three full-length sessions take 104 GiB of a 116 GiB GTT cap
+and leave ~13 GiB of host RAM; a fourth fits only by shrinking gufo's RAM prompt cache
+(`--cache-ram-bytes`, by default half of free RAM up to 32 GiB), and then sits close to earlyoom's 2 GiB
+threshold.
+
+**Speed**, from `gufo bench` (greedy, 2048-token prompt, 128 generated): prefill ~1,900 tok/s at depth 0
+and ~1,580 at 128 Ki; generation ~30 tok/s without MTP; with MTP ~63 tok/s on fresh text and ~120 on text
+the MTP head can copy from context. Under sustained load the APU draws ~100 W in BIOS Balance mode and
+settles around 66–71 °C.
 
 ## NVIDIA driver
 
