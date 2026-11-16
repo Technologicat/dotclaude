@@ -599,6 +599,17 @@ Both are optional: Claude Code ignores a missing `@import`, and nothing else rea
 
 Runtime state (`projects/`, `sessions/`, `memory/`, caches) is machine-local by design and is *not* synced — auto-memory accumulates per machine.
 
+### MCP servers
+
+Playwright, for client-side JS testing — the same server LM Studio and pi run (Node.js section). User scope, so it lands in `~/.claude.json` (machine-local, not in this repo) and is available in every project:
+
+```bash
+claude mcp add --scope user playwright -- bash -lc 'npx -y @playwright/mcp --browser chromium --executable-path $(which chromium)'
+claude mcp get playwright    # Status: ✔ Connected
+```
+
+The single quotes keep `$(which chromium)` unexpanded, so it is resolved each time the server starts. Needs nvm's load lines above `~/.bashrc`'s interactive guard (Node.js section), or `bash -lc` finds no `npx`.
+
 ### Point git at the shared hooks
 
 The hook script travels with the clone; the setting that activates it does not, because it lives in `~/.gitconfig` rather than in any repo. So this is one command per machine:
