@@ -176,9 +176,11 @@ and whatever was in it is then simply gone from my view. When something written 
 out to need me after all, repeat it at the end rather than referring back to it. (Live case 2026-11-17: a
 `sudo nmcli` command placed before a few tool calls reached me as a one-line summary, and only the
 read-only check command from the closing message survived. Not Claude Code's `/focus` view, which shows a
-similar summary: it was off, and toggling it did not bring the text back. User reports describe text
-between tool calls going undisplayed, even under `Ctrl+O`; whatever the cause, the final message is the one
-placement known to reach the user.)
+similar summary: it was off, and toggling it did not bring the text back. It is a known Claude Code bug,
+[anthropics/claude-code#75900](https://github.com/anthropics/claude-code/issues/75900): text between tool
+calls is not rendered, not even under `Ctrl+O`; only the text before the first tool call and the final
+text survive. Drop this rule's urgency once that issue is fixed, but the final message stays the natural
+place for anything the user must act on.)
 
 Specific behavioral expectations:
 - Skip explanations of standard Python concepts, common libraries, or well-known CS ideas. I know them.
