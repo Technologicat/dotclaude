@@ -702,6 +702,11 @@ journalctl --user -u cc-log-archive                # failures land here
 
 A timer rather than a crontab entry: anacron catches up only the root jobs in `/etc/anacrontab`, so a user crontab entry missed during sleep is simply skipped, where `Persistent=true` runs it at the next opportunity. It runs only while the user is logged in (no lingering), which suits a laptop. The key must have no passphrase, there being no agent. It is a push because the logs belong to the work machine: if the backup target ever moves, this unit is the one place to change. The actual hostnames are in `SECRET-SAUCE.md`.
 
+**On the AI server, the same pattern backs up its irreplaceable data**, as a stopgap until it has proper backups: `~/.config/systemd/user/pleione-backup.service` and `.timer` (daily, `Persistent=true`). One `ExecStart` per item, each an `rsync -a` with no `--delete`, to the personal machine's `Documents/backups/<hostname>/`: the machine's local setup repo (`~/Documents/<hostname>`), Open WebUI's podman volume without its `cache/`, LM Studio's `~/.lmstudio` without what it downloads or unpacks itself (`models/`, `extensions/`, `bin/`, `.internal/utils/`, `.internal/bundled-models/`), and the Claude Code session logs to `Documents/cc-logs/<hostname>/`. Two rsync details that bit while writing it, both caught by dry runs (`rsync -an --stats`) before the first real run:
+
+- **Anchored excludes are relative to the transfer root.** With `~/.lmstudio` as the source (no trailing slash), `--exclude=/models/` matches nothing, and the copy came to 73 GB. With `~/.lmstudio/` and an explicit target directory, it is 0.6 MB.
+- **rsync creates only the last directory of the target path**, so a fresh target needs `--rsync-path="mkdir -p <dir> && rsync"`.
+
 The statusline script requires `jq`; `scripts/build-webchat.py` uses `xclip`; `em` uses `wmctrl` and `emacsclient`. The first three are in the Essentials block above; `emacsclient` comes with Emacs, under "Spacemacs".
 
 ### Adopting an existing `~/.claude` into the repo
