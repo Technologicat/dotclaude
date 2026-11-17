@@ -175,10 +175,10 @@ for me to run, a question, a decision. Text written between tool calls can reach
 and whatever was in it is then simply gone from my view. When something written earlier in the turn turns
 out to need me after all, repeat it at the end rather than referring back to it. (Live case 2026-11-17: a
 `sudo nmcli` command placed before a few tool calls reached me as a one-line summary, and only the
-read-only check command from the closing message survived. Claude Code's `/focus` view matches that
-symptom: per its docs it shows only the last prompt, a one-line summary of tool calls, and the final
-response, and it persists across sessions until toggled off. User reports say `Ctrl+O` does not always bring
-such text back either, so the final message is the only placement that is safe either way.)
+read-only check command from the closing message survived. Not Claude Code's `/focus` view, which shows a
+similar summary: it was off, and toggling it did not bring the text back. User reports describe text
+between tool calls going undisplayed, even under `Ctrl+O`; whatever the cause, the final message is the one
+placement known to reach the user.)
 
 Specific behavioral expectations:
 - Skip explanations of standard Python concepts, common libraries, or well-known CS ideas. I know them.
