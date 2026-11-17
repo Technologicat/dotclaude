@@ -1,0 +1,82 @@
+#!/bin/bash
+#
+# Start, stop and inspect Open WebUI, the browser chat front end for the gufo server on this machine.
+#
+#     open-webui-serve start [--lan]   start in the background, wait until it answers, print the URL
+#     open-webui-serve stop            stop it (accounts, chats and settings stay in the volume)
+#     open-webui-serve status          running or not
+#     open-webui-serve logs [-f]       the server log (podman logs)
+#
+# Without --lan it listens on 127.0.0.1 only; with --lan, on all interfaces, so other machines can open
+# http://<this machine>:3000. Open WebUI has its own logins (the first account created is the admin), but
+# the gufo server behind it has none: see gufo-serve.
+#
+# All state lives in the podman volume `open-webui`, so upgrading means changing OWUI_IMAGE below.
+# That includes the session signing key: by default Open WebUI writes it to its working directory,
+# outside the volume, and a fresh container would generate a new one and log everyone out.
+
+set -u
+
+OWUI_IMAGE="${OWUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.13.3}"
+OWUI_PORT="${OWUI_PORT:-3000}"
+GUFO_URL="${GUFO_URL:-http://127.0.0.1:8080/v1}"
+NAME=open-webui
+
+running() {
+    podman ps --format '{{.Names}}' | grep -qx "$NAME"
+}
+
+start() {
+    local host=127.0.0.1
+    if [ "${1:-}" = "--lan" ]; then
+        host=0.0.0.0
+    elif [ -n "${1:-}" ]; then
+        echo "open-webui-serve: unknown option '$1'" >&2
+        exit 2
+    fi
+    if running; then
+        echo "open-webui-serve: already running; 'open-webui-serve stop' first" >&2
+        exit 1
+    fi
+    if ! curl -sf "$GUFO_URL/models" >/dev/null 2>&1; then
+        echo "open-webui-serve: note: gufo does not answer at $GUFO_URL; the UI will start, but list no model until it does"
+    fi
+    # The key in OPENAI_API_KEY is a placeholder: gufo takes no key, but Open WebUI wants a non-empty one.
+    podman run -d --rm --name "$NAME" --network host \
+        -v open-webui:/app/backend/data \
+        -e HOST="$host" -e PORT="$OWUI_PORT" \
+        -e WEBUI_SECRET_KEY_FILE=/app/backend/data/.webui_secret_key \
+        -e OPENAI_API_BASE_URL="$GUFO_URL" -e OPENAI_API_KEY=none \
+        -e ENABLE_OLLAMA_API=false \
+        "$OWUI_IMAGE" >/dev/null || exit 1
+
+    echo "open-webui-serve: starting..."
+    local t0=$SECONDS
+    while (( SECONDS - t0 < 300 )); do
+        if curl -sf "http://127.0.0.1:$OWUI_PORT/health" >/dev/null 2>&1; then
+            echo "open-webui-serve: ready after $(( SECONDS - t0 )) s"
+            if [ "$host" = 0.0.0.0 ]; then
+                echo "  http://$(hostname):$OWUI_PORT  (all interfaces)"
+            else
+                echo "  http://127.0.0.1:$OWUI_PORT  (this machine only)"
+            fi
+            return 0
+        fi
+        if ! running; then
+            echo "open-webui-serve: the container exited during startup; its last log lines:" >&2
+            podman logs --tail 20 "$NAME" 2>&1 >&2 || true
+            exit 1
+        fi
+        sleep 2
+    done
+    echo "open-webui-serve: no answer after 300 s; see 'open-webui-serve logs'" >&2
+    exit 1
+}
+
+case "${1:-}" in
+    start)  shift; start "$@" ;;
+    stop)   if running; then podman stop "$NAME" >/dev/null && echo "open-webui-serve: stopped"; else echo "open-webui-serve: not running"; fi ;;
+    status) if running; then echo "open-webui-serve: running"; else echo "open-webui-serve: not running"; fi ;;
+    logs)   shift; podman logs "$@" "$NAME" ;;
+    *)      sed -n '3,8s/^# \{0,1\}//p' "$0"; exit 2 ;;
+esac

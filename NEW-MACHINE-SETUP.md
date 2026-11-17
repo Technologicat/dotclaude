@@ -624,7 +624,7 @@ That installs `githooks/commit-msg` for **every** repo on the machine, freshly c
 
 Note this *replaces* per-repo `.git/hooks/` rather than adding to it. No fleet repo had a hook installed when this went in (checked 2026-08-26), so nothing was displaced — but a project that later wants its own hooks has to put them here, or override `core.hooksPath` locally.
 
-Put the nine bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
+Put the bare-command scripts on PATH. The repo holds the only copy, so symlink them rather than copying — otherwise the two drift and you're editing the wrong one:
 
 ```bash
 ln -s ~/.claude/scripts/em ~/.local/bin/em
@@ -640,14 +640,27 @@ ln -s ~/Documents/koodit/substrate-independent/scripts/cc-log-extract.py ~/.loca
 
 The last one points outside this repo: `cc-log-extract` lives in `substrate-independent`, which has its test suite, so that clone has to exist first.
 
-The `api-inventory`, `cc-context` and `cc-log-extract` symlinks drop the `.py` because that is the name `CLAUDE.md` and the `code-exploration` skill invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
+On the AI server only, three more, for its local LLM stack (they need gufo, podman and an AMD APU, so elsewhere they have nothing to run against):
 
-**Eight of the thirteen scripts here, plus `cc-log-extract`, and which ones is decided by how they are invoked.** Six are the ones `CLAUDE.md` and the skills tell an agent to type as a bare command mid-task, so a missing symlink surfaces as a command not found in the middle of unrelated work. The other three are ones a human types: `fleet-pull` on sitting down at either machine, and `nvidia-underclock` and `cpu-powercap` before a long run, to trade speed for fan noise. Those two take `enable` (the default) or `disable` and need sudo. `nvidia-underclock`'s clocks are tuned for specific hardware, and its header says which; `cpu-powercap`'s `disable` restores whatever limits its first `enable` found, so it carries over between machines as is. `cpu-powercap watch` shows the measured package power, to check that a cap holds. The remaining five — `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull-selftest.sh`, `run-on-internal-gpu.sh` — are named by path everywhere they appear, and `run-on-internal-gpu.sh` is `source`d, which needs a path regardless. Adding a script to `scripts/` is therefore not automatically a reason to symlink it; being typed by its bare name, by an agent or by you, is.
+```bash
+ln -s ~/.claude/scripts/gufo-serve ~/.local/bin/gufo-serve
+ln -s ~/.claude/scripts/open-webui-serve ~/.local/bin/open-webui-serve
+ln -s ~/.claude/scripts/powerlog.py ~/.local/bin/powerlog
+```
 
-**A machine set up before one of them existed will be missing it, silently.** The list has grown — `ci-watch` and `cc-toast` arrived after the first two, `cc-context` after those, `fleet-pull` after those, `nvidia-underclock` and `cpu-powercap` after that, and `cc-log-extract` last — and nothing re-runs this section on a machine that is already up. Worth checking on every machine when a script is added here:
+The `api-inventory`, `cc-context`, `cc-log-extract` and `powerlog` symlinks drop the `.py` because that is the name the docs invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
+
+**Which scripts get a symlink is decided by how they are invoked**, not by being in `scripts/`:
+
+- **Typed as a bare command by an agent**, because `CLAUDE.md` or a skill says to: `em`, `api-inventory`, `cc-toast`, `ci-watch`, `cc-context`, `cc-log-extract`. A missing symlink surfaces as a command not found in the middle of unrelated work.
+- **Typed by a human:** `fleet-pull` on sitting down at a machine; `nvidia-underclock` and `cpu-powercap` before a long run, to trade speed for fan noise; and on the AI server, `gufo-serve`, `open-webui-serve` and `powerlog`. `nvidia-underclock` and `cpu-powercap` take `enable` (the default) or `disable` and need sudo. `nvidia-underclock`'s clocks are tuned for specific hardware, and its header says which; `cpu-powercap`'s `disable` restores whatever limits its first `enable` found, so it carries over between machines as is. `cpu-powercap watch` shows the measured package power, to check that a cap holds.
+- **Named by path wherever they appear**, so no symlink: `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull-selftest.sh`, and `run-on-internal-gpu.sh`, which is `source`d and needs a path regardless.
+
+**A machine set up before a script existed will be missing its symlink, silently**: the list grows, and nothing re-runs this section on a machine that is already up. So when adding a script here, check every machine:
 
 ```bash
 ls -l ~/.local/bin/{em,api-inventory,cc-toast,ci-watch,cc-context,cc-log-extract,fleet-pull,nvidia-underclock,cpu-powercap}
+ls -l ~/.local/bin/{gufo-serve,open-webui-serve,powerlog}   # the AI server only
 ```
 
 **On the work machine, archive the session logs to the personal machine**, whose home-folder backup then picks them up. `cleanupPeriodDays` in `settings.json` already stops Claude Code deleting them; the copy guards against the next surprise of that kind. A daily systemd user timer — `~/.config/systemd/user/cc-log-archive.service`:
@@ -1107,10 +1120,9 @@ and ~1,580 at 128 Ki; generation ~30 tok/s without MTP; with MTP ~63 tok/s on fr
 the MTP head can copy from context. Under sustained load the APU draws ~100 W in BIOS Balance mode and
 settles around 66–71 °C.
 
-**Wrappers.** On the AI server, `gufo-serve` and `open-webui-serve` (below) wrap these commands as
-`start [--lan]`, `stop`, `status` and `logs`. They live in that machine's setup repo
-(`~/Documents/<hostname>`, local git, no remote), symlinked into `~/.local/bin`; the commands here are
-enough to recreate them.
+**Wrappers.** `scripts/gufo-serve` and `scripts/open-webui-serve` (Open WebUI, below) wrap these commands
+as `start [--lan]`, `stop`, `status` and `logs`; symlink them as under "Claude Code" above. `scripts/powerlog.py`
+logs the APU's power, temperatures and clocks to CSV, for measurements like the ones above.
 
 ### Open WebUI (chat front end)
 

@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Start, stop and inspect the gufo server for Qwen 3.8 Flash-Next on this machine.
+#
+#     gufo-serve start [--lan]   start in the background, wait until it answers, print the URL
+#     gufo-serve stop            stop it (frees the ~104 GiB of GPU memory it holds)
+#     gufo-serve status          running or not, and what /v1/models says
+#     gufo-serve logs [-f]       the server log (podman logs)
+#
+# Without --lan the server listens on 127.0.0.1 only. With --lan it binds to all interfaces, so any
+# machine on the network can use it: gufo has no authentication, so do that only on a trusted network.
+#
+# The model files live on the host in ~/models, mounted read-only, so upgrading gufo means changing
+# GUFO_IMAGE below and nothing else. Settings can be overridden from the environment:
+#
+#     GUFO_SESSIONS=2 GUFO_CONTEXT=131072 gufo-serve start
+#
+# Memory, measured: ~85 GiB fixed plus 6.93 GiB per 256 Ki session, so three full-length sessions
+# (the default) take 104 GiB of the 116 GiB GTT cap.
+
+set -u
+
+GUFO_IMAGE="${GUFO_IMAGE:-ghcr.io/gufo-org/toolboxes/gufo-runtime:0.34.0}"
+GUFO_SESSIONS="${GUFO_SESSIONS:-3}"
+GUFO_CONTEXT="${GUFO_CONTEXT:-262144}"
+GUFO_PORT="${GUFO_PORT:-8080}"
+NAME=gufo
+MODEL=/models/flash-next/UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf
+MTP=/models/flash-next/MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf
+
+running() {
+    podman ps --format '{{.Names}}' | grep -qx "$NAME"
+}
+
+start() {
+    local host=127.0.0.1
+    if [ "${1:-}" = "--lan" ]; then
+        host=0.0.0.0
+    elif [ -n "${1:-}" ]; then
+        echo "gufo-serve: unknown option '$1'" >&2
+        exit 2
+    fi
+    if running; then
+        echo "gufo-serve: already running; 'gufo-serve stop' first" >&2
+        exit 1
+    fi
+    podman run -d --rm --name "$NAME" --network host \
+        --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
+        --device /dev/kfd --device /dev/dri --device /dev/accel/accel0 --ulimit memlock=-1 \
+        -v "$HOME/models:/models:ro" \
+        "$GUFO_IMAGE" \
+        gufo serve --host "$host" --port "$GUFO_PORT" llm --served-model-name flash-next \
+            --model "$MODEL" --speculative mtp --mtp-model "$MTP" \
+            --sessions "$GUFO_SESSIONS" --context "$GUFO_CONTEXT" >/dev/null || exit 1
+
+    echo "gufo-serve: loading Flash-Next ($GUFO_SESSIONS × $GUFO_CONTEXT tokens)..."
+    local t0=$SECONDS
+    # A cold start reads ~104 GiB from disk, so allow several minutes.
+    while (( SECONDS - t0 < 600 )); do
+        if curl -sf "http://127.0.0.1:$GUFO_PORT/v1/models" >/dev/null 2>&1; then
+            echo "gufo-serve: ready after $(( SECONDS - t0 )) s"
+            if [ "$host" = 0.0.0.0 ]; then
+                echo "  http://$(hostname):$GUFO_PORT/v1  (all interfaces; model ID flash-next)"
+            else
+                echo "  http://127.0.0.1:$GUFO_PORT/v1  (this machine only; model ID flash-next)"
+            fi
+            return 0
+        fi
+        if ! running; then
+            echo "gufo-serve: the container exited during load; its last log lines:" >&2
+            podman logs --tail 20 "$NAME" 2>&1 >&2 || true
+            exit 1
+        fi
+        sleep 2
+    done
+    echo "gufo-serve: no answer after 600 s; see 'gufo-serve logs'" >&2
+    exit 1
+}
+
+case "${1:-}" in
+    start)  shift; start "$@" ;;
+    stop)   if running; then podman stop "$NAME" >/dev/null && echo "gufo-serve: stopped"; else echo "gufo-serve: not running"; fi ;;
+    status) if running; then
+                echo "gufo-serve: running"
+                curl -s "http://127.0.0.1:$GUFO_PORT/v1/models"; echo
+            else
+                echo "gufo-serve: not running"
+            fi ;;
+    logs)   shift; podman logs "$@" "$NAME" ;;
+    *)      sed -n '3,8s/^# \{0,1\}//p' "$0"; exit 2 ;;
+esac
