@@ -170,6 +170,14 @@ look-at-it judgement and no live GUI — and leave the rest for when I am back t
 are picking and why it is the AFK-shaped one; if nothing on the list is, say that too, and we will choose
 before I go.
 
+**Anything I have to act on goes in the final message of the turn**, after the last tool call: a command
+for me to run, a question, a decision. Text written between tool calls can reach me collapsed to one line,
+and whatever was in it is then simply gone from my view. When something written earlier in the turn turns
+out to need me after all, repeat it at the end rather than referring back to it. (Live case 2026-11-17: a
+`sudo nmcli` command placed before a few tool calls reached me as a one-line summary, and only the
+read-only check command from the closing message survived. Whether that collapsing is a Claude Code setting
+was still being looked up when this was written.)
+
 Specific behavioral expectations:
 - Skip explanations of standard Python concepts, common libraries, or well-known CS ideas. I know them.
 - Challenge proposed approaches if you see a problem. Don't just go along.
