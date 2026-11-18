@@ -1129,7 +1129,14 @@ It serves an OpenAI-compatible API on `http://127.0.0.1:8080/v1` (model ID `flas
 bind to all interfaces with `--host 0.0.0.0`, a server option, so it goes between `serve` and `llm`
 (`gufo serve --host 0.0.0.0 llm ...`; `--port` sits there too). gufo has no authentication, so anyone who can
 reach the port can use the model. `--sessions` is the number of parallel requests, each with its own preallocated
-context of `--context` tokens.
+context of `--context` tokens; concurrent requests are batched (measured with three: 1.8× the total
+throughput of one, each request at ~60% of solo speed).
+
+**Thinking per request**: `reasoning_effort` in the Chat Completions request, `none` to turn it off, or one
+of `minimal`, `low`, `medium`, `high`, `xhigh`, `max` (the default is `xhigh`). gufo's `docs/server.md`
+has the equivalents for its Responses and Anthropic Messages APIs. Keep the effort constant within a
+conversation: it is part of the prompt, so changing it reprocesses the whole conversation. For pi, map its
+thinking levels one-to-one in `models.json` (`"off": "none"`, the rest by the same names).
 
 **Memory, as measured** (F16 KV cache, the only kind gufo 0.34.0 offers): a fixed ~85 GiB of GPU memory for
 the weights and buffers, which is less than the 103.7 GiB file size, plus 6.93 GiB per 256 Ki session
