@@ -28,8 +28,28 @@ NAME=gufo
 MODEL=/models/flash-next/UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf
 MTP=/models/flash-next/MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf
 
+# The container's state, or nothing if there is no container: running, created, exited, stopping, ...
+# `podman ps` lists running containers only, so a container stuck in another state would hold the
+# name invisibly.
+state() {
+    podman container inspect --format '{{.State.Status}}' "$NAME" 2>/dev/null
+}
+
 running() {
-    podman ps --format '{{.Names}}' | grep -qx "$NAME"
+    [ "$(state)" = running ]
+}
+
+# Stop and remove the container, whatever state it is in. No --rm on `podman run`, so that a
+# container that died during load keeps its logs until this runs.
+remove() {
+    podman stop -t 15 "$NAME" >/dev/null 2>&1 || true
+    podman rm -f "$NAME" >/dev/null 2>&1 || true
+}
+
+# Seconds since boot. A monotonic clock: bash's $SECONDS follows the wall clock, and a clock jump
+# right after boot (network time sync) once made the wait below give up at once.
+now() {
+    cut -d. -f1 /proc/uptime
 }
 
 start() {
@@ -40,11 +60,18 @@ start() {
         echo "gufo-serve: unknown option '$1'" >&2
         exit 2
     fi
-    if running; then
+    local st
+    st=$(state)
+    if [ "$st" = running ]; then
         echo "gufo-serve: already running; 'gufo-serve stop' first" >&2
         exit 1
+    elif [ -n "$st" ]; then
+        echo "gufo-serve: removing a leftover container (state: $st)"
+        remove
     fi
-    podman run -d --rm --name "$NAME" --network host \
+    # Ctrl+C while waiting for the load stops and removes the container rather than leaving it half-started.
+    trap 'echo; echo "gufo-serve: interrupted; stopping the container" >&2; remove; exit 130' INT TERM
+    podman run -d --name "$NAME" --network host \
         --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
         --device /dev/kfd --device /dev/dri --device /dev/accel/accel0 --ulimit memlock=-1 \
         -v "$HOME/models:/models:ro" \
@@ -54,11 +81,13 @@ start() {
             --sessions "$GUFO_SESSIONS" --context "$GUFO_CONTEXT" >/dev/null || exit 1
 
     echo "gufo-serve: loading Flash-Next ($GUFO_SESSIONS × $GUFO_CONTEXT tokens)..."
-    local t0=$SECONDS
+    local t0
+    t0=$(now)
     # A cold start reads ~104 GiB from disk, so allow several minutes.
-    while (( SECONDS - t0 < 600 )); do
+    while (( $(now) - t0 < 600 )); do
         if curl -sf "http://127.0.0.1:$GUFO_PORT/v1/models" >/dev/null 2>&1; then
-            echo "gufo-serve: ready after $(( SECONDS - t0 )) s"
+            trap - INT TERM
+            echo "gufo-serve: ready after $(( $(now) - t0 )) s"
             if [ "$host" = 0.0.0.0 ]; then
                 echo "  http://$(hostname):$GUFO_PORT/v1  (all interfaces; model ID flash-next)"
             else
@@ -67,25 +96,43 @@ start() {
             return 0
         fi
         if ! running; then
-            echo "gufo-serve: the container exited during load; its last log lines:" >&2
+            trap - INT TERM
+            echo "gufo-serve: the container stopped during load (state: $(state)); its last log lines:" >&2
             podman logs --tail 20 "$NAME" 2>&1 >&2 || true
             exit 1
         fi
         sleep 2
     done
-    echo "gufo-serve: no answer after 600 s; see 'gufo-serve logs'" >&2
+    trap - INT TERM
+    echo "gufo-serve: no answer after 600 s; the container is still there, see 'gufo-serve logs'" >&2
     exit 1
+}
+
+stop() {
+    local st
+    st=$(state)
+    if [ -z "$st" ]; then
+        echo "gufo-serve: not running"
+    else
+        remove
+        if [ -z "$(state)" ]; then
+            echo "gufo-serve: stopped"
+        else
+            echo "gufo-serve: the container is still there (state: $(state)); try 'podman rm -f $NAME'" >&2
+            exit 1
+        fi
+    fi
 }
 
 case "${1:-}" in
     start)  shift; start "$@" ;;
-    stop)   if running; then podman stop "$NAME" >/dev/null && echo "gufo-serve: stopped"; else echo "gufo-serve: not running"; fi ;;
-    status) if running; then
-                echo "gufo-serve: running"
-                curl -s "http://127.0.0.1:$GUFO_PORT/v1/models"; echo
-            else
-                echo "gufo-serve: not running"
-            fi ;;
+    stop)   stop ;;
+    status) case "$(state)" in
+                running) echo "gufo-serve: running"
+                         curl -s "http://127.0.0.1:$GUFO_PORT/v1/models"; echo ;;
+                "")      echo "gufo-serve: not running" ;;
+                *)       echo "gufo-serve: not running (container left in state: $(state); 'gufo-serve stop' clears it)" ;;
+            esac ;;
     logs)   shift; podman logs "$@" "$NAME" ;;
     *)      sed -n '3,8s/^# \{0,1\}//p' "$0"; exit 2 ;;
 esac

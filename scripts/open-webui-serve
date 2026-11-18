@@ -22,8 +22,28 @@ OWUI_PORT="${OWUI_PORT:-3000}"
 GUFO_URL="${GUFO_URL:-http://127.0.0.1:8080/v1}"
 NAME=open-webui
 
+# The container's state, or nothing if there is no container: running, created, exited, stopping, ...
+# `podman ps` lists running containers only, so a container stuck in another state would hold the
+# name invisibly.
+state() {
+    podman container inspect --format '{{.State.Status}}' "$NAME" 2>/dev/null
+}
+
 running() {
-    podman ps --format '{{.Names}}' | grep -qx "$NAME"
+    [ "$(state)" = running ]
+}
+
+# Stop and remove the container, whatever state it is in. No --rm on `podman run`, so that a
+# container that died during startup keeps its logs until this runs.
+remove() {
+    podman stop -t 15 "$NAME" >/dev/null 2>&1 || true
+    podman rm -f "$NAME" >/dev/null 2>&1 || true
+}
+
+# Seconds since boot. A monotonic clock: bash's $SECONDS follows the wall clock, and a clock jump
+# right after boot (network time sync) once made gufo-serve's wait give up at once.
+now() {
+    cut -d. -f1 /proc/uptime
 }
 
 start() {
@@ -34,15 +54,22 @@ start() {
         echo "open-webui-serve: unknown option '$1'" >&2
         exit 2
     fi
-    if running; then
+    local st
+    st=$(state)
+    if [ "$st" = running ]; then
         echo "open-webui-serve: already running; 'open-webui-serve stop' first" >&2
         exit 1
+    elif [ -n "$st" ]; then
+        echo "open-webui-serve: removing a leftover container (state: $st)"
+        remove
     fi
     if ! curl -sf "$GUFO_URL/models" >/dev/null 2>&1; then
         echo "open-webui-serve: note: gufo does not answer at $GUFO_URL; the UI will start, but list no model until it does"
     fi
+    # Ctrl+C while waiting for startup stops and removes the container rather than leaving it half-started.
+    trap 'echo; echo "open-webui-serve: interrupted; stopping the container" >&2; remove; exit 130' INT TERM
     # The key in OPENAI_API_KEY is a placeholder: gufo takes no key, but Open WebUI wants a non-empty one.
-    podman run -d --rm --name "$NAME" --network host \
+    podman run -d --name "$NAME" --network host \
         -v open-webui:/app/backend/data \
         -e HOST="$host" -e PORT="$OWUI_PORT" \
         -e WEBUI_SECRET_KEY_FILE=/app/backend/data/.webui_secret_key \
@@ -51,10 +78,12 @@ start() {
         "$OWUI_IMAGE" >/dev/null || exit 1
 
     echo "open-webui-serve: starting..."
-    local t0=$SECONDS
-    while (( SECONDS - t0 < 300 )); do
+    local t0
+    t0=$(now)
+    while (( $(now) - t0 < 300 )); do
         if curl -sf "http://127.0.0.1:$OWUI_PORT/health" >/dev/null 2>&1; then
-            echo "open-webui-serve: ready after $(( SECONDS - t0 )) s"
+            trap - INT TERM
+            echo "open-webui-serve: ready after $(( $(now) - t0 )) s"
             if [ "$host" = 0.0.0.0 ]; then
                 echo "  http://$(hostname):$OWUI_PORT  (all interfaces)"
             else
@@ -63,20 +92,42 @@ start() {
             return 0
         fi
         if ! running; then
-            echo "open-webui-serve: the container exited during startup; its last log lines:" >&2
+            trap - INT TERM
+            echo "open-webui-serve: the container stopped during startup (state: $(state)); its last log lines:" >&2
             podman logs --tail 20 "$NAME" 2>&1 >&2 || true
             exit 1
         fi
         sleep 2
     done
-    echo "open-webui-serve: no answer after 300 s; see 'open-webui-serve logs'" >&2
+    trap - INT TERM
+    echo "open-webui-serve: no answer after 300 s; the container is still there, see 'open-webui-serve logs'" >&2
     exit 1
+}
+
+stop() {
+    local st
+    st=$(state)
+    if [ -z "$st" ]; then
+        echo "open-webui-serve: not running"
+    else
+        remove
+        if [ -z "$(state)" ]; then
+            echo "open-webui-serve: stopped"
+        else
+            echo "open-webui-serve: the container is still there (state: $(state)); try 'podman rm -f $NAME'" >&2
+            exit 1
+        fi
+    fi
 }
 
 case "${1:-}" in
     start)  shift; start "$@" ;;
-    stop)   if running; then podman stop "$NAME" >/dev/null && echo "open-webui-serve: stopped"; else echo "open-webui-serve: not running"; fi ;;
-    status) if running; then echo "open-webui-serve: running"; else echo "open-webui-serve: not running"; fi ;;
+    stop)   stop ;;
+    status) case "$(state)" in
+                running) echo "open-webui-serve: running" ;;
+                "")      echo "open-webui-serve: not running" ;;
+                *)       echo "open-webui-serve: not running (container left in state: $(state); 'open-webui-serve stop' clears it)" ;;
+            esac ;;
     logs)   shift; podman logs "$@" "$NAME" ;;
     *)      sed -n '3,8s/^# \{0,1\}//p' "$0"; exit 2 ;;
 esac
