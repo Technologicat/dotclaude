@@ -68,6 +68,7 @@ PROJECTS=(
     "unpythonic             unpythonic"
     "raven                  raven"
     "chandra                chandra"
+    "m97                    m97"
     "substrate-independent  substrate-independent"
 )
 
