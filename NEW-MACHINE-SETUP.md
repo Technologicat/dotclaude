@@ -193,6 +193,24 @@ sudo mount -o remount /
 findmnt -no OPTIONS /                                          # expect noatime
 ```
 
+## System clock: the RTC holds UTC
+
+Check that Linux reads the hardware clock as UTC:
+
+```bash
+timedatectl            # expect "RTC in local TZ: no", and no warning below it
+```
+
+If it says `yes`, as it did on the AI server (a machine that shipped with Windows, which keeps the RTC
+in local time), and the RTC time it shows equals UTC, switch the interpretation; nothing needs adjusting:
+
+```bash
+sudo timedatectl set-local-rtc 0
+```
+
+With the wrong setting, every boot started two hours off until network time sync jumped the clock, about
+half a minute in, and that jump broke a script timing its own wait by the wall clock.
+
 ## Input methods
 
 ```bash
