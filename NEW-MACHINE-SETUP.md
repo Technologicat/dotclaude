@@ -201,8 +201,8 @@ Check that Linux reads the hardware clock as UTC:
 timedatectl            # expect "RTC in local TZ: no", and no warning below it
 ```
 
-If it says `yes`, as it did on the AI server (a machine that shipped with Windows, which keeps the RTC
-in local time), and the RTC time it shows equals UTC, switch the interpretation; nothing needs adjusting:
+If it says `yes`, as it did on the AI server after installation (cause not established), and the RTC time
+it shows equals UTC, switch the interpretation; nothing needs adjusting:
 
 ```bash
 sudo timedatectl set-local-rtc 0
