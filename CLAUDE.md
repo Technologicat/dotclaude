@@ -757,7 +757,7 @@ Active projects (✓ = has a CLAUDE.md config):
 **Applications:**
 - **raven** ✓ — constellation of local-first NLP/scientific apps (DPG): `~/Documents/koodit/raven`
 - **chandra** ✓ — tools for working with ComfyUI metadata: `~/Documents/koodit/chandra`. Also the **reference project for the current pure-Python setup** — PDM flow, lint config, CI matrix, coverage + Codecov, and PyPI publishing via trusted publishing. Copy from here when starting a new pure-Python project. (A reference has to be one that is actually exercised: chandra is live, so its config cannot quietly rot the way a frozen example does.)
-- **m97** — web dashboard and control panel for a gufo LLM server on AMD Strix Halo, built for the local AI server: `~/Documents/koodit/m97`. New (2026-11-18); its design is in `briefs/dashboard.md`.
+- **m97** ✓ — web dashboard and control panel for a gufo LLM server on AMD Strix Halo, built for the local AI server: `~/Documents/koodit/m97`. New (2026-11-18); v1 shipped 2026-11-19, and its design brief is archived in `briefs/done/dashboard.md`.
 
 **Dormant, and meant to be revived** — checked out so they can be read and measured, but not yet modernized, so they do not run on this machine as they stand. Not swept by `fleet-pull.sh`, and not to be treated as active work unless I say so:
 - **extrafeathers** — agility and ease-of-use batteries for the FEniCS FEM solver: `~/Documents/koodit/extrafeathers`. Written against FEniCS 2019 on an old Python, so reviving it means at least the move to FEniCSx, and its dependencies need upgrading. The *language* upgrade should cost little — it does not touch the Python AST, so it is not in the group that a new CPython minor can break.
