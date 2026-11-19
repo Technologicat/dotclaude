@@ -2,6 +2,31 @@
 
 <!-- New items go below this line. -->
 
+## Python dependency updates and security alerts, fleet-wide
+
+*Cluster: supply-chain · Cost: ? (the candidate below is M per repo, less once one is a template) · Gate: a design discussion · Filed: 2026-11-19 · See also: the `ci-setup` skill, "Dependabot"*
+
+Dependabot keeps the fleet's pinned GitHub Actions current, but for Python dependencies it does nothing outside
+Raven, and it cannot: its docs (read 2026-11-19, in m97's session) list pip, pip-compile, pipenv, Poetry v2 and
+uv, plus PEP 621 `pyproject.toml` files under `pip`; PDM and `pdm.lock` are not mentioned. Turning on the `pip`
+ecosystem in a PDM project would bump a floor in `pyproject.toml` and leave `pdm.lock` behind, and `pdm install`
+in CI refuses a lock out of step with `pyproject.toml`, so every such PR would arrive red. Transitive
+dependencies, which are most of a lockfile (m97: one direct dependency, about seventy locked), would not be
+covered at all.
+
+- **Security alerts probably have the same gap.** They come from the dependency graph, and GitHub's announcement
+  of Python support in it (2026-04-23) names pip, uv and Poetry, not PDM; not checked against what a fleet
+  repo's graph actually shows.
+- **The main candidate is a scheduled upgrade workflow**: weekly `pdm lock` plus the test suite, opening a PR
+  with the result. Costs: a third-party action to pin and vet (peter-evans/create-pull-request is the usual
+  one); a job holding `contents: write` and `pull-requests: write`, against the read-only default; and a PR
+  opened with `GITHUB_TOKEN` does not trigger the CI workflow, so the job has to run the tests itself.
+- **Moving to uv, which Dependabot supports lockfile and all, was considered and declined**: the maintainer
+  prefers PDM, and the fleet stays on it (2026-11-19).
+
+The motive is the rise in attacks on the software supply chain in 2026 (maintainer, 2026-11-19); what has to
+come out of the discussion is one solution for the whole fleet rather than one per project.
+
 ## A type checker, fleet-wide
 
 *Cluster: ? · Cost: ? (a measuring run first is S) · Gate: the corpus filter's v1, being built · Filed: 2026-10-22*
