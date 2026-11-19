@@ -24,8 +24,8 @@ covered at all.
 - **Moving to uv, which Dependabot supports lockfile and all, was considered and declined**: the maintainer
   prefers PDM, and the fleet stays on it (2026-11-19).
 
-The motive is the rise in attacks on the software supply chain in 2026 (maintainer, 2026-11-19); what has to
-come out of the discussion is one solution for the whole fleet rather than one per project.
+The motive is the rise in cyberattacks in 2026 (maintainer, 2026-11-19); what has to come out of the
+discussion is one solution for the whole fleet rather than one per project.
 
 ## A type checker, fleet-wide
 
