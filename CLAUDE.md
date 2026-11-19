@@ -814,9 +814,10 @@ The corresponding follow-on is that anything reading AST fields needs an audit p
 
 GPU models, torch device ordering, and benchmarks: see `~/.claude/HARDWARE-NOTES.md` (machine-local, not in the repo). To hide the eGPU and run on the internal dGPU: `source ~/.claude/scripts/run-on-internal-gpu.sh`.
 
-**Local LLM servers**, both with OpenAI- and Anthropic-compatible APIs:
-- **LM Studio**, on both machines — the usual one. Install, models and MCP servers: `~/.claude/NEW-MACHINE-SETUP.md`.
-- **[Strata](https://github.com/Niko1221/Strata)**, a MoE inference engine, on the work machine, serving Qwen3.8 Flash Next on the LAN. While running it takes nearly all of that machine's RAM, so little else can run beside it. Where its defaults live and how to check them: `~/.claude/STRATA-SETUP.md`.
+**Local LLM servers:**
+- **gufo on the local AI server, port 8080 — the preferred backend** (since 2026-11-19), serving Qwen3.8 Flash Next over an OpenAI-compatible API. Its dashboard is the m97 project. The host's name is in `SECRET-SAUCE.md`.
+- **LM Studio**, on the personal and the work machine, for the 30B class and below, with OpenAI- and Anthropic-compatible APIs. Install, models and MCP servers: `~/.claude/NEW-MACHINE-SETUP.md`.
+- **[Strata](https://github.com/Niko1221/Strata)**, a MoE inference engine, on the work machine, also serving Qwen3.8 Flash Next on the LAN, with OpenAI- and Anthropic-compatible APIs. **Ask before using it**: while running it takes nearly all of that machine's RAM, so little else can run beside it. Where its defaults live and how to check them: `~/.claude/STRATA-SETUP.md`.
 
 # Tools
 
