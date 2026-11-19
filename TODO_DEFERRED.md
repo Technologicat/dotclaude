@@ -24,8 +24,14 @@ covered at all.
 - **Moving to uv, which Dependabot supports lockfile and all, was considered and declined**: the maintainer
   prefers PDM, and the fleet stays on it (2026-11-19).
 
-The motive is the rise in cyberattacks in 2026 (maintainer, 2026-11-19); what has to come out of the
-discussion is one solution for the whole fleet rather than one per project.
+The motive is the rise in cyberattacks in 2026, and two things make it pressing here (maintainer,
+2026-11-19):
+
+- **The supply chain**, which every project in the fleet depends on.
+- **Services on the local network**, such as m97 and raven-server: there an outdated dependency is attack
+  surface for anyone who gets into the user's network.
+
+What has to come out of the discussion is one solution for the whole fleet rather than one per project.
 
 ## A type checker, fleet-wide
 
