@@ -218,7 +218,9 @@ DXVK_CONFIG="dxgi.maxFrameRate = 60; d3d9.maxFrameRate = 60" %command%
 
 `dxgi.*` covers D3D10/11, `d3d9.*` covers D3D9; setting both means not having to know which API the game uses. DXVK does not handle D3D12 (that is VKD3D-Proton).
 
-**Vsync for a game that has no vsync option** is the same mechanism: `dxgi.syncInterval = 1` (D3D10/11) or `d3d9.presentInterval = 1` (D3D9) forces it on. A file named by `DXVK_CONFIG_FILE` works too, but the inline form keeps the setting visible in the launch options. Vsync caps the frame rate at the *display's* refresh rate, which on the 144 Hz panel is 144, not 60 — so a game whose timing is tied to 60 FPS still needs the limiter. Under vsync at 144 Hz a 60 FPS cap paces unevenly: 144/60 = 2.4, so frames alternate between being shown for two and three refreshes. Switching the panel to its 60 Hz mode for such a game avoids that.
+**Vsync for a game that has no vsync option** is the same mechanism: `dxgi.syncInterval = 1` (D3D10/11) or `d3d9.presentInterval = 1` (D3D9) forces it on. A file named by `DXVK_CONFIG_FILE` works too, but the inline form keeps the setting visible in the launch options. Vsync caps the frame rate at the *display's* refresh rate, which on the 144 Hz panel is 144, not 60 — so a game whose timing is tied to 60 FPS still needs the limiter. Under vsync at 144 Hz a 60 FPS cap paces unevenly: 144/60 = 2.4, so frames alternate between being shown for two and three refreshes. Switching the panel to its 60 Hz mode for such a game avoids that. Where there is no 60 Hz mode, the occasional uneven frame is acceptable.
+
+**The default here is 60 FPS even for games that could run faster**: at 144 FPS, nearly any game loads the personal machine's laptop 3070 Ti enough that the fan noise becomes unbearable.
 
 Status 2026-11-21: `dxgi.syncInterval = 1` appears to remove intermittent tearing in one game, tested together with a 60 FPS cap; not yet tested on its own.
 
