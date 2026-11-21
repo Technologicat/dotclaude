@@ -188,6 +188,40 @@ Build from source. Ubuntu repos ship only the amd64 build of `vkbasalt`, but 32-
 
 Detailed recipe in `VKBASALT-SETUP.md`: build steps, dependency cascade (`spirv-headers`, `glslang-dev`, `libvulkan-dev`+`:i386`), the `-m32`-flags 32-bit build (vkBasalt doesn't ship a meson cross-file), checkinstall workflow with the expected manifest-conflict workaround, shader install from `gripped/vkBasalt-working-reshade-shaders`, and the tuned `CRT_Lottes.fx` parameters for HD content (skip the resolution-simulation pass; tune scanline darkness, blur, and mask intensity for readable small text).
 
+## Old Unreal Engine games: crash on dead Epic telemetry
+
+Some older Unreal Engine games on Steam report telemetry to Epic's online-services endpoints, which are now dead, and crash on it. Blackholing the endpoints in `/etc/hosts` works around it (tested 2026-11-21):
+
+```
+# --- dead Epic online-services endpoints (for some old games with telemetry) ---
+0.0.0.0   datarouter-weighted.ol.epicgames.com
+0.0.0.0   datarouter.ol.epicgames.com
+::1       datarouter-weighted.ol.epicgames.com
+::1       datarouter.ol.epicgames.com
+```
+
+## DXVK frame cap and vsync
+
+**`DXVK_FRAME_RATE` is gone from DXVK itself**: removed upstream on 2025-11-17 (`dae35be`, "Remove DXVK_FRAME_RATE env var"), so DXVK 3.x ignores it. Whether it still works depends on the Proton, and it fails silently, the game simply running uncapped:
+
+- **GE-Proton 10-34 and 11-11** emulate it: `protonfixes.setup_frame_rate` rewrites `DXVK_FRAME_RATE` (or `VKD3D_FRAME_RATE`, or `PROTON_FRAME_RATE`) into `DXVK_CONFIG` as `dxgi.maxFrameRate` and `d3d9.maxFrameRate`.
+- **Stock Proton 10.0** ships DXVK 2.6.2, which still reads it.
+- **Stock Proton 11.0** ships a DXVK newer than the removal, and its launch script has no shim. There it does nothing.
+
+(Checked 2026-11-21: the string `DXVK_FRAME_RATE` is present in Proton 10.0's `d3d11.dll` and absent from Proton 11.0's, while `DXVK_CONFIG` is present in both.)
+
+**The form that works everywhere is `DXVK_CONFIG`**, which takes `dxvk.conf` syntax inline, `;`-separated — so no config file is needed either:
+
+```
+DXVK_CONFIG="dxgi.maxFrameRate = 60; d3d9.maxFrameRate = 60" %command%
+```
+
+`dxgi.*` covers D3D10/11, `d3d9.*` covers D3D9; setting both means not having to know which API the game uses. DXVK does not handle D3D12 (that is VKD3D-Proton).
+
+**Vsync for a game that has no vsync option** is the same mechanism: `dxgi.syncInterval = 1` (D3D10/11) or `d3d9.presentInterval = 1` (D3D9) forces it on. A file named by `DXVK_CONFIG_FILE` works too, but the inline form keeps the setting visible in the launch options. Vsync caps the frame rate at the *display's* refresh rate, which on the 144 Hz panel is 144, not 60 — so a game whose timing is tied to 60 FPS still needs the limiter. Under vsync at 144 Hz a 60 FPS cap paces unevenly: 144/60 = 2.4, so frames alternate between being shown for two and three refreshes. Switching the panel to its 60 Hz mode for such a game avoids that.
+
+Status 2026-11-21: `dxgi.syncInterval = 1` appears to remove intermittent tearing in one game, tested together with a 60 FPS cap; not yet tested on its own.
+
 ## Per-game launch options
 
 - **Arcana Heart 3:** `ENABLE_VKBASALT=1 DXVK_FRAME_RATE=60 %command%` — the game's timing is tied to frames and it expects 60 FPS, so uncapped on a 144 Hz panel it runs at 144/60 = 2.4× speed. Not a subtle drift in the move windows; the whole game is fast. The frame cap is what makes it playable at all. Stock Proton 10.0-4 works (no longer needs GE-7-50 once the i386 NVIDIA libs are in place). `ENABLE_VKBASALT=1` is what switches on the CRT filter (see above).
