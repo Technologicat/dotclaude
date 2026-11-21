@@ -180,6 +180,21 @@ pactl list sink-inputs              # while the game runs — did it reach the s
 
 A game that shows up as a sink-input has reached the server, so any refusal is between server and hardware: compare the sink's rate and format against the rate table. A game that never appears did not get that far, and the cause is upstream of the server.
 
+## Audio: equalizer for the wired earbuds
+
+The old Skullcandy wired earbuds used for gaming overemphasise treble and lack bass, compared with the JBL Live Beam 3 or studio monitors. A per-device EQ in PulseEffects corrects that (set up 2026-11-21 on the personal machine, under PulseAudio):
+
+- **`sudo apt install pulseeffects`** (4.8.4 on Mint 21.3). It routes all application audio through a null sink of its own, `PulseEffects_apps`, and plays the processed result to the real sink.
+- **Presets, in `~/.config/PulseEffects/output/`**:
+  - `Skull Candy`: 10-band IIR equalizer, tuned by ear. Roughly +11 dB in the bottom two bands, tapering down to −10 dB in the top band.
+  - `Flat`: all bands at 0 dB.
+- **Each preset is bound to a device by the autoload toggle on its row in the header bar's Presets menu** (the icon looks like *refresh*). The toggle binds to whichever output is active when it is clicked. Bindings land in `~/.config/PulseEffects/autoload/` as `<sink>:<port>.json`, so they are per jack rather than per card:
+  - onboard `analog-output-headphones` → `Skull Candy`
+  - M-Audio `analog-output` → `Flat`
+- **Hotplugging the M-Audio on and then off once left PulseEffects wedged**; restarting the PulseEffects window fixed it.
+
+**Stopgap until the Mint 22 upgrade.** PulseEffects is the PulseAudio-era predecessor of EasyEffects, so under PipeWire this is redone in EasyEffects, or as a `filter-chain` config using PipeWire's built-in biquads. The band gains above are the thing to carry over.
+
 ## vkBasalt (CRT post-processing)
 
 Vulkan post-processing layer for applying ReShade FX shaders to games at runtime. Used here for CRT-style filters (scanlines and shadow mask; curvature is switched off) on 2D fighters and shoot-em-ups whose sprite art was authored against CRT presentation assumptions — the filter doesn't add a layer so much as restore the half of the visual contract that flat HD panels strip away.
