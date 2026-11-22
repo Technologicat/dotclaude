@@ -1206,7 +1206,7 @@ mintupdate
 (`/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1` is installed too and does the same job.)
 `pkexec true && echo OK` checks the agent without needing pending updates.
 
-As a wrapper on the AI server, e.g. `~/bin/mintupdate-remote`, which also stops the agent when Update
+As a wrapper on the AI server, `~/.local/bin/mintupdate-remote`, which also stops the agent when Update
 Manager closes:
 
 ```sh
