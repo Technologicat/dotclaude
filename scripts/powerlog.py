@@ -139,7 +139,7 @@ def main():
 
     signal.signal(signal.SIGINT, on_sigint)
 
-    out = open(args.out, "w", newline="") if args.out else None
+    out = open(args.out, "w", newline="") if args.out else None  # noqa: SIM115 -- optional, closed in the finally below
     writer = csv.DictWriter(out, fieldnames=["t_s", "label", *fields]) if out else None
     if writer:
         writer.writeheader()
