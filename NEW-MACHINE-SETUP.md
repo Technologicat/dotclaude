@@ -1184,6 +1184,90 @@ Then open `http://127.0.0.1:3000`; the first account created becomes the admin. 
 - **`OPENAI_API_KEY` is a placeholder**: gufo takes no key, but Open WebUI wants a non-empty one.
 - The first start takes a minute or two while it sets up its database.
 
+## Running headless (the AI server)
+
+The AI server usually runs with nobody logged in locally: no display in use, administered over SSH, and
+shut down by the family with the power button. Three things make that work.
+
+### Updates over `ssh -X`, with the GUI
+
+Update Manager works over `ssh -X` like any X client, except for escalating to root. It does that with
+`pkexec`, not sudo, and `pkexec` needs a polkit authentication agent registered for the calling session.
+An SSH session has none, so `pkexec` fails. `sudo mintupdate` fails differently: root can't open your
+forwarded display. Start a graphical agent in the SSH session first, and its password dialog appears next
+to the Update Manager window:
+
+```bash
+ssh -X <ai-server>
+/usr/libexec/polkit-mate-authentication-agent-1 &     # from mate-polkit, installed with Mint
+mintupdate
+```
+
+(`/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1` is installed too and does the same job.)
+`pkexec true && echo OK` checks the agent without needing pending updates.
+
+As a wrapper on the AI server, e.g. `~/bin/mintupdate-remote`, which also stops the agent when Update
+Manager closes:
+
+```sh
+#!/bin/sh
+# /usr/bin/mintupdate only backgrounds mintUpdate.py and returns, so run the
+# real program directly to wait for it and keep the agent alive meanwhile.
+/usr/libexec/polkit-mate-authentication-agent-1 &
+agent=$!
+trap 'kill "$agent" 2>/dev/null' EXIT INT TERM HUP
+/usr/lib/linuxmint/mintUpdate/mintUpdate.py show
+```
+
+It depends on the internal path of `mintUpdate.py`. If an update moves that file, `cat /usr/bin/mintupdate`
+shows the new path.
+
+What to expect, from the shipped polkit policies in `/usr/share/polkit-1/actions/`. polkit treats a
+session without a seat, such as SSH, as non-local, so the `allow_any` default applies instead of
+`allow_active`:
+
+- **Refresh and installing ask for the password every time**, even though Refresh asks for nothing
+  locally. Both are `org.aptkit.*` actions with `allow_any=auth_admin`, which has no `_keep`, so no
+  authorization is remembered.
+- **The automation toggles (auto-upgrade, auto-remove) are refused outright** from SSH, without a password
+  prompt: `com.linuxmint.updates.automation` has `allow_any=no`. To change them remotely, run
+  `sudo mintupdate-automation upgrade enable` (or `autoremove`), or add a rule under
+  `/etc/polkit-1/rules.d/` returning `polkit.Result.AUTH_ADMIN_KEEP` for that action.
+- Without the GUI, `sudo mintupdate-cli list -r` and `sudo mintupdate-cli upgrade` do the same updates
+  from the terminal.
+
+### Shutdown with the power button
+
+Nothing to configure. With nobody logged in, logind handles the power key itself, and its default
+`HandlePowerKey=poweroff` applies: a short press shuts down cleanly. While a Cinnamon session is logged
+in, Cinnamon takes the key over with a logind inhibitor lock and does what its `button-power` setting
+says, by default `interactive`, a dialog asking what to do. That fits: a local session means someone is
+at the screen. The lock is a file descriptor held by Cinnamon's settings daemon, so it goes away at logout
+and logind's `poweroff` applies again. `systemd-inhibit --list` shows whether anything holds
+`handle-power-key`.
+
+To check after a press: `journalctl -b -1 -u systemd-logind` should show the power key being pressed,
+then "System is powering down". Holding the button for about 4 s is the firmware's hard power-off, for a
+machine that is completely stuck.
+
+### The containers stop cleanly at shutdown
+
+There is no dedicated mechanism; systemd's ordinary shutdown covers it. m97 starts each container with
+`systemd-run --user --scope podman run -d ...`, so each container's conmon runs in its own transient
+`run-r….scope` under the user manager, `user@1000.service`. Lingering, needed anyway for the backup
+timer (see under "Claude Code" above), keeps the user manager running with nobody logged in. At poweroff, systemd stops the
+user manager, which stops the scopes with SIGTERM, and with SIGKILL only after the stop timeout (90 s by
+default).
+
+Measured at one shutdown (2026-11-22): gufo logged `event=shutdown_requested signal=15` and its container
+was gone 0.4 s after the SIGTERM; Open WebUI's was gone after 2.9 s; nothing was killed. Open WebUI is the
+one with state to protect, its database in the `open-webui` volume. gufo mounts the models read-only.
+
+This was checked only for containers started by m97. `scripts/gufo-serve` and
+`scripts/open-webui-serve` run a plain `podman run -d`, so conmon stays in the cgroup of the shell that
+ran them, i.e. the login session's scope, not the user manager. That scope is also stopped with SIGTERM
+at shutdown, but nobody has checked how the containers behave on that path, or after the session logs out.
+
 ## NVIDIA driver
 
 Use the **graphics-drivers PPA**, on every machine:
