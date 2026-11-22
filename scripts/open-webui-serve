@@ -33,6 +33,18 @@ running() {
     [ "$(state)" = running ]
 }
 
+# Run "$@" in a transient systemd scope of its own under the user manager, when systemd-run is
+# available. podman leaves the container's monitor (conmon) in the cgroup of whoever ran `podman run`,
+# which from a shell is the login session's scope; in its own scope the container is independent of
+# the session and is stopped with the user manager at shutdown, like the ones m97 starts.
+in_own_scope() {
+    if command -v systemd-run >/dev/null; then
+        systemd-run --user --scope --quiet --collect "$@"
+    else
+        "$@"
+    fi
+}
+
 # Stop and remove the container, whatever state it is in. No --rm on `podman run`, so that a
 # container that died during startup keeps its logs until this runs.
 remove() {
@@ -69,7 +81,7 @@ start() {
     # Ctrl+C while waiting for startup stops and removes the container rather than leaving it half-started.
     trap 'echo; echo "open-webui-serve: interrupted; stopping the container" >&2; remove; exit 130' INT TERM
     # The key in OPENAI_API_KEY is a placeholder: gufo takes no key, but Open WebUI wants a non-empty one.
-    podman run -d --name "$NAME" --network host \
+    in_own_scope podman run -d --name "$NAME" --network host \
         -v open-webui:/app/backend/data \
         -e HOST="$host" -e PORT="$OWUI_PORT" \
         -e WEBUI_SECRET_KEY_FILE=/app/backend/data/.webui_secret_key \

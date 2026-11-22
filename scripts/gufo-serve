@@ -39,6 +39,18 @@ running() {
     [ "$(state)" = running ]
 }
 
+# Run "$@" in a transient systemd scope of its own under the user manager, when systemd-run is
+# available. podman leaves the container's monitor (conmon) in the cgroup of whoever ran `podman run`,
+# which from a shell is the login session's scope; in its own scope the container is independent of
+# the session and is stopped with the user manager at shutdown, like the ones m97 starts.
+in_own_scope() {
+    if command -v systemd-run >/dev/null; then
+        systemd-run --user --scope --quiet --collect "$@"
+    else
+        "$@"
+    fi
+}
+
 # Stop and remove the container, whatever state it is in. No --rm on `podman run`, so that a
 # container that died during load keeps its logs until this runs.
 remove() {
@@ -71,7 +83,7 @@ start() {
     fi
     # Ctrl+C while waiting for the load stops and removes the container rather than leaving it half-started.
     trap 'echo; echo "gufo-serve: interrupted; stopping the container" >&2; remove; exit 130' INT TERM
-    podman run -d --name "$NAME" --network host \
+    in_own_scope podman run -d --name "$NAME" --network host \
         --userns=keep-id:uid=1000,gid=1000 --group-add keep-groups \
         --device /dev/kfd --device /dev/dri --device /dev/accel/accel0 --ulimit memlock=-1 \
         -v "$HOME/models:/models:ro" \

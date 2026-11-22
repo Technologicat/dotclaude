@@ -1252,8 +1252,9 @@ machine that is completely stuck.
 
 ### The containers stop cleanly at shutdown
 
-There is no dedicated mechanism; systemd's ordinary shutdown covers it. m97 starts each container with
-`systemd-run --user --scope podman run -d ...`, so each container's conmon runs in its own transient
+There is no dedicated mechanism; systemd's ordinary shutdown covers it. m97, `scripts/gufo-serve` and
+`scripts/open-webui-serve` all start each container with `systemd-run --user --scope podman run -d ...`,
+so each container's conmon runs in its own transient
 `run-r….scope` under the user manager, `user@1000.service`. Lingering, needed anyway for the backup
 timer (see under "Claude Code" above), keeps the user manager running with nobody logged in. At poweroff, systemd stops the
 user manager, which stops the scopes with SIGTERM, and with SIGKILL only after the stop timeout (90 s by
@@ -1263,10 +1264,8 @@ Measured at one shutdown (2026-11-22): gufo logged `event=shutdown_requested sig
 was gone 0.4 s after the SIGTERM; Open WebUI's was gone after 2.9 s; nothing was killed. Open WebUI is the
 one with state to protect, its database in the `open-webui` volume. gufo mounts the models read-only.
 
-This was checked only for containers started by m97. `scripts/gufo-serve` and
-`scripts/open-webui-serve` run a plain `podman run -d`, so conmon stays in the cgroup of the shell that
-ran them, i.e. the login session's scope, not the user manager. That scope is also stopped with SIGTERM
-at shutdown, but nobody has checked how the containers behave on that path, or after the session logs out.
+Without `systemd-run`, podman would leave conmon in the cgroup of whoever ran `podman run`: m97's
+service, or the shell's login session. The measured shutdown above was of containers started by m97.
 
 ## NVIDIA driver
 
