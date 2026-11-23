@@ -133,6 +133,13 @@ General rules that apply across all my projects, on top of the Zen of Python.
 
   **Write the reason down either way**, because an unexplained absence is indistinguishable from an oversight and the next reader will "fix" it. (Live case 2026-08-27, Raven: a sweep that locked twelve accesses to one list. Eleven were fine and one — read once per frame from the render loop — deadlocked the app on startup, blank panels, `py-spy` pointing straight at the `with` line. The race it was added to fix was real; only the remedy was wrong.)
 
+- **When a bug is fixed, its debug instrumentation is sorted, not just deleted.** The question for each line is whether it was built for that one problem or is generic reporting that could plausibly help with problems nobody has foreseen yet.
+  - **Generic reporting stays, at DEBUG**, as ordinary logging: a lifecycle edge, a counter, whether a callback is wired, the state of a gate that can silently swallow an action.
+  - **Instrumentation specific to the problem goes** once the problem is solved — unless it was nontrivial to get right, in which case it stays at DEBUG as well.
+  - **An informal estimate is enough.** "Ninety percent sure we will not need this again" decides it; nobody needs a proof that a line will never be wanted.
+  - **The failure this prevents is instrumentation churn**, and the cost of it is not the code. The same reporting gets written a second and a third time, because the original has long since sunk into git history where nobody looks, and each rewrite risks leaving out the metric that mattered.
+  - **Drop the temporariness from what stays**: a `TEMP INSTRUMENTATION` marker on a line that has become permanent tells the next reader to delete it. (Live case 2026-11-23, Raven: April's INDEXING-indicator instrumentation was still logging at INFO seven months on, marked temporary. The commit lifecycle and the GUI's receipt of it stayed at DEBUG; the check that DPG's own `show_item` took effect went.)
+
 - **A sentence that describes a limitation is often a feature request in disguise.** Two shapes, and the second is the one that hides:
 
   - **A comment that reads like an apology.** *"X has no such parameter, so we…"*, *"there is no way to ask Y, so we keep our own copy"*, *"this is awkward because Z does not support…"*. Stop before finishing the sentence and take stock: is the prose describing a missing feature or a defect rather than a design?
