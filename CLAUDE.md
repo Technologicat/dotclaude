@@ -135,7 +135,7 @@ General rules that apply across all my projects, on top of the Zen of Python.
 
 - **When a bug is fixed, its debug instrumentation is sorted, not just deleted.** Two axes decide each line:
   - **The main one: built for that one problem, or generic reporting** that could plausibly help with problems nobody has foreseen yet. Generic stays, at DEBUG, as ordinary logging — a lifecycle edge, a counter, whether a callback is wired, the state of a gate that can silently swallow an action. Specific goes once the problem is solved.
-  - **The secondary one: how nontrivial it was to get right.** That can keep a specific line the main axis would drop, at DEBUG as well, since rewriting it is where the cost would be.
+  - **The secondary one: how nontrivial it was to get right.** That can keep a specific line the main axis would drop, at DEBUG as well, since rewriting it correctly is where the cost would be.
   - **An informal estimate is enough.** "Ninety percent sure we will not need this again" decides it; nobody needs a proof that a line will never be wanted.
   - **The failure this prevents is instrumentation churn**, and the cost of it is not the code. The same reporting gets written a second and a third time, because the original has long since sunk into git history where nobody looks, and each rewrite risks leaving out the metric that mattered.
   - **Drop the temporariness from what stays**: a `TEMP INSTRUMENTATION` marker on a line that has become permanent tells the next reader to delete it. (Live case 2026-11-23, Raven: April's INDEXING-indicator instrumentation was still logging at INFO seven months on, marked temporary. The commit lifecycle and the GUI's receipt of it stayed at DEBUG; the check that DPG's own `show_item` took effect went.)
