@@ -69,6 +69,7 @@ PROJECTS=(
     "raven                  raven"
     "chandra                chandra"
     "m97                    m97"
+    "grimoire               grimoire"
     "substrate-independent  substrate-independent"
 )
 
