@@ -11,6 +11,9 @@
 # http://<this machine>:3000. Open WebUI has its own logins (the first account created is the admin), but
 # the gufo server behind it has none: see gufo-serve.
 #
+# Host folders for Open WebUI's plugins are mounted read-only from m97's list, `[openwebui] mounts` in
+# ~/.config/m97/settings.toml, so the two launchers of this container agree; a missing host path is skipped.
+#
 # All state lives in the podman volume `open-webui`, so upgrading means changing OWUI_IMAGE below.
 # That includes the session signing key: by default Open WebUI writes it to its working directory,
 # outside the volume, and a fresh container would generate a new one and log everyone out.
@@ -52,6 +55,34 @@ remove() {
     podman rm -f "$NAME" >/dev/null 2>&1 || true
 }
 
+# The `-v` arguments for m97's `[openwebui] mounts`, NUL-separated, each `"host:container"` mounted
+# read-only with `~` expanded in the host path. Same rules as m97: split at the last colon, and a host path
+# that does not exist is skipped with a warning, since podman would refuse to start the container. Nothing
+# if the file or the key is absent.
+mount_args() {
+    local settings="$HOME/.config/m97/settings.toml"
+    [ -f "$settings" ] || return 0
+    python3 - "$settings" <<'PYEOF'
+import os, sys
+try:
+    import tomllib
+except ImportError:
+    sys.exit(f"open-webui-serve: warning: python3 has no tomllib (needs 3.11+); {sys.argv[1]} not read, no mounts")
+with open(sys.argv[1], "rb") as f:
+    specs = tomllib.load(f).get("openwebui", {}).get("mounts", [])
+for spec in specs:
+    host, _, inside = spec.rpartition(":")
+    if not host or not inside:
+        print(f"open-webui-serve: warning: mount `{spec}` is not of the form host:container; not mounted", file=sys.stderr)
+        continue
+    host = os.path.expanduser(host)
+    if not os.path.exists(host):
+        print(f"open-webui-serve: warning: mount `{spec}`: {host} does not exist; not mounted", file=sys.stderr)
+        continue
+    sys.stdout.write(f"-v\0{host}:{inside}:ro\0")
+PYEOF
+}
+
 # Seconds since boot. A monotonic clock: bash's $SECONDS follows the wall clock, and a clock jump
 # right after boot (network time sync) once made gufo-serve's wait give up at once.
 now() {
@@ -80,6 +111,8 @@ start() {
     fi
     # Ctrl+C while waiting for startup stops and removes the container rather than leaving it half-started.
     trap 'echo; echo "open-webui-serve: interrupted; stopping the container" >&2; remove; exit 130' INT TERM
+    local mounts=()
+    mapfile -d '' mounts < <(mount_args)
     # The key in OPENAI_API_KEY is a placeholder: gufo takes no key, but Open WebUI wants a non-empty one.
     in_own_scope podman run -d --name "$NAME" --network host \
         -v open-webui:/app/backend/data \
@@ -87,6 +120,7 @@ start() {
         -e WEBUI_SECRET_KEY_FILE=/app/backend/data/.webui_secret_key \
         -e OPENAI_API_BASE_URL="$GUFO_URL" -e OPENAI_API_KEY=none \
         -e ENABLE_OLLAMA_API=false \
+        "${mounts[@]}" \
         "$OWUI_IMAGE" >/dev/null || exit 1
 
     echo "open-webui-serve: starting..."
