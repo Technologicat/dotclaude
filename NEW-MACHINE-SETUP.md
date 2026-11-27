@@ -666,12 +666,20 @@ ln -s ~/.claude/scripts/open-webui-serve ~/.local/bin/open-webui-serve
 ln -s ~/.claude/scripts/powerlog.py ~/.local/bin/powerlog
 ```
 
+On a machine with LM Studio and an NVIDIA GPU, `lms-fit`, which finds how much of a model fits on the GPU. It is
+Node, on LM Studio's SDK, so its folder needs an `npm ci` first:
+
+```bash
+npm ci --prefix ~/.claude/scripts/lms-fit
+ln -s ~/.claude/scripts/lms-fit/lms-fit.mjs ~/.local/bin/lms-fit
+```
+
 The `api-inventory`, `cc-context`, `cc-log-extract` and `powerlog` symlinks drop the `.py` because that is the name the docs invoke: without it, every documented `api-inventory …` line is a command not found, and the agent that typed it gets an empty result rather than an error it can act on.
 
 **Which scripts get a symlink is decided by how they are invoked**, not by being in `scripts/`:
 
 - **Typed as a bare command by an agent**, because `CLAUDE.md` or a skill says to: `em`, `api-inventory`, `cc-toast`, `ci-watch`, `cc-context`, `cc-log-extract`. A missing symlink surfaces as a command not found in the middle of unrelated work.
-- **Typed by a human:** `fleet-pull` on sitting down at a machine; `nvidia-underclock` and `cpu-powercap` before a long run, to trade speed for fan noise; and on the AI server, `gufo-serve`, `open-webui-serve` and `powerlog`. `nvidia-underclock` and `cpu-powercap` take `enable` (the default) or `disable` and need sudo. `nvidia-underclock`'s clocks are tuned for specific hardware, and its header says which; `cpu-powercap`'s `disable` restores whatever limits its first `enable` found, so it carries over between machines as is. `cpu-powercap watch` shows the measured package power, to check that a cap holds.
+- **Typed by a human:** `fleet-pull` on sitting down at a machine; `nvidia-underclock` and `cpu-powercap` before a long run, to trade speed for fan noise; on the AI server, `gufo-serve`, `open-webui-serve` and `powerlog`; and `lms-fit` when choosing a model's GPU offload for LM Studio, whose results go in `HARDWARE-NOTES.md`. `nvidia-underclock` and `cpu-powercap` take `enable` (the default) or `disable` and need sudo. `nvidia-underclock`'s clocks are tuned for specific hardware, and its header says which; `cpu-powercap`'s `disable` restores whatever limits its first `enable` found, so it carries over between machines as is. `cpu-powercap watch` shows the measured package power, to check that a cap holds.
 - **Named by path wherever they appear**, so no symlink: `build-webchat.py`, `check-move.py`, `check-prose.py`, `fleet-pull-selftest.sh`, and `run-on-internal-gpu.sh`, which is `source`d and needs a path regardless.
 
 **A machine set up before a script existed will be missing its symlink, silently**: the list grows, and nothing re-runs this section on a machine that is already up. So when adding a script here, check every machine:

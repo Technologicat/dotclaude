@@ -1,0 +1,11 @@
+{
+  "name": "lms-fit",
+  "private": true,
+  "description": "Find how much of a model fits on the GPU in LM Studio, by loading it and generating.",
+  "license": "BSD-2-Clause",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@lmstudio/sdk": "2.1.0"
+  }
+}
