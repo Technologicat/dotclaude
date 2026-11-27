@@ -11,6 +11,14 @@
 //   --knob layers   the number of layers on the GPU, upward (a dense model)
 //   --knob experts  every layer on the GPU, and the number of layers whose expert blocks stay in RAM, downward (a MoE)
 //
+// Columns: the context; the knob's value; what llama-server was started with (`ngl` layers on the GPU, or
+// `n-cpu-moe` expert layers in RAM), which should equal the knob; VRAM in use/total per GPU, by nvidia-smi's
+// index, which need not be LM Studio's device id; the generation's speed and time to first token; the result.
+//
+// Install, once per machine:
+//   npm ci --prefix ~/.claude/scripts/lms-fit
+//   ln -s ~/.claude/scripts/lms-fit/lms-fit.mjs ~/.local/bin/lms-fit
+//
 // A point fits only if the generation completes. A load can succeed and the first generation still die, near
 // the edge (measured on a 16 GB card, 2026-11-27: ~450 MiB free or less), so a load alone proves nothing.
 //
