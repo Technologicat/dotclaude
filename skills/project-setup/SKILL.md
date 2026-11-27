@@ -37,6 +37,17 @@ Standard flow:
 Per-project CLAUDE.md should note the target Python version and any
 project-specific setup (editable entry points, pre-commit hooks, etc.).
 
+**Lay the code out as a package from the first commit**, `<project>/` with an
+`__init__.py` and relative imports between its modules, even for a project that
+starts as a few scripts or isn't meant to be distributed yet. The maintainer does
+this by habit, which is why it went unsaid. A project that starts with loose
+top-level modules installs them top-level the day it gets a console script, where
+generic names (`ledger`, `expand`) can collide in a shared environment, and turning
+it into a package afterwards means touching every import, and every copy of a
+module that other parts of the project carry. (Live case, grimoire, 2026-11-27: its
+shared modules began as a flat `lib/`, and became a package only after three ports
+had copies of them.)
+
 ---
 
 ## Cython / meson-python
