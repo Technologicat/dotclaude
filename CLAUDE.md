@@ -552,8 +552,8 @@ those words.
   there", "unrelated to my diff". A report about code inside your own diff *reads* as a report about your
   work, so a rebuttal is what comes to mind first; nothing in the message asked for one.
 - Same family as *The Turn-Taking Failure That Isn't* in `substrate-independent`'s `field-observations.md`,
-  where the reflex reading is that an interruption is a failure of protocol and it is not. Both are the human using
-  the channel exactly as it should be used, and both get met with a defence.
+  where the reflex reading is that an interruption is a failure of protocol and it is not. Both are a human working at
+  machine speed, reporting what they saw rather than assigning blame, and both get met with a defence.
 
 (Live case 2026-09-18, Raven: a stray blank line flagged by flake8 in a file the diff touched elsewhere,
 reported as "unrelated to my diff … left alone" — with a real reason attached, a sweep being scheduled for
