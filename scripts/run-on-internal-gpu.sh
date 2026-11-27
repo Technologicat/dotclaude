@@ -28,6 +28,8 @@
 if ! command -v nvidia-smi > /dev/null; then
     # Not an NVIDIA machine (an AMD GPU, say): there is no eGPU arrangement for this script to handle.
     echo "run-on-internal-gpu.sh: no NVIDIA GPU; nothing to do."
+    # `return` ends a sourced script; executed, it fails, and `exit` ends it instead.
+    # shellcheck disable=SC2317
     return 0 2>/dev/null || exit 0
 fi
 
